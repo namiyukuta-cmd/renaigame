@@ -80,7 +80,7 @@
     ]
   },
   "story": "数日後。\n\nCaleb Wardから返事が届いた。\n\nJanuary 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb",
-  "playerText": "",
+  "playerText": "January, 22th, 2023\n\nDear. Mr. Caleb Ward.\n\nHello.\nThank you for your reply.\nI rely on automatic translation. The translation may be strange. Please forgive me.\nI'm glad you didn't feel cold.\nAs for rabbits, I kept rabbits at home when I was in elementary school.\nIt is a warm, fluffy, smart, and very healing animal.\n\nI would be happy if I could do that too.\n\nBut I don't really like carrots.\n\nDo you have any likes or dislikes?\n\nI'm waiting for your reply.\n\nBuchi Usagi.",
   "history": [
     {
       "type": "player",
@@ -119,9 +119,10 @@
     ]
   },
   "createdAt": "2026-08-30T11:54:06.700Z",
-  "updatedAt": "2026-08-30T12:12:00.000Z",
+  "updatedAt": "2026-08-30T12:42:50.375Z",
   "save": {
     "slot": 1,
-    "savedAt": "2026-08-30T12:01:27.866Z"
-  }
+    "savedAt": "2026-08-30T12:42:50.375Z"
+  },
+  "sessionId": "2026-08-30T11:54:06.700Z"
 }

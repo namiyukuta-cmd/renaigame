@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "game": "prison",
+  "slot": 1,
+  "updatedAt": "2026-08-30T12:12:00.000Z",
+  "sessions": [
+    {
+      "sessionId": "2026-08-30T11:54:06.700Z",
+      "startedAt": "2026-08-30T11:54:06.700Z",
+      "updatedAt": "2026-08-30T12:12:00.000Z",
+      "partner": {
+        "id": "char_001",
+        "name": "Caleb Ward"
+      },
+      "progress": {
+        "stage": "文通 1通目",
+        "scene": 1
+      },
+      "romance": {
+        "stage": 1,
+        "stageName": "興味",
+        "romanceScore": 12,
+        "trust": 1,
+        "attachment": 0,
+        "romanticAwareness": 0,
+        "jealousy": 0,
+        "vulnerability": 0,
+        "futureThinking": 0,
+        "lastChangeReason": "最初の手紙が実際に届いたことへの驚きと、主人公の自己紹介・ウサギという個人的な話題への興味が生まれた",
+        "lastProgress": "主人公のプロフィール内容を覚え、ウサギについて自分から質問した"
+      },
+      "letters": [
+        {
+          "type": "player",
+          "direction": "outgoing",
+          "number": 1,
+          "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+          "time": "2026-08-30T12:01:21.849Z"
+        },
+        {
+          "type": "partner",
+          "direction": "incoming",
+          "number": 1,
+          "characterId": "char_001",
+          "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb",
+          "segments": [
+            {"en": "January 16, 2023", "ja": "2023年1月16日"},
+            {"en": "Buchi Usagi,", "ja": "ぶちうさぎへ。"},
+            {"en": "Thanks for writing.", "ja": "手紙をありがとう。"},
+            {"en": "I wasn't sure anyone would actually pick my profile, so your letter was a surprise.", "ja": "本当に誰かが俺のプロフィールを選ぶとは思っていなかったから、君の手紙には驚いた。"},
+            {"en": "\"Buchi Usagi\" is a strange name, but all right. I'll use it.", "ja": "「ぶちうさぎ」って変わった名前だな。でもいい。そう呼ぶよ。"},
+            {"en": "We have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.", "ja": "ここには暖房はある。日によって効きがいい時と悪い時がある。毛布とスウェットシャツもあるから、凍えるほどじゃない。"},
+            {"en": "You said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.", "ja": "留学生で、英語を勉強しているって書いてたな。手紙の内容はちゃんと分かった。全部正しく書こうとしすぎなくていい。"},
+            {"en": "Why rabbits?", "ja": "どうしてウサギなんだ？"},
+            {"en": "Caleb", "ja": "ケイレブ"}
+          ]
+        }
+      ],
+      "history": [
+        {
+          "type": "player",
+          "number": 1,
+          "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+          "time": "2026-08-30T12:01:21.849Z"
+        },
+        {
+          "type": "partner",
+          "number": 1,
+          "characterId": "char_001",
+          "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb"
+        }
+      ]
+    }
+  ]
+}

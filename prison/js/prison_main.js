@@ -1,13 +1,8 @@
 (() => {
   "use strict";
 
-  if (!window.RenaiGame) {
-    throw new Error("renaigame_common.js を先に読み込んでください。");
-  }
-
-  if (!window.PrisonGame) {
-    throw new Error("prison_common.js を先に読み込んでください。");
-  }
+  if (!window.RenaiGame) throw new Error("renaigame_common.js を先に読み込んでください。");
+  if (!window.PrisonGame) throw new Error("prison_common.js を先に読み込んでください。");
 
   const AI_CONTEXT_FILES = [
     "js/renaigame_romance_rules.js",
@@ -18,9 +13,7 @@
   let gameData = null;
   let messageTimer = null;
 
-  function byId(id) {
-    return document.getElementById(id);
-  }
+  function byId(id) { return document.getElementById(id); }
 
   function createDefaultRomanceState() {
     return {
@@ -39,61 +32,26 @@
   }
 
   function ensureBilingualStoryStyles() {
-    if (document.getElementById("prisonBilingualStoryStyles")) {
-      return;
-    }
-
+    if (document.getElementById("prisonBilingualStoryStyles")) return;
     const style = document.createElement("style");
     style.id = "prisonBilingualStoryStyles";
     style.textContent = `
-      .story-text.bilingual-letter {
-        white-space: normal;
-      }
-
-      .letter-intro {
-        display: block;
-        margin: 0 0 1em;
-        white-space: pre-wrap;
-      }
-
-      .letter-pair {
-        display: block;
-        margin: 0 0 1em;
-      }
-
-      .letter-pair:last-child {
-        margin-bottom: 0;
-      }
-
-      .letter-en,
-      .letter-ja {
-        display: block;
-        margin: 0;
-        line-height: 1.45;
-      }
-
-      .letter-ja {
-        margin-top: 2px;
-      }
+      .story-text.bilingual-letter { white-space: normal; }
+      .letter-intro { display:block; margin:0 0 1em; white-space:pre-wrap; }
+      .letter-pair { display:block; margin:0 0 1em; }
+      .letter-pair:last-child { margin-bottom:0; }
+      .letter-en,.letter-ja { display:block; margin:0; line-height:1.45; }
+      .letter-ja { margin-top:2px; }
     `;
-
     document.head.appendChild(style);
   }
 
   function prepareGameData() {
     gameData = PrisonGame.state.loadCurrent();
-
-    if (!gameData) {
-      gameData = PrisonGame.state.startNew();
-    }
-
+    if (!gameData) gameData = PrisonGame.state.startNew();
     if (!gameData.romance) {
-      gameData = PrisonGame.state.saveCurrent({
-        ...gameData,
-        romance: createDefaultRomanceState()
-      });
+      gameData = PrisonGame.state.saveCurrent({ ...gameData, romance: createDefaultRomanceState() });
     }
-
     if (
       window.PrisonCharacter001 &&
       (!gameData.partner?.id || gameData.partner.id === window.PrisonCharacter001.id)
@@ -106,13 +64,9 @@
     const letters = Array.isArray(gameData?.correspondence?.letters)
       ? gameData.correspondence.letters
       : [];
-
     for (let index = letters.length - 1; index >= 0; index -= 1) {
-      if (letters[index]?.type === "partner") {
-        return letters[index];
-      }
+      if (letters[index]?.type === "partner") return letters[index];
     }
-
     return null;
   }
 
@@ -122,11 +76,9 @@
     const segments = Array.isArray(latestPartnerLetter?.segments)
       ? latestPartnerLetter.segments
       : [];
-    const canShowBilingualReply =
-      gameData?.aiRequest?.status !== "waiting" && segments.length > 0;
+    const canShowBilingualReply = gameData?.aiRequest?.status !== "waiting" && segments.length > 0;
 
     storyElement.replaceChildren();
-
     if (!canShowBilingualReply) {
       storyElement.classList.remove("bilingual-letter");
       storyElement.textContent = gameData?.story || "まだ物語は始まっていません。";
@@ -134,7 +86,6 @@
     }
 
     storyElement.classList.add("bilingual-letter");
-
     const intro = document.createElement("span");
     intro.className = "letter-intro";
     intro.textContent = `数日後。\n\n${gameData?.partner?.name || "相手"}から返事が届いた。`;
@@ -143,15 +94,12 @@
     segments.forEach(segment => {
       const pair = document.createElement("span");
       pair.className = "letter-pair";
-
       const english = document.createElement("span");
       english.className = "letter-en";
       english.textContent = String(segment?.en || "");
-
       const japanese = document.createElement("span");
       japanese.className = "letter-ja";
       japanese.textContent = String(segment?.ja || "");
-
       pair.append(english, japanese);
       storyElement.appendChild(pair);
     });
@@ -167,14 +115,11 @@
   function addProfileRow(container, label, value) {
     const row = document.createElement("div");
     row.className = "profile-row";
-
     const labelElement = document.createElement("div");
     labelElement.className = "profile-label";
     labelElement.textContent = label;
-
     const valueElement = document.createElement("div");
     valueElement.textContent = value || "—";
-
     row.append(labelElement, valueElement);
     container.appendChild(row);
   }
@@ -182,14 +127,11 @@
   function renderProfile() {
     const container = byId("profileContent");
     const profile = window.PrisonCharacter001?.publicProfile;
-
     container.replaceChildren();
-
     if (!profile) {
       container.textContent = "プロフィールがありません。";
       return;
     }
-
     addProfileRow(container, "名前", profile.name);
     addProfileRow(container, "年齢", `${profile.age}歳`);
     addProfileRow(container, "服役前の仕事", profile.formerOccupation);
@@ -197,58 +139,31 @@
     addProfileRow(container, "刑期", profile.sentence);
     addProfileRow(container, "服役", `${profile.yearsServed}目`);
     addProfileRow(container, "好きなもの", profile.likes.join("、"));
-
     const introduction = document.createElement("p");
     introduction.className = "profile-introduction";
     introduction.textContent = profile.introduction;
     container.appendChild(introduction);
   }
 
-  function openProfileWindow() {
-    renderProfile();
-    byId("profileOverlay").classList.add("show");
-  }
-
-  function closeProfileWindow() {
-    byId("profileOverlay").classList.remove("show");
-  }
-
-  function openWriteLetterPage() {
-    location.href = "prison_write.html";
-  }
+  function openProfileWindow() { renderProfile(); byId("profileOverlay").classList.add("show"); }
+  function closeProfileWindow() { byId("profileOverlay").classList.remove("show"); }
+  function openWriteLetterPage() { location.href = "prison_write.html"; }
 
   function submitPlayerText() {
     const input = byId("playerInput");
     const text = input.value.trim();
-
-    if (!text) {
-      showMessage("入力してください。");
-      return;
-    }
-
-    if (gameData?.aiRequest?.status === "waiting") {
-      showMessage("Calebからの返事を待っています。");
-      return;
-    }
+    if (!text) { showMessage("入力してください。"); return; }
+    if (gameData?.aiRequest?.status === "waiting") { showMessage("Calebからの返事を待っています。"); return; }
 
     const letterNumber = Number(gameData.correspondence?.count || 0) + 1;
     const now = RenaiGame.util.nowIso();
 
     gameData = PrisonGame.state.addCorrespondenceLetter(gameData, {
-      type: "player",
-      direction: "outgoing",
-      number: letterNumber,
-      text,
-      time: now
+      type: "player", direction: "outgoing", number: letterNumber, text, time: now
     });
-
     gameData = PrisonGame.state.addHistory(gameData, {
-      type: "player",
-      number: letterNumber,
-      text,
-      time: now
+      type: "player", number: letterNumber, text, time: now
     });
-
     gameData = PrisonGame.state.saveCurrent({
       ...gameData,
       romance: gameData.romance || createDefaultRomanceState(),
@@ -287,24 +202,17 @@
       ].join("\n"),
       playerText: ""
     });
-
     renderGame();
     byId("storyText").parentElement.scrollTop = 0;
     showMessage("手紙を記録しました。次にセーブしてください。");
   }
 
-  function openSaveWindow() {
-    byId("saveOverlay").classList.add("show");
-  }
-
-  function closeSaveWindow() {
-    byId("saveOverlay").classList.remove("show");
-  }
+  function openSaveWindow() { byId("saveOverlay").classList.add("show"); }
+  function closeSaveWindow() { byId("saveOverlay").classList.remove("show"); }
 
   async function saveGame(slotNumber) {
     const inputText = byId("playerInput").value;
     gameData = PrisonGame.state.setPlayerText(gameData, inputText);
-
     try {
       gameData = await PrisonGame.saves.save(slotNumber, gameData);
       closeSaveWindow();
@@ -316,23 +224,14 @@
   }
 
   function returnTop() {
-    if (!window.confirm("PRISONのTOPへ戻りますか？")) {
-      return;
-    }
-
-    location.href = "prison.html";
+    window.location.assign("prison.html");
   }
 
   function showMessage(text) {
     const message = byId("message");
-
-    if (messageTimer) {
-      clearTimeout(messageTimer);
-    }
-
+    if (messageTimer) clearTimeout(messageTimer);
     message.textContent = String(text || "");
     message.classList.add("show");
-
     messageTimer = setTimeout(() => {
       message.classList.remove("show");
       messageTimer = null;
@@ -349,21 +248,14 @@
     byId("closeSaveButton").addEventListener("click", closeSaveWindow);
 
     document.querySelectorAll("[data-save-slot]").forEach(button => {
-      button.addEventListener("click", () => {
-        saveGame(Number(button.dataset.saveSlot));
-      });
+      button.addEventListener("click", () => saveGame(Number(button.dataset.saveSlot)));
     });
 
     byId("profileOverlay").addEventListener("click", event => {
-      if (event.target === byId("profileOverlay")) {
-        closeProfileWindow();
-      }
+      if (event.target === byId("profileOverlay")) closeProfileWindow();
     });
-
     byId("saveOverlay").addEventListener("click", event => {
-      if (event.target === byId("saveOverlay")) {
-        closeSaveWindow();
-      }
+      if (event.target === byId("saveOverlay")) closeSaveWindow();
     });
   }
 

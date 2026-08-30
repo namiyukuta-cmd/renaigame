@@ -37,7 +37,45 @@
         "direction": "incoming",
         "number": 1,
         "characterId": "char_001",
-        "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb"
+        "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb",
+        "segments": [
+          {
+            "en": "January 16, 2023",
+            "ja": "2023年1月16日"
+          },
+          {
+            "en": "Buchi Usagi,",
+            "ja": "ぶちうさぎへ。"
+          },
+          {
+            "en": "Thanks for writing.",
+            "ja": "手紙をありがとう。"
+          },
+          {
+            "en": "I wasn't sure anyone would actually pick my profile, so your letter was a surprise.",
+            "ja": "本当に誰かが俺のプロフィールを選ぶとは思っていなかったから、君の手紙には驚いた。"
+          },
+          {
+            "en": "\"Buchi Usagi\" is a strange name, but all right. I'll use it.",
+            "ja": "「ぶちうさぎ」って変わった名前だな。でもいい。そう呼ぶよ。"
+          },
+          {
+            "en": "We have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.",
+            "ja": "ここには暖房はある。日によって効きがいい時と悪い時がある。毛布とスウェットシャツもあるから、凍えるほどじゃない。"
+          },
+          {
+            "en": "You said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.",
+            "ja": "留学生で、英語を勉強しているって書いてたな。手紙の内容はちゃんと分かった。全部正しく書こうとしすぎなくていい。"
+          },
+          {
+            "en": "Why rabbits?",
+            "ja": "どうしてウサギなんだ？"
+          },
+          {
+            "en": "Caleb",
+            "ja": "ケイレブ"
+          }
+        ]
       }
     ]
   },
@@ -75,11 +113,13 @@
       "文通回数だけを理由に恋愛度や恋愛段階を上げない",
       "恋愛度・信頼・性格・状況から自然な場合だけ恋愛段階を進める",
       "恋愛度が上がっているのに無難な関係へ意図的に薄めない",
-      "返答本文とromance状態を一致させる"
+      "返答本文とromance状態を一致させる",
+      "Calebの返事は英語で書き、自然な切れ目ごとに日本語訳を付ける",
+      "partner返答に segments: [{en, ja}] を保存し、英文の直下に日本語訳を表示できるようにする"
     ]
   },
   "createdAt": "2026-08-30T11:54:06.700Z",
-  "updatedAt": "2026-08-30T12:07:00.000Z",
+  "updatedAt": "2026-08-30T12:12:00.000Z",
   "save": {
     "slot": 1,
     "savedAt": "2026-08-30T12:01:27.866Z"

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <title>PRISON</title>
 
@@ -11,12 +11,18 @@
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
-      min-height: 100vh;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
 
+    body {
       background: #eeeeea;
       color: #252525;
+      overscroll-behavior: none;
 
       font-family:
         -apple-system,
@@ -35,9 +41,15 @@
     .page {
       width: 100%;
       max-width: 600px;
-      min-height: 100vh;
+      height: 100dvh;
       margin: 0 auto;
-      padding: 18px 16px 100px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+      gap: 8px;
+
+      overflow: hidden;
     }
 
     /* 上部 */
@@ -46,22 +58,23 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-
-      margin-bottom: 18px;
+      gap: 8px;
+      min-width: 0;
     }
 
     .title {
       margin: 0;
 
       font-family: Georgia, "Times New Roman", serif;
-      font-size: 25px;
+      font-size: 23px;
+      line-height: 1.1;
       letter-spacing: 0.08em;
     }
 
     .top-button {
-      min-height: 48px;
-      padding: 10px 16px;
+      min-width: 64px;
+      min-height: 44px;
+      padding: 7px 12px;
 
       border: 1px solid #aaa;
       border-radius: 9px;
@@ -80,19 +93,30 @@
     /* 状態欄 */
 
     .status-box {
-      margin-bottom: 18px;
-      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+
+      padding: 8px 10px;
 
       background: #e3e3df;
-      border-radius: 10px;
+      border-radius: 9px;
 
       font-size: 17px;
-      line-height: 1.6;
+      line-height: 1.3;
     }
 
     .status-row {
       display: flex;
-      gap: 8px;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .status-row span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .status-label {
@@ -100,54 +124,65 @@
       flex-shrink: 0;
     }
 
-    /* 物語 */
+    /* 物語：ここだけ縦スクロール */
 
     .story-box {
-      min-height: 320px;
-      padding: 20px;
+      min-height: 0;
+      padding: 14px 15px;
 
       background: #fff;
       border: 1px solid #bbb;
-      border-radius: 12px;
+      border-radius: 10px;
+
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .story-text {
       margin: 0;
 
       font-size: 18px;
-      line-height: 1.85;
+      line-height: 1.55;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
     /* 主人公入力 */
 
     .player-area {
-      margin-top: 18px;
+      min-height: 0;
     }
 
     .player-label {
       display: block;
-      margin-bottom: 8px;
+      margin: 0 0 4px;
 
       font-size: 17px;
+      line-height: 1.2;
       font-weight: 700;
     }
 
     .player-input {
+      display: block;
       width: 100%;
-      min-height: 110px;
-      padding: 14px;
+      height: 82px;
+      min-height: 82px;
+      max-height: 82px;
+      padding: 10px 12px;
 
       border: 1px solid #aaa;
-      border-radius: 10px;
+      border-radius: 9px;
 
       background: #fff;
       color: #222;
 
       font-size: 18px;
-      line-height: 1.6;
+      line-height: 1.45;
 
-      resize: vertical;
+      resize: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* 下ボタン */
@@ -155,17 +190,15 @@
     .bottom-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-
-      margin-top: 16px;
+      gap: 8px;
     }
 
     .action-button {
-      min-height: 60px;
-      padding: 14px;
+      min-height: 52px;
+      padding: 10px 12px;
 
       border: none;
-      border-radius: 10px;
+      border-radius: 9px;
 
       background: #333;
       color: #fff;
@@ -193,7 +226,7 @@
       inset: 0;
       z-index: 100;
 
-      padding: 20px;
+      padding: 16px;
 
       background: rgba(0, 0, 0, 0.55);
 
@@ -208,32 +241,35 @@
     .save-window {
       width: 100%;
       max-width: 460px;
-      padding: 20px;
+      max-height: calc(100dvh - 32px);
+      padding: 16px;
 
       background: #f2f2ee;
-      border-radius: 14px;
+      border-radius: 12px;
+
+      overflow-y: auto;
     }
 
     .save-window h2 {
-      margin: 0 0 20px;
+      margin: 0 0 12px;
 
       text-align: center;
-      font-size: 24px;
+      font-size: 22px;
     }
 
     .save-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     .save-slot {
       width: 100%;
-      min-height: 68px;
-      padding: 14px 18px;
+      min-height: 56px;
+      padding: 10px 14px;
 
       border: 1px solid #aaa;
-      border-radius: 10px;
+      border-radius: 9px;
 
       background: #fff;
       color: #222;
@@ -250,11 +286,11 @@
 
     .close-button {
       width: 100%;
-      min-height: 54px;
-      margin-top: 18px;
+      min-height: 50px;
+      margin-top: 12px;
 
       border: none;
-      border-radius: 10px;
+      border-radius: 9px;
 
       background: #777;
       color: #fff;
@@ -272,19 +308,19 @@
 
       position: fixed;
       left: 50%;
-      bottom: 24px;
+      bottom: calc(16px + env(safe-area-inset-bottom));
       z-index: 200;
 
-      width: calc(100% - 32px);
+      width: calc(100% - 24px);
       max-width: 520px;
-      padding: 15px;
+      padding: 12px;
 
       transform: translateX(-50%);
 
       background: #222;
       color: #fff;
 
-      border-radius: 10px;
+      border-radius: 9px;
 
       text-align: center;
       font-size: 17px;
@@ -559,7 +595,7 @@
         "storyText"
       ).textContent =
         gameData.story ||
-        "まだ物語は始まっていません.";
+        "まだ物語は始まっていません。";
 
       document.getElementById(
         "playerInput"

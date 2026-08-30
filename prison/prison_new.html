@@ -2,33 +2,27 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>PRISON - はじめから</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       background: #eeeeea;
       color: #252525;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        "Hiragino Sans",
-        "Yu Gothic",
-        sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
     }
+
+    button { font-family: inherit; }
 
     .page {
       width: 100%;
       max-width: 520px;
       margin: 0 auto;
-      padding: 28px 20px 40px;
+      padding: 28px 20px calc(40px + env(safe-area-inset-bottom));
     }
 
     .back-link {
@@ -59,76 +53,141 @@
       line-height: 1.8;
     }
 
-    .story-box p:last-child {
-      margin-bottom: 0;
-    }
+    .story-box p:last-child { margin-bottom: 0; }
 
+    .profile-button,
     .next-button {
       display: flex;
       align-items: center;
       justify-content: center;
-
       width: 100%;
-      min-height: 64px;
-      margin-top: 20px;
-
-      background: #333;
-      border: none;
+      min-height: 60px;
+      margin-top: 16px;
       border-radius: 10px;
-
-      color: #fff;
       font-size: 18px;
-      text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
+      cursor: pointer;
     }
 
-    .next-button:active {
-      background: #111;
+    .profile-button {
+      background: #fff;
+      color: #222;
+      border: 1px solid #999;
+    }
+
+    .next-button {
+      min-height: 64px;
+      background: #333;
+      color: #fff;
+      border: none;
+    }
+
+    .profile-button:active { background: #ddd; }
+    .next-button:active { background: #111; }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.55);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show { display: flex; }
+
+    .modal-window {
+      width: 100%;
+      max-width: 460px;
+      max-height: calc(100dvh - 32px);
+      padding: 18px;
+      background: #f2f2ee;
+      border-radius: 12px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-window h2 {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    .profile-content {
+      display: grid;
+      gap: 8px;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .profile-row {
+      display: grid;
+      grid-template-columns: 7em minmax(0, 1fr);
+      gap: 8px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid #d2d2ce;
+    }
+
+    .profile-label {
+      color: #666;
+      font-weight: 700;
+    }
+
+    .profile-introduction {
+      margin: 6px 0 0;
+      padding: 12px;
+      background: #fff;
+      border-radius: 9px;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .close-button {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 9px;
+      background: #777;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-
   <main class="page">
-
-    <a class="back-link" href="prison.html">
-      ← PRISON
-    </a>
+    <a class="back-link" href="prison.html">← PRISON</a>
 
     <h1>はじめから</h1>
 
     <div class="story-box">
-
-      <p>
-        地域のボランティア活動に参加したある日。
-      </p>
-
-      <p>
-        あなたは、収監されている人との文通を行う
-        ボランティア活動について知った。
-      </p>
-
-      <p>
-        特別な使命感があったわけではない。
-      </p>
-
-      <p>
-        少しの慈善心と、少しの興味。
-      </p>
-
-      <p>
-        手紙を書くくらいなら、
-        やってみてもいいかもしれないと思った。
-      </p>
-
+      <p>地域のボランティア活動に参加したある日。</p>
+      <p>あなたは、収監されている人との文通を行うボランティア活動について知った。</p>
+      <p>特別な使命感があったわけではない。</p>
+      <p>少しの慈善心と、少しの興味。</p>
+      <p>手紙を書くくらいなら、やってみてもいいかもしれないと思った。</p>
     </div>
 
-    <a class="next-button" href="#">
-      次へ
-    </a>
-
+    <button id="profileButton" class="profile-button" type="button">相手プロフィールを見る</button>
+    <button id="nextButton" class="next-button" type="button">次へ</button>
   </main>
 
+  <div id="profileOverlay" class="overlay">
+    <div class="modal-window">
+      <h2>相手プロフィール</h2>
+      <div id="profileContent" class="profile-content"></div>
+      <button id="closeProfileButton" class="close-button" type="button">閉じる</button>
+    </div>
+  </div>
+
+  <script src="../js/renaigame_common.js"></script>
+  <script src="js/prison_common.js"></script>
+  <script src="js/prison_character_001.js"></script>
+  <script src="js/prison_new.js"></script>
 </body>
 </html>

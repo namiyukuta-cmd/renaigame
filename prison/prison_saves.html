@@ -1,1 +1,127 @@
-h
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRISON - セーブ</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eeeeea;
+      color: #252525;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+
+    .back-link {
+      display: inline-block;
+      min-height: 48px;
+      padding: 12px 0;
+      font-size: 17px;
+      color: #555;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin: 28px 0;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .save-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .save-slot {
+      width: 100%;
+      min-height: 88px;
+      padding: 18px;
+
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 12px;
+
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .save-title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .save-info {
+      display: block;
+      font-size: 17px;
+      line-height: 1.5;
+      color: #666;
+    }
+
+    .empty {
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+
+    <a class="back-link" href="prison.html">
+      ← PRISON
+    </a>
+
+    <h1>セーブデータ</h1>
+
+    <div class="save-list">
+
+      <button class="save-slot" type="button">
+        <span class="save-title">SAVE 001</span>
+        <span class="save-info empty">
+          セーブデータなし
+        </span>
+      </button>
+
+      <button class="save-slot" type="button">
+        <span class="save-title">SAVE 002</span>
+        <span class="save-info empty">
+          セーブデータなし
+        </span>
+      </button>
+
+      <button class="save-slot" type="button">
+        <span class="save-title">SAVE 003</span>
+        <span class="save-info empty">
+          セーブデータなし
+        </span>
+      </button>
+
+    </div>
+
+  </main>
+
+</body>
+</html>

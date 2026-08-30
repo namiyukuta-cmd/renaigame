@@ -6,27 +6,51 @@
     "name": "Caleb Ward"
   },
   "progress": {
-    "stage": "最初の手紙",
+    "stage": "文通 1通目",
     "scene": 1
   },
   "correspondence": {
-    "count": 0,
-    "letters": []
+    "count": 1,
+    "letters": [
+      {
+        "type": "player",
+        "direction": "outgoing",
+        "number": 1,
+        "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+        "time": "2026-08-30T12:01:21.849Z"
+      },
+      {
+        "type": "partner",
+        "direction": "incoming",
+        "number": 1,
+        "characterId": "char_001",
+        "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb"
+      }
+    ]
   },
-  "story": "Caleb Wardへの最初の手紙を書く。",
-  "playerText": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+  "story": "数日後。\n\nCaleb Wardから返事が届いた。\n\nJanuary 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb",
+  "playerText": "",
   "history": [
     {
       "type": "player",
+      "number": 1,
       "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
       "time": "2026-08-30T12:01:21.849Z"
     },
     {
-      "type": "player",
-      "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
-      "time": "2026-08-30T12:01:25.450Z"
+      "type": "partner",
+      "number": 1,
+      "characterId": "char_001",
+      "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb"
     }
   ],
+  "aiRequest": {
+    "status": "completed",
+    "type": "prison_letter_reply",
+    "characterId": "char_001",
+    "letterNumber": 1,
+    "playerLetter": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?"
+  },
   "createdAt": "2026-08-30T11:54:06.700Z",
   "updatedAt": "2026-08-30T12:01:27.866Z",
   "save": {

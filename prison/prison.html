@@ -2,10 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>PRISON</title>
 
   <style>
@@ -17,14 +14,12 @@
     body {
       margin: 0;
       width: 100%;
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
     }
 
     body {
       background: #eeeeea;
       color: #252525;
-      overscroll-behavior: none;
       font-family:
         -apple-system,
         BlinkMacSystemFont,
@@ -34,518 +29,80 @@
         sans-serif;
     }
 
-    button,
-    textarea {
-      font-family: inherit;
-    }
-
     .page {
       width: 100%;
       max-width: 600px;
-      height: 100dvh;
+      min-height: 100dvh;
       margin: 0 auto;
-      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .top-bar {
+      padding: 28px 18px calc(24px + env(safe-area-inset-bottom));
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .title {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 23px;
-      line-height: 1.1;
-      letter-spacing: 0.08em;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .top-button {
-      min-height: 44px;
-      padding: 7px 10px;
-      border: 1px solid #aaa;
-      border-radius: 9px;
-      background: #fff;
-      color: #222;
-      font-size: 17px;
-      cursor: pointer;
-    }
-
-    .top-button:active {
-      background: #ddd;
-    }
-
-    .status-box {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 8px;
-      padding: 8px 10px;
-      background: #e3e3df;
-      border-radius: 9px;
-      font-size: 17px;
-      line-height: 1.3;
-    }
-
-    .status-row {
-      display: flex;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .status-row span:last-child {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .status-label {
-      color: #666;
-      flex-shrink: 0;
-    }
-
-    .story-box {
-      min-height: 0;
-      padding: 14px 15px;
-      background: #fff;
-      border: 1px solid #bbb;
-      border-radius: 10px;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .story-text {
-      margin: 0;
-      font-size: 18px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .player-area {
-      min-height: 0;
-    }
-
-    .player-label {
-      display: block;
-      margin: 0 0 4px;
-      font-size: 17px;
-      line-height: 1.2;
-      font-weight: 700;
-    }
-
-    .player-input {
-      display: block;
-      width: 100%;
-      height: 82px;
-      min-height: 82px;
-      max-height: 82px;
-      padding: 10px 12px;
-      border: 1px solid #aaa;
-      border-radius: 9px;
-      background: #fff;
-      color: #222;
-      font-size: 18px;
-      line-height: 1.45;
-      resize: none;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .bottom-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .action-button {
-      min-height: 52px;
-      padding: 8px 6px;
-      border: none;
-      border-radius: 9px;
-      background: #333;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .action-button.secondary {
-      background: #777;
-    }
-
-    .action-button:active {
-      opacity: 0.8;
-    }
-
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      padding: 16px;
-      background: rgba(0, 0, 0, 0.55);
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
     }
 
-    .overlay.show {
-      display: flex;
-    }
-
-    .modal-window {
-      width: 100%;
-      max-width: 460px;
-      max-height: calc(100dvh - 32px);
-      padding: 16px;
-      background: #f2f2ee;
-      border-radius: 12px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .modal-window h2 {
-      margin: 0 0 12px;
+    .title {
+      margin: 0 0 8px;
       text-align: center;
-      font-size: 22px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 38px;
+      letter-spacing: 0.1em;
     }
 
-    .save-list {
+    .subtitle {
+      margin: 0 0 34px;
+      text-align: center;
+      font-size: 17px;
+      line-height: 1.6;
+      color: #666;
+    }
+
+    .menu {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 14px;
     }
 
-    .save-slot {
+    .menu-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      min-height: 56px;
-      padding: 10px 14px;
+      min-height: 64px;
+      padding: 12px 16px;
       border: 1px solid #aaa;
-      border-radius: 9px;
+      border-radius: 10px;
       background: #fff;
       color: #222;
-      text-align: left;
-      font-size: 18px;
-      cursor: pointer;
+      text-decoration: none;
+      font-size: 19px;
+      font-weight: 700;
     }
 
-    .save-slot:active {
+    .menu-button:active {
       background: #ddd;
     }
 
-    .profile-content {
-      display: grid;
-      gap: 8px;
-      font-size: 17px;
-      line-height: 1.45;
-    }
-
-    .profile-row {
-      display: grid;
-      grid-template-columns: 7em minmax(0, 1fr);
-      gap: 8px;
-      padding-bottom: 7px;
-      border-bottom: 1px solid #d2d2ce;
-    }
-
-    .profile-label {
-      color: #666;
-      font-weight: 700;
-    }
-
-    .profile-introduction {
-      margin: 4px 0 0;
-      padding: 10px 12px;
-      background: #fff;
-      border-radius: 9px;
-      font-size: 17px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-    }
-
-    .close-button {
-      width: 100%;
-      min-height: 50px;
-      margin-top: 12px;
-      border: none;
-      border-radius: 9px;
+    .back-button {
+      margin-top: 22px;
       background: #777;
       color: #fff;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .message {
-      display: none;
-      position: fixed;
-      left: 50%;
-      bottom: calc(16px + env(safe-area-inset-bottom));
-      z-index: 200;
-      width: calc(100% - 24px);
-      max-width: 520px;
-      padding: 12px;
-      transform: translateX(-50%);
-      background: #222;
-      color: #fff;
-      border-radius: 9px;
-      text-align: center;
-      font-size: 17px;
-    }
-
-    .message.show {
-      display: block;
+      border-color: #777;
     }
   </style>
 </head>
-
 <body>
-
   <main class="page">
+    <h1 class="title">PRISON</h1>
 
-    <div class="top-bar">
+    <p class="subtitle">
+      収監中の男性との文通から始まる物語
+    </p>
 
-      <h1 class="title">
-        PRISON
-      </h1>
-
-      <div class="top-actions">
-
-        <button
-          id="profileButton"
-          class="top-button"
-          type="button"
-        >
-          プロフィール
-        </button>
-
-        <button
-          id="topButton"
-          class="top-button"
-          type="button"
-        >
-          TOP
-        </button>
-
-      </div>
-
+    <div class="menu">
+      <a class="menu-button" href="prison_new.html">はじめから</a>
+      <a class="menu-button" href="prison_saves.html">続きから</a>
+      <a class="menu-button back-button" href="../index.html">恋愛ゲーム一覧へ戻る</a>
     </div>
-
-
-    <div class="status-box">
-
-      <div class="status-row">
-        <span class="status-label">
-          相手：
-        </span>
-
-        <span id="partnerName">
-          未設定
-        </span>
-      </div>
-
-      <div class="status-row">
-        <span class="status-label">
-          進行：
-        </span>
-
-        <span id="progressText">
-          文通開始前
-        </span>
-      </div>
-
-    </div>
-
-
-    <section class="story-box">
-
-      <p
-        id="storyText"
-        class="story-text"
-      >
-        まだ物語は始まっていません。
-      </p>
-
-    </section>
-
-
-    <section class="player-area">
-
-      <label
-        class="player-label"
-        for="playerInput"
-      >
-        あなた
-      </label>
-
-      <textarea
-        id="playerInput"
-        class="player-input"
-        placeholder="ここに主人公の言葉や行動を入力"
-      ></textarea>
-
-    </section>
-
-
-    <div class="bottom-buttons">
-
-      <button
-        id="writeLetterButton"
-        class="action-button"
-        type="button"
-      >
-        手紙を書く
-      </button>
-
-      <button
-        id="submitButton"
-        class="action-button"
-        type="button"
-      >
-        決定
-      </button>
-
-      <button
-        id="openSaveButton"
-        class="action-button secondary"
-        type="button"
-      >
-        セーブ
-      </button>
-
-    </div>
-
   </main>
-
-
-  <div
-    id="profileOverlay"
-    class="overlay"
-  >
-
-    <div class="modal-window">
-
-      <h2>
-        相手プロフィール
-      </h2>
-
-      <div
-        id="profileContent"
-        class="profile-content"
-      ></div>
-
-      <button
-        id="closeProfileButton"
-        class="close-button"
-        type="button"
-      >
-        閉じる
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <div
-    id="saveOverlay"
-    class="overlay"
-  >
-
-    <div class="modal-window">
-
-      <h2>
-        セーブ
-      </h2>
-
-      <div class="save-list">
-
-        <button
-          class="save-slot"
-          type="button"
-          data-save-slot="1"
-        >
-          SAVE 001
-        </button>
-
-        <button
-          class="save-slot"
-          type="button"
-          data-save-slot="2"
-        >
-          SAVE 002
-        </button>
-
-        <button
-          class="save-slot"
-          type="button"
-          data-save-slot="3"
-        >
-          SAVE 003
-        </button>
-
-      </div>
-
-      <button
-        id="closeSaveButton"
-        class="close-button"
-        type="button"
-      >
-        閉じる
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <div
-    id="message"
-    class="message"
-  ></div>
-
-
-  <script>
-    const prisonCacheVersion = Date.now();
-
-    document.write(
-      '<script src="../js/renaigame_common.js?v=' +
-      prisonCacheVersion +
-      '"><\/script>'
-    );
-
-    document.write(
-      '<script src="js/prison_common.js?v=' +
-      prisonCacheVersion +
-      '"><\/script>'
-    );
-
-    document.write(
-      '<script src="js/prison_character_001.js?v=' +
-      prisonCacheVersion +
-      '"><\/script>'
-    );
-
-    document.write(
-      '<script src="js/prison_main.js?v=' +
-      prisonCacheVersion +
-      '"><\/script>'
-    );
-  </script>
-
 </body>
 </html>

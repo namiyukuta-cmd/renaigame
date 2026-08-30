@@ -9,6 +9,19 @@
     "stage": "文通 1通目",
     "scene": 1
   },
+  "romance": {
+    "stage": 1,
+    "stageName": "興味",
+    "trust": 1,
+    "interest": 1,
+    "attachment": 0,
+    "romanticAwareness": 0,
+    "jealousy": 0,
+    "vulnerability": 0,
+    "futureThinking": 0,
+    "repliesWithoutProgress": 0,
+    "lastProgress": "主人公のプロフィール内容を覚え、ウサギについて自分から質問した"
+  },
   "correspondence": {
     "count": 1,
     "letters": [
@@ -49,10 +62,21 @@
     "type": "prison_letter_reply",
     "characterId": "char_001",
     "letterNumber": 1,
-    "playerLetter": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?"
+    "playerLetter": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+    "requiredContextFiles": [
+      "js/renaigame_romance_rules.js",
+      "prison/js/prison_romance_rules.js",
+      "prison/js/prison_character_001.js"
+    ],
+    "requirements": [
+      "キャラクターデータと矛盾しない返答を書く",
+      "共通恋愛ルールとPRISON恋愛ルールを必ず確認する",
+      "主人公が拒絶していない限り恋愛関係を停滞させない",
+      "返答本文とromance状態の両方に今回の進展を反映する"
+    ]
   },
   "createdAt": "2026-08-30T11:54:06.700Z",
-  "updatedAt": "2026-08-30T12:01:27.866Z",
+  "updatedAt": "2026-08-30T12:07:00.000Z",
   "save": {
     "slot": 1,
     "savedAt": "2026-08-30T12:01:27.866Z"

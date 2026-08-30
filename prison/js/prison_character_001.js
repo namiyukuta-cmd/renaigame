@@ -19,6 +19,17 @@
     id: "char_001",
     name: "Caleb Ward",
 
+    publicProfile: {
+      name: "Caleb Ward",
+      age: 36,
+      formerOccupation: "自動車整備士",
+      crime: "武装強盗",
+      sentence: "懲役15年",
+      yearsServed: "8年",
+      likes: ["読書", "車"],
+      introduction: "刑務所の外の人と、普通の話をしてみたい。長文じゃなくても構わない。"
+    },
+
     common: {
       age: 36,
       heightCm: 188,

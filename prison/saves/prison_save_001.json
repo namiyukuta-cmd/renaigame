@@ -15,11 +15,22 @@
   },
   "story": "Caleb Wardへの最初の手紙を書く。",
   "playerText": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
-  "history": [],
+  "history": [
+    {
+      "type": "player",
+      "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+      "time": "2026-08-30T12:01:21.849Z"
+    },
+    {
+      "type": "player",
+      "text": "January, 10th, 2023\n\nDear. Mr. Caleb Ward\n\nNice to meet you.\nI am an international student. I like rabbits, so please call me \"Buchi Usagi🐰\".\n\nI'm studying English, but I'd be happy if I could write to you.\n\nIt's been cold lately.\n\nDo you have anything warm over there?",
+      "time": "2026-08-30T12:01:25.450Z"
+    }
+  ],
   "createdAt": "2026-08-30T11:54:06.700Z",
-  "updatedAt": "2026-08-30T12:00:56.562Z",
+  "updatedAt": "2026-08-30T12:01:27.866Z",
   "save": {
     "slot": 1,
-    "savedAt": "2026-08-30T12:00:56.562Z"
+    "savedAt": "2026-08-30T12:01:27.866Z"
   }
 }

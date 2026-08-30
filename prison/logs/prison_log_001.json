@@ -2,12 +2,12 @@
   "version": 1,
   "game": "prison",
   "slot": 1,
-  "updatedAt": "2026-08-30T12:12:00.000Z",
+  "updatedAt": "2026-08-30T12:43:05.115Z",
   "sessions": [
     {
       "sessionId": "2026-08-30T11:54:06.700Z",
       "startedAt": "2026-08-30T11:54:06.700Z",
-      "updatedAt": "2026-08-30T12:12:00.000Z",
+      "updatedAt": "2026-08-30T12:43:05.115Z",
       "partner": {
         "id": "char_001",
         "name": "Caleb Ward"
@@ -44,15 +44,42 @@
           "characterId": "char_001",
           "text": "January 16, 2023\n\nBuchi Usagi,\n\nThanks for writing.\n\nI wasn't sure anyone would actually pick my profile, so your letter was a surprise.\n\n\"Buchi Usagi\" is a strange name, but all right. I'll use it.\n\nWe have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.\n\nYou said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.\n\nWhy rabbits?\n\nCaleb",
           "segments": [
-            {"en": "January 16, 2023", "ja": "2023年1月16日"},
-            {"en": "Buchi Usagi,", "ja": "ぶちうさぎへ。"},
-            {"en": "Thanks for writing.", "ja": "手紙をありがとう。"},
-            {"en": "I wasn't sure anyone would actually pick my profile, so your letter was a surprise.", "ja": "本当に誰かが俺のプロフィールを選ぶとは思っていなかったから、君の手紙には驚いた。"},
-            {"en": "\"Buchi Usagi\" is a strange name, but all right. I'll use it.", "ja": "「ぶちうさぎ」って変わった名前だな。でもいい。そう呼ぶよ。"},
-            {"en": "We have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.", "ja": "ここには暖房はある。日によって効きがいい時と悪い時がある。毛布とスウェットシャツもあるから、凍えるほどじゃない。"},
-            {"en": "You said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.", "ja": "留学生で、英語を勉強しているって書いてたな。手紙の内容はちゃんと分かった。全部正しく書こうとしすぎなくていい。"},
-            {"en": "Why rabbits?", "ja": "どうしてウサギなんだ？"},
-            {"en": "Caleb", "ja": "ケイレブ"}
+            {
+              "en": "January 16, 2023",
+              "ja": "2023年1月16日"
+            },
+            {
+              "en": "Buchi Usagi,",
+              "ja": "ぶちうさぎへ。"
+            },
+            {
+              "en": "Thanks for writing.",
+              "ja": "手紙をありがとう。"
+            },
+            {
+              "en": "I wasn't sure anyone would actually pick my profile, so your letter was a surprise.",
+              "ja": "本当に誰かが俺のプロフィールを選ぶとは思っていなかったから、君の手紙には驚いた。"
+            },
+            {
+              "en": "\"Buchi Usagi\" is a strange name, but all right. I'll use it.",
+              "ja": "「ぶちうさぎ」って変わった名前だな。でもいい。そう呼ぶよ。"
+            },
+            {
+              "en": "We have heat here. Some days it works better than others. I've got a blanket and a sweatshirt, so I'm not freezing.",
+              "ja": "ここには暖房はある。日によって効きがいい時と悪い時がある。毛布とスウェットシャツもあるから、凍えるほどじゃない。"
+            },
+            {
+              "en": "You said you're an international student and you're studying English. Your letter made sense to me. Don't worry too much about getting everything right.",
+              "ja": "留学生で、英語を勉強しているって書いてたな。手紙の内容はちゃんと分かった。全部正しく書こうとしすぎなくていい。"
+            },
+            {
+              "en": "Why rabbits?",
+              "ja": "どうしてウサギなんだ？"
+            },
+            {
+              "en": "Caleb",
+              "ja": "ケイレブ"
+            }
           ]
         }
       ],

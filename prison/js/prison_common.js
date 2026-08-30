@@ -7,6 +7,7 @@
 
   const GAME_ID = "prison";
   const SAVE_DIRECTORY = "prison/saves";
+  const LOG_DIRECTORY = "prison/logs";
   const DEFAULT_SLOT_COUNT = 3;
 
   function createInitialState(overrides = {}) {
@@ -15,6 +16,7 @@
     return {
       version: 1,
       game: GAME_ID,
+      sessionId: now,
 
       partner: {
         id: "",
@@ -73,6 +75,13 @@
     return `${SAVE_DIRECTORY}/prison_save_${number}.json`;
   }
 
+  function getLogPath(slotNumber) {
+    const slot = normalizeSlot(slotNumber);
+    const number = String(slot).padStart(3, "0");
+
+    return `${LOG_DIRECTORY}/prison_log_${number}.json`;
+  }
+
   function saveCurrent(state) {
     const data = {
       ...state,
@@ -97,6 +106,66 @@
     return saveCurrent(state);
   }
 
+  async function syncConversationLog(slotNumber, state) {
+    const slot = normalizeSlot(slotNumber);
+    const path = getLogPath(slot);
+    const now = RenaiGame.util.nowIso();
+    const existing = await RenaiGame.github.readJson(path);
+    const sessions = Array.isArray(existing?.sessions)
+      ? [...existing.sessions]
+      : [];
+
+    const sessionId = String(
+      state?.sessionId ||
+      state?.createdAt ||
+      `legacy-slot-${String(slot).padStart(3, "0")}`
+    );
+
+    const session = {
+      sessionId,
+      startedAt: state?.createdAt || "",
+      updatedAt: now,
+      partner: {
+        id: state?.partner?.id || "",
+        name: state?.partner?.name || ""
+      },
+      progress: state?.progress || {},
+      romance: state?.romance || {},
+      letters: Array.isArray(state?.correspondence?.letters)
+        ? state.correspondence.letters
+        : [],
+      history: Array.isArray(state?.history)
+        ? state.history
+        : []
+    };
+
+    const existingIndex = sessions.findIndex(item => item?.sessionId === sessionId);
+
+    if (existingIndex >= 0) {
+      sessions[existingIndex] = session;
+    } else {
+      sessions.push(session);
+    }
+
+    const logData = {
+      version: 1,
+      game: GAME_ID,
+      slot,
+      updatedAt: now,
+      sessions
+    };
+
+    await RenaiGame.github.writeJson(path, logData, {
+      message: `Update PRISON conversation log ${String(slot).padStart(3, "0")}`
+    });
+
+    return logData;
+  }
+
+  async function loadConversationLog(slotNumber) {
+    return RenaiGame.github.readJson(getLogPath(slotNumber));
+  }
+
   async function saveSlot(slotNumber, state) {
     const slot = normalizeSlot(slotNumber);
     const now = RenaiGame.util.nowIso();
@@ -104,6 +173,7 @@
     const data = {
       ...state,
       game: GAME_ID,
+      sessionId: state?.sessionId || state?.createdAt || now,
       updatedAt: now,
       save: {
         slot,
@@ -116,6 +186,8 @@
     await RenaiGame.github.writeJson(path, data, {
       message: `Save PRISON slot ${String(slot).padStart(3, "0")}`
     });
+
+    await syncConversationLog(slot, data);
 
     saveCurrent(data);
     return data;
@@ -276,6 +348,7 @@
     config: Object.freeze({
       gameId: GAME_ID,
       saveDirectory: SAVE_DIRECTORY,
+      logDirectory: LOG_DIRECTORY,
       defaultSlotCount: DEFAULT_SLOT_COUNT
     }),
 
@@ -300,6 +373,12 @@
       load: loadSlot,
       getInfo: getSaveSlotInfo,
       getAll: getSaveSlots
+    }),
+
+    logs: Object.freeze({
+      getPath: getLogPath,
+      sync: syncConversationLog,
+      load: loadConversationLog
     })
   });
 })();

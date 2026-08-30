@@ -213,6 +213,10 @@
     byId("profileOverlay").classList.remove("show");
   }
 
+  function openWriteLetterPage() {
+    location.href = "prison_write.html";
+  }
+
   function submitPlayerText() {
     const input = byId("playerInput");
     const text = input.value.trim();
@@ -339,6 +343,7 @@
     byId("profileButton").addEventListener("click", openProfileWindow);
     byId("closeProfileButton").addEventListener("click", closeProfileWindow);
     byId("topButton").addEventListener("click", returnTop);
+    byId("writeLetterButton").addEventListener("click", openWriteLetterPage);
     byId("submitButton").addEventListener("click", submitPlayerText);
     byId("openSaveButton").addEventListener("click", openSaveWindow);
     byId("closeSaveButton").addEventListener("click", closeSaveWindow);

@@ -26,14 +26,14 @@
     return {
       stage: 0,
       stageName: "他人",
+      romanceScore: 0,
       trust: 0,
-      interest: 0,
       attachment: 0,
       romanticAwareness: 0,
       jealousy: 0,
       vulnerability: 0,
       futureThinking: 0,
-      repliesWithoutProgress: 0,
+      lastChangeReason: "",
       lastProgress: ""
     };
   }
@@ -162,8 +162,11 @@
         requirements: [
           "キャラクターデータと矛盾しない返答を書く",
           "共通恋愛ルールとPRISON恋愛ルールを必ず確認する",
-          "主人公が拒絶していない限り恋愛関係を停滞させない",
-          "返答本文とromance状態の両方に今回の進展を反映する"
+          "主人公の今回の手紙がCalebにどう響いたかを判断し、romanceScore・trust等を必要に応じて維持・増減する",
+          "文通回数だけを理由に恋愛度や恋愛段階を上げない",
+          "恋愛度・信頼・性格・状況から自然な場合だけ恋愛段階を進める",
+          "恋愛度が上がっているのに無難な関係へ意図的に薄めない",
+          "返答本文とromance状態を一致させる"
         ]
       },
       progress: {

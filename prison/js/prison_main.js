@@ -224,6 +224,12 @@
   }
 
   function returnTop() {
+    const ok = window.confirm(
+      "TOPに戻ってもいいですか？\n保存していない内容は消えます。"
+    );
+
+    if (!ok) return;
+
     window.location.assign("prison.html");
   }
 

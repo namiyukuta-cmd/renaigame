@@ -1,1 +1,283 @@
-h
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PRISON</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+
+      background: #eeeeea;
+      color: #252525;
+
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100vh;
+      padding: 28px 20px 40px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 28px;
+
+      font-size: 17px;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .title-area {
+      margin: 20px 0 42px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 38px;
+      letter-spacing: 0.12em;
+    }
+
+    .subtitle {
+      margin: 0;
+
+      font-size: 17px;
+      line-height: 1.7;
+      color: #666;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .menu-button {
+      width: 100%;
+      min-height: 68px;
+      padding: 16px 20px;
+
+      border: 1px solid #aaa;
+      border-radius: 10px;
+
+      background: #fff;
+      color: #222;
+
+      font-size: 19px;
+      font-weight: 600;
+
+      cursor: pointer;
+    }
+
+    .menu-button:active {
+      background: #ddd;
+      transform: scale(0.99);
+    }
+
+    .continue-button {
+      color: #666;
+      background: #e6e6e2;
+    }
+
+    .story-screen {
+      display: none;
+    }
+
+    .story-box {
+      padding: 22px;
+
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 12px;
+    }
+
+    .story-box p {
+      margin: 0 0 18px;
+
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .story-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .next-button {
+      width: 100%;
+      min-height: 62px;
+      margin-top: 20px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background: #333;
+      color: #fff;
+
+      font-size: 18px;
+      font-weight: 600;
+
+      cursor: pointer;
+    }
+
+    .next-button:active {
+      background: #111;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+
+    <!-- 最初のメニュー -->
+    <section id="topScreen">
+
+      <a class="back-link" href="../Renaigame_top.html">
+        ← 恋愛ゲームTOP
+      </a>
+
+      <div class="title-area">
+
+        <h1>PRISON</h1>
+
+        <p class="subtitle">
+          一通の手紙から始まる物語
+        </p>
+
+      </div>
+
+      <div class="menu">
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="startGame()"
+        >
+          はじめから
+        </button>
+
+        <button
+          class="menu-button continue-button"
+          type="button"
+          onclick="continueGame()"
+        >
+          続きから
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ゲーム開始 -->
+    <section
+      id="storyScreen"
+      class="story-screen"
+    >
+
+      <a
+        class="back-link"
+        href="#"
+        onclick="returnMenu(); return false;"
+      >
+        ← 戻る
+      </a>
+
+      <div class="story-box">
+
+        <p>
+          地域のボランティア活動に参加したある日、
+          あなたは一枚の案内を見つけた。
+        </p>
+
+        <p>
+          収監されている人と、
+          手紙を通して交流するボランティア。
+        </p>
+
+        <p>
+          特別な使命感があったわけではない。
+        </p>
+
+        <p>
+          少しの慈善心と、
+          少しの興味。
+        </p>
+
+      </div>
+
+      <button
+        class="next-button"
+        type="button"
+        onclick="nextScene()"
+      >
+        次へ
+      </button>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    function startGame() {
+
+      document.getElementById("topScreen").style.display = "none";
+
+      document.getElementById("storyScreen").style.display = "block";
+
+      window.scrollTo(0, 0);
+
+    }
+
+
+    function returnMenu() {
+
+      document.getElementById("storyScreen").style.display = "none";
+
+      document.getElementById("topScreen").style.display = "block";
+
+      window.scrollTo(0, 0);
+
+    }
+
+
+    function continueGame() {
+
+      alert("まだセーブデータはありません。");
+
+    }
+
+
+    function nextScene() {
+
+      alert("次は文通相手を選ぶ画面を作ります。");
+
+    }
+
+  </script>
+
+</body>
+</html>

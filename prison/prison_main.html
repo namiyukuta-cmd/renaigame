@@ -1,1 +1,948 @@
-h
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PRISON</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      background: #eeeeea;
+      color: #252525;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+    }
+
+    button,
+    textarea {
+      font-family: inherit;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 600px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 16px 100px;
+    }
+
+    /* 上部 */
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      margin-bottom: 18px;
+    }
+
+    .title {
+      margin: 0;
+
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+      letter-spacing: 0.08em;
+    }
+
+    .top-button {
+      min-height: 48px;
+      padding: 10px 16px;
+
+      border: 1px solid #aaa;
+      border-radius: 9px;
+
+      background: #fff;
+      color: #222;
+
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .top-button:active {
+      background: #ddd;
+    }
+
+    /* 状態欄 */
+
+    .status-box {
+      margin-bottom: 18px;
+      padding: 14px 16px;
+
+      background: #e3e3df;
+      border-radius: 10px;
+
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-label {
+      color: #666;
+      flex-shrink: 0;
+    }
+
+    /* 物語 */
+
+    .story-box {
+      min-height: 320px;
+      padding: 20px;
+
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 12px;
+    }
+
+    .story-text {
+      margin: 0;
+
+      font-size: 18px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+    }
+
+    /* 主人公入力 */
+
+    .player-area {
+      margin-top: 18px;
+    }
+
+    .player-label {
+      display: block;
+      margin-bottom: 8px;
+
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .player-input {
+      width: 100%;
+      min-height: 110px;
+      padding: 14px;
+
+      border: 1px solid #aaa;
+      border-radius: 10px;
+
+      background: #fff;
+      color: #222;
+
+      font-size: 18px;
+      line-height: 1.6;
+
+      resize: vertical;
+    }
+
+    /* 下ボタン */
+
+    .bottom-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+
+      margin-top: 16px;
+    }
+
+    .action-button {
+      min-height: 60px;
+      padding: 14px;
+
+      border: none;
+      border-radius: 10px;
+
+      background: #333;
+      color: #fff;
+
+      font-size: 18px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    .action-button.secondary {
+      background: #777;
+    }
+
+    .action-button:active {
+      opacity: 0.8;
+    }
+
+    /* セーブ画面 */
+
+    .overlay {
+      display: none;
+
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+
+      padding: 20px;
+
+      background: rgba(0, 0, 0, 0.55);
+
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .save-window {
+      width: 100%;
+      max-width: 460px;
+      padding: 20px;
+
+      background: #f2f2ee;
+      border-radius: 14px;
+    }
+
+    .save-window h2 {
+      margin: 0 0 20px;
+
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .save-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .save-slot {
+      width: 100%;
+      min-height: 68px;
+      padding: 14px 18px;
+
+      border: 1px solid #aaa;
+      border-radius: 10px;
+
+      background: #fff;
+      color: #222;
+
+      text-align: left;
+      font-size: 18px;
+
+      cursor: pointer;
+    }
+
+    .save-slot:active {
+      background: #ddd;
+    }
+
+    .close-button {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 18px;
+
+      border: none;
+      border-radius: 10px;
+
+      background: #777;
+      color: #fff;
+
+      font-size: 17px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    /* メッセージ */
+
+    .message {
+      display: none;
+
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 200;
+
+      width: calc(100% - 32px);
+      max-width: 520px;
+      padding: 15px;
+
+      transform: translateX(-50%);
+
+      background: #222;
+      color: #fff;
+
+      border-radius: 10px;
+
+      text-align: center;
+      font-size: 17px;
+    }
+
+    .message.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+
+    <div class="top-bar">
+
+      <h1 class="title">
+        PRISON
+      </h1>
+
+      <button
+        class="top-button"
+        type="button"
+        onclick="returnTop()"
+      >
+        TOP
+      </button>
+
+    </div>
+
+
+    <div class="status-box">
+
+      <div class="status-row">
+        <span class="status-label">相手：</span>
+        <span id="partnerName">未設定</span>
+      </div>
+
+      <div class="status-row">
+        <span class="status-label">進行：</span>
+        <span id="progressText">文通開始前</span>
+      </div>
+
+    </div>
+
+
+    <section class="story-box">
+
+      <p
+        id="storyText"
+        class="story-text"
+      >まだ物語は始まっていません。</p>
+
+    </section>
+
+
+    <section class="player-area">
+
+      <label
+        class="player-label"
+        for="playerInput"
+      >
+        あなた
+      </label>
+
+      <textarea
+        id="playerInput"
+        class="player-input"
+        placeholder="ここに主人公の言葉や行動を入力"
+      ></textarea>
+
+    </section>
+
+
+    <div class="bottom-buttons">
+
+      <button
+        class="action-button"
+        type="button"
+        onclick="submitPlayerText()"
+      >
+        決定
+      </button>
+
+      <button
+        class="action-button secondary"
+        type="button"
+        onclick="openSaveWindow()"
+      >
+        セーブ
+      </button>
+
+    </div>
+
+  </main>
+
+
+  <!-- セーブスロット -->
+
+  <div
+    id="saveOverlay"
+    class="overlay"
+  >
+
+    <div class="save-window">
+
+      <h2>
+        セーブ
+      </h2>
+
+      <div class="save-list">
+
+        <button
+          class="save-slot"
+          type="button"
+          onclick="saveGame(1)"
+        >
+          SAVE 001
+        </button>
+
+        <button
+          class="save-slot"
+          type="button"
+          onclick="saveGame(2)"
+        >
+          SAVE 002
+        </button>
+
+        <button
+          class="save-slot"
+          type="button"
+          onclick="saveGame(3)"
+        >
+          SAVE 003
+        </button>
+
+      </div>
+
+      <button
+        class="close-button"
+        type="button"
+        onclick="closeSaveWindow()"
+      >
+        閉じる
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="message"
+    class="message"
+  ></div>
+
+
+  <script>
+
+    /* =========================
+       GitHub設定
+       ========================= */
+
+    const GITHUB_OWNER = "namiyukuta-cmd";
+    const GITHUB_REPO = "renaigame";
+    const GITHUB_BRANCH = "main";
+
+    const SAVE_DIRECTORY = "prison/saves";
+
+    const TOKEN_STORAGE_KEY = "renaigame_github_token";
+
+
+    /* =========================
+       ゲームデータ
+       ========================= */
+
+    let gameData = {
+      game: "prison",
+
+      partner: {
+        id: "",
+        name: ""
+      },
+
+      progress: {
+        stage: "文通開始前",
+        scene: 0
+      },
+
+      story: "",
+
+      playerText: "",
+
+      history: [],
+
+      updatedAt: null
+    };
+
+
+    /* =========================
+       起動
+       ========================= */
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+
+        loadTemporaryGame();
+
+        renderGame();
+
+      }
+    );
+
+
+    /* =========================
+       一時データ読み込み
+       ========================= */
+
+    function loadTemporaryGame() {
+
+      const saved =
+        localStorage.getItem(
+          "prison_current_game"
+        );
+
+      if (!saved) {
+        return;
+      }
+
+      try {
+
+        const parsed = JSON.parse(saved);
+
+        gameData = {
+          ...gameData,
+          ...parsed
+        };
+
+      } catch (error) {
+
+        console.error(
+          "ゲームデータ読み込み失敗",
+          error
+        );
+
+      }
+
+    }
+
+
+    /* =========================
+       画面表示
+       ========================= */
+
+    function renderGame() {
+
+      document.getElementById(
+        "partnerName"
+      ).textContent =
+        gameData.partner?.name ||
+        "未設定";
+
+      document.getElementById(
+        "progressText"
+      ).textContent =
+        gameData.progress?.stage ||
+        "文通開始前";
+
+      document.getElementById(
+        "storyText"
+      ).textContent =
+        gameData.story ||
+        "まだ物語は始まっていません.";
+
+      document.getElementById(
+        "playerInput"
+      ).value =
+        gameData.playerText || "";
+
+    }
+
+
+    /* =========================
+       主人公入力
+       ========================= */
+
+    function submitPlayerText() {
+
+      const input =
+        document.getElementById(
+          "playerInput"
+        );
+
+      const text =
+        input.value.trim();
+
+      if (!text) {
+
+        showMessage(
+          "入力してください。"
+        );
+
+        return;
+      }
+
+      gameData.playerText = text;
+
+      gameData.history.push({
+        type: "player",
+        text: text,
+        time: new Date().toISOString()
+      });
+
+      gameData.updatedAt =
+        new Date().toISOString();
+
+      localStorage.setItem(
+        "prison_current_game",
+        JSON.stringify(gameData)
+      );
+
+      showMessage(
+        "現在の入力を保存しました。"
+      );
+
+    }
+
+
+    /* =========================
+       セーブ画面
+       ========================= */
+
+    function openSaveWindow() {
+
+      document.getElementById(
+        "saveOverlay"
+      ).classList.add("show");
+
+    }
+
+
+    function closeSaveWindow() {
+
+      document.getElementById(
+        "saveOverlay"
+      ).classList.remove("show");
+
+    }
+
+
+    /* =========================
+       GitHubトークン
+       ========================= */
+
+    function getGitHubToken() {
+
+      let token =
+        localStorage.getItem(
+          TOKEN_STORAGE_KEY
+        );
+
+      if (token) {
+        return token;
+      }
+
+      token = prompt(
+        "GitHubトークンを入力してください。\nこの端末内に保存されます。"
+      );
+
+      if (!token) {
+        return null;
+      }
+
+      token = token.trim();
+
+      localStorage.setItem(
+        TOKEN_STORAGE_KEY,
+        token
+      );
+
+      return token;
+
+    }
+
+
+    /* =========================
+       セーブ
+       ========================= */
+
+    async function saveGame(slotNumber) {
+
+      const token =
+        getGitHubToken();
+
+      if (!token) {
+
+        showMessage(
+          "GitHubトークンがありません。"
+        );
+
+        return;
+      }
+
+      const slot =
+        String(slotNumber)
+          .padStart(3, "0");
+
+      const path =
+        `${SAVE_DIRECTORY}/prison_save_${slot}.json`;
+
+      gameData.playerText =
+        document.getElementById(
+          "playerInput"
+        ).value;
+
+      gameData.updatedAt =
+        new Date().toISOString();
+
+      const saveData = {
+        ...gameData,
+
+        save: {
+          slot: slotNumber,
+          filename:
+            `prison_save_${slot}.json`,
+          savedAt:
+            new Date().toISOString()
+        }
+      };
+
+      try {
+
+        const existingFile =
+          await getExistingGitHubFile(
+            path,
+            token
+          );
+
+        const content =
+          JSON.stringify(
+            saveData,
+            null,
+            2
+          );
+
+        const encodedContent =
+          utf8ToBase64(content);
+
+        const body = {
+          message:
+            `Save PRISON slot ${slot}`,
+          content:
+            encodedContent,
+          branch:
+            GITHUB_BRANCH
+        };
+
+        if (
+          existingFile &&
+          existingFile.sha
+        ) {
+
+          body.sha =
+            existingFile.sha;
+
+        }
+
+        const response =
+          await fetch(
+            `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`,
+            {
+              method: "PUT",
+
+              headers: {
+                "Accept":
+                  "application/vnd.github+json",
+
+                "Authorization":
+                  `Bearer ${token}`,
+
+                "X-GitHub-Api-Version":
+                  "2022-11-28",
+
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify(body)
+            }
+          );
+
+        if (!response.ok) {
+
+          const errorData =
+            await response.json();
+
+          console.error(
+            errorData
+          );
+
+          throw new Error(
+            `GitHub保存失敗: ${response.status}`
+          );
+
+        }
+
+        localStorage.setItem(
+          "prison_current_game",
+          JSON.stringify(gameData)
+        );
+
+        closeSaveWindow();
+
+        showMessage(
+          `SAVE ${slot} に保存しました。`
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "セーブに失敗しました。"
+        );
+
+      }
+
+    }
+
+
+    /* =========================
+       既存セーブ確認
+       ========================= */
+
+    async function getExistingGitHubFile(
+      path,
+      token
+    ) {
+
+      const response =
+        await fetch(
+          `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`,
+          {
+            headers: {
+              "Accept":
+                "application/vnd.github+json",
+
+              "Authorization":
+                `Bearer ${token}`,
+
+              "X-GitHub-Api-Version":
+                "2022-11-28"
+            }
+          }
+        );
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+
+        throw new Error(
+          `既存セーブ確認失敗: ${response.status}`
+        );
+
+      }
+
+      return await response.json();
+
+    }
+
+
+    /* =========================
+       UTF-8 → Base64
+       ========================= */
+
+    function utf8ToBase64(text) {
+
+      const bytes =
+        new TextEncoder()
+          .encode(text);
+
+      let binary = "";
+
+      for (
+        let i = 0;
+        i < bytes.length;
+        i++
+      ) {
+
+        binary +=
+          String.fromCharCode(
+            bytes[i]
+          );
+
+      }
+
+      return btoa(binary);
+
+    }
+
+
+    /* =========================
+       TOPへ
+       ========================= */
+
+    function returnTop() {
+
+      const result =
+        confirm(
+          "PRISONのTOPへ戻りますか？"
+        );
+
+      if (!result) {
+        return;
+      }
+
+      location.href =
+        "prison.html";
+
+    }
+
+
+    /* =========================
+       メッセージ
+       ========================= */
+
+    function showMessage(text) {
+
+      const message =
+        document.getElementById(
+          "message"
+        );
+
+      message.textContent = text;
+
+      message.classList.add(
+        "show"
+      );
+
+      setTimeout(
+        function () {
+
+          message.classList.remove(
+            "show"
+          );
+
+        },
+        2200
+      );
+
+    }
+
+  </script>
+
+</body>
+</html>

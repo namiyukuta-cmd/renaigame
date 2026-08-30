@@ -104,8 +104,11 @@
     </div>
   </main>
 
-  <script src="../js/renaigame_common.js"></script>
-  <script src="js/prison_common.js"></script>
-  <script src="js/prison_saves.js"></script>
+  <script>
+    const prisonCacheVersion = Date.now();
+    document.write('<script src="../js/renaigame_common.js?v=' + prisonCacheVersion + '"><\/script>');
+    document.write('<script src="js/prison_common.js?v=' + prisonCacheVersion + '"><\/script>');
+    document.write('<script src="js/prison_saves.js?v=' + prisonCacheVersion + '"><\/script>');
+  </script>
 </body>
 </html>

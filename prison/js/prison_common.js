@@ -221,6 +221,31 @@
     return saveCurrent(next);
   }
 
+  function addCorrespondenceLetter(state, entry) {
+    const correspondence = state.correspondence || {};
+    const letters = Array.isArray(correspondence.letters)
+      ? [...correspondence.letters]
+      : [];
+
+    const letter = {
+      ...entry,
+      time: entry?.time || RenaiGame.util.nowIso()
+    };
+
+    letters.push(letter);
+
+    const next = {
+      ...state,
+      correspondence: {
+        ...correspondence,
+        count: Number(correspondence.count || 0) + (letter.type === "partner" ? 1 : 0),
+        letters
+      }
+    };
+
+    return saveCurrent(next);
+  }
+
   window.PrisonGame = Object.freeze({
     config: Object.freeze({
       gameId: GAME_ID,
@@ -238,7 +263,8 @@
       setProgress,
       setStory,
       setPlayerText,
-      addHistory
+      addHistory,
+      addCorrespondenceLetter
     }),
 
     saves: Object.freeze({

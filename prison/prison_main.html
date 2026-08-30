@@ -64,10 +64,15 @@
       letter-spacing: 0.08em;
     }
 
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
     .top-button {
-      min-width: 64px;
       min-height: 44px;
-      padding: 7px 12px;
+      padding: 7px 10px;
       border: 1px solid #aaa;
       border-radius: 9px;
       background: #fff;
@@ -199,7 +204,7 @@
       display: flex;
     }
 
-    .save-window {
+    .modal-window {
       width: 100%;
       max-width: 460px;
       max-height: calc(100dvh - 32px);
@@ -207,9 +212,10 @@
       background: #f2f2ee;
       border-radius: 12px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .save-window h2 {
+    .modal-window h2 {
       margin: 0 0 12px;
       text-align: center;
       font-size: 22px;
@@ -236,6 +242,36 @@
 
     .save-slot:active {
       background: #ddd;
+    }
+
+    .profile-content {
+      display: grid;
+      gap: 8px;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .profile-row {
+      display: grid;
+      grid-template-columns: 7em minmax(0, 1fr);
+      gap: 8px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid #d2d2ce;
+    }
+
+    .profile-label {
+      color: #666;
+      font-weight: 700;
+    }
+
+    .profile-introduction {
+      margin: 4px 0 0;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 9px;
+      font-size: 17px;
+      line-height: 1.55;
+      white-space: pre-wrap;
     }
 
     .close-button {
@@ -278,7 +314,10 @@
   <main class="page">
     <div class="top-bar">
       <h1 class="title">PRISON</h1>
-      <button id="topButton" class="top-button" type="button">TOP</button>
+      <div class="top-actions">
+        <button id="profileButton" class="top-button" type="button">プロフィール</button>
+        <button id="topButton" class="top-button" type="button">TOP</button>
+      </div>
     </div>
 
     <div class="status-box">
@@ -311,8 +350,16 @@
     </div>
   </main>
 
+  <div id="profileOverlay" class="overlay">
+    <div class="modal-window">
+      <h2>相手プロフィール</h2>
+      <div id="profileContent" class="profile-content"></div>
+      <button id="closeProfileButton" class="close-button" type="button">閉じる</button>
+    </div>
+  </div>
+
   <div id="saveOverlay" class="overlay">
-    <div class="save-window">
+    <div class="modal-window">
       <h2>セーブ</h2>
 
       <div class="save-list">

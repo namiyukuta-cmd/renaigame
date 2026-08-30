@@ -38,6 +38,48 @@
     };
   }
 
+  function ensureBilingualStoryStyles() {
+    if (document.getElementById("prisonBilingualStoryStyles")) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "prisonBilingualStoryStyles";
+    style.textContent = `
+      .story-text.bilingual-letter {
+        white-space: normal;
+      }
+
+      .letter-intro {
+        display: block;
+        margin: 0 0 1em;
+        white-space: pre-wrap;
+      }
+
+      .letter-pair {
+        display: block;
+        margin: 0 0 1em;
+      }
+
+      .letter-pair:last-child {
+        margin-bottom: 0;
+      }
+
+      .letter-en,
+      .letter-ja {
+        display: block;
+        margin: 0;
+        line-height: 1.45;
+      }
+
+      .letter-ja {
+        margin-top: 2px;
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
   function prepareGameData() {
     gameData = PrisonGame.state.loadCurrent();
 
@@ -60,10 +102,65 @@
     }
   }
 
+  function getLatestPartnerLetter() {
+    const letters = Array.isArray(gameData?.correspondence?.letters)
+      ? gameData.correspondence.letters
+      : [];
+
+    for (let index = letters.length - 1; index >= 0; index -= 1) {
+      if (letters[index]?.type === "partner") {
+        return letters[index];
+      }
+    }
+
+    return null;
+  }
+
+  function renderStory() {
+    const storyElement = byId("storyText");
+    const latestPartnerLetter = getLatestPartnerLetter();
+    const segments = Array.isArray(latestPartnerLetter?.segments)
+      ? latestPartnerLetter.segments
+      : [];
+    const canShowBilingualReply =
+      gameData?.aiRequest?.status !== "waiting" && segments.length > 0;
+
+    storyElement.replaceChildren();
+
+    if (!canShowBilingualReply) {
+      storyElement.classList.remove("bilingual-letter");
+      storyElement.textContent = gameData?.story || "まだ物語は始まっていません。";
+      return;
+    }
+
+    storyElement.classList.add("bilingual-letter");
+
+    const intro = document.createElement("span");
+    intro.className = "letter-intro";
+    intro.textContent = `数日後。\n\n${gameData?.partner?.name || "相手"}から返事が届いた。`;
+    storyElement.appendChild(intro);
+
+    segments.forEach(segment => {
+      const pair = document.createElement("span");
+      pair.className = "letter-pair";
+
+      const english = document.createElement("span");
+      english.className = "letter-en";
+      english.textContent = String(segment?.en || "");
+
+      const japanese = document.createElement("span");
+      japanese.className = "letter-ja";
+      japanese.textContent = String(segment?.ja || "");
+
+      pair.append(english, japanese);
+      storyElement.appendChild(pair);
+    });
+  }
+
   function renderGame() {
     byId("partnerName").textContent = gameData?.partner?.name || "未設定";
     byId("progressText").textContent = gameData?.progress?.stage || "文通開始前";
-    byId("storyText").textContent = gameData?.story || "まだ物語は始まっていません。";
+    renderStory();
     byId("playerInput").value = gameData?.playerText || "";
   }
 
@@ -166,7 +263,10 @@
           "文通回数だけを理由に恋愛度や恋愛段階を上げない",
           "恋愛度・信頼・性格・状況から自然な場合だけ恋愛段階を進める",
           "恋愛度が上がっているのに無難な関係へ意図的に薄めない",
-          "返答本文とromance状態を一致させる"
+          "返答本文とromance状態を一致させる",
+          "Calebの返事は英語で書き、自然な切れ目ごとに日本語訳を付ける",
+          "correspondence.letters の partner返答に segments: [{en, ja}] を保存する",
+          "segmentsは 英文→直下に日本語訳 の順にし、次の英文との区切りは別segmentにする"
         ]
       },
       progress: {
@@ -263,6 +363,7 @@
   }
 
   function init() {
+    ensureBilingualStoryStyles();
     prepareGameData();
     renderGame();
     bindEvents();

@@ -26,6 +26,20 @@
         scene: 0
       },
 
+      romance: {
+        stage: 0,
+        stageName: "他人",
+        romanceScore: 0,
+        trust: 0,
+        attachment: 0,
+        romanticAwareness: 0,
+        jealousy: 0,
+        vulnerability: 0,
+        futureThinking: 0,
+        lastChangeReason: "",
+        lastProgress: ""
+      },
+
       correspondence: {
         count: 0,
         letters: []
@@ -185,6 +199,18 @@
     return saveCurrent(next);
   }
 
+  function setRomance(state, romance = {}) {
+    const next = {
+      ...state,
+      romance: {
+        ...(state.romance || {}),
+        ...romance
+      }
+    };
+
+    return saveCurrent(next);
+  }
+
   function setStory(state, story) {
     const next = {
       ...state,
@@ -261,6 +287,7 @@
       clearCurrent,
       setPartner,
       setProgress,
+      setRomance,
       setStory,
       setPlayerText,
       addHistory,

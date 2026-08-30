@@ -10,8 +10,53 @@
     currentGamePrefix: "renaigame_current_"
   };
 
+  let memoryGitHubToken = "";
+
+  function readStorage(storage, key) {
+    try {
+      return storage.getItem(key) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function writeStorage(storage, key, value) {
+    try {
+      storage.setItem(key, value);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function removeStorage(storage, key) {
+    try {
+      storage.removeItem(key);
+    } catch (_) {
+      // 利用できない保存領域は無視する。
+    }
+  }
+
   function getGitHubToken() {
-    return localStorage.getItem(CONFIG.tokenStorageKey) || "";
+    if (memoryGitHubToken) {
+      return memoryGitHubToken;
+    }
+
+    const localToken = readStorage(localStorage, CONFIG.tokenStorageKey);
+    if (localToken) {
+      memoryGitHubToken = localToken;
+      writeStorage(sessionStorage, CONFIG.tokenStorageKey, localToken);
+      return localToken;
+    }
+
+    const sessionToken = readStorage(sessionStorage, CONFIG.tokenStorageKey);
+    if (sessionToken) {
+      memoryGitHubToken = sessionToken;
+      writeStorage(localStorage, CONFIG.tokenStorageKey, sessionToken);
+      return sessionToken;
+    }
+
+    return "";
   }
 
   function setGitHubToken(token) {
@@ -21,12 +66,17 @@
       return false;
     }
 
-    localStorage.setItem(CONFIG.tokenStorageKey, value);
-    return true;
+    memoryGitHubToken = value;
+    const savedLocal = writeStorage(localStorage, CONFIG.tokenStorageKey, value);
+    const savedSession = writeStorage(sessionStorage, CONFIG.tokenStorageKey, value);
+
+    return savedLocal || savedSession || Boolean(memoryGitHubToken);
   }
 
   function clearGitHubToken() {
-    localStorage.removeItem(CONFIG.tokenStorageKey);
+    memoryGitHubToken = "";
+    removeStorage(localStorage, CONFIG.tokenStorageKey);
+    removeStorage(sessionStorage, CONFIG.tokenStorageKey);
   }
 
   function requestGitHubToken() {

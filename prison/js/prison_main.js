@@ -9,6 +9,12 @@
     throw new Error("prison_common.js を先に読み込んでください。");
   }
 
+  const AI_CONTEXT_FILES = [
+    "js/renaigame_romance_rules.js",
+    "prison/js/prison_romance_rules.js",
+    "prison/js/prison_character_001.js"
+  ];
+
   let gameData = null;
   let messageTimer = null;
 
@@ -16,11 +22,34 @@
     return document.getElementById(id);
   }
 
+  function createDefaultRomanceState() {
+    return {
+      stage: 0,
+      stageName: "他人",
+      trust: 0,
+      interest: 0,
+      attachment: 0,
+      romanticAwareness: 0,
+      jealousy: 0,
+      vulnerability: 0,
+      futureThinking: 0,
+      repliesWithoutProgress: 0,
+      lastProgress: ""
+    };
+  }
+
   function prepareGameData() {
     gameData = PrisonGame.state.loadCurrent();
 
     if (!gameData) {
       gameData = PrisonGame.state.startNew();
+    }
+
+    if (!gameData.romance) {
+      gameData = PrisonGame.state.saveCurrent({
+        ...gameData,
+        romance: createDefaultRomanceState()
+      });
     }
 
     if (
@@ -121,13 +150,21 @@
 
     gameData = PrisonGame.state.saveCurrent({
       ...gameData,
+      romance: gameData.romance || createDefaultRomanceState(),
       aiRequest: {
         status: "waiting",
         type: "prison_letter_reply",
         characterId: window.PrisonCharacter001?.id || "char_001",
         letterNumber,
         playerLetter: text,
-        requestedAt: now
+        requestedAt: now,
+        requiredContextFiles: AI_CONTEXT_FILES,
+        requirements: [
+          "キャラクターデータと矛盾しない返答を書く",
+          "共通恋愛ルールとPRISON恋愛ルールを必ず確認する",
+          "主人公が拒絶していない限り恋愛関係を停滞させない",
+          "返答本文とromance状態の両方に今回の進展を反映する"
+        ]
       },
       progress: {
         ...(gameData.progress || {}),

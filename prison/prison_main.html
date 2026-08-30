@@ -374,9 +374,12 @@
 
   <div id="message" class="message"></div>
 
-  <script src="../js/renaigame_common.js"></script>
-  <script src="js/prison_common.js"></script>
-  <script src="js/prison_character_001.js"></script>
-  <script src="js/prison_main.js"></script>
+  <script>
+    const prisonCacheVersion = Date.now();
+    document.write('<script src="../js/renaigame_common.js?v=' + prisonCacheVersion + '"><\/script>');
+    document.write('<script src="js/prison_common.js?v=' + prisonCacheVersion + '"><\/script>');
+    document.write('<script src="js/prison_character_001.js?v=' + prisonCacheVersion + '"><\/script>');
+    document.write('<script src="js/prison_main.js?v=' + prisonCacheVersion + '"><\/script>');
+  </script>
 </body>
 </html>

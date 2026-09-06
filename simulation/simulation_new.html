@@ -37,7 +37,9 @@
       background-size: 92% auto;
     }
 
-    button {
+    button,
+    input,
+    textarea {
       font: inherit;
     }
 
@@ -122,16 +124,43 @@
       font-size: 30px;
     }
 
-    .content-panel h3 {
-      margin: 0 0 14px;
-      font-size: 21px;
+    .profile-field {
+      margin-bottom: 22px;
     }
 
-    .content-panel p {
-      margin: 0;
-      color: #6e6066;
-      font-size: 16px;
-      line-height: 1.7;
+    .profile-field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .profile-field input,
+    .profile-field textarea {
+      width: 100%;
+      border: 1px solid #bdaeb4;
+      border-radius: 10px;
+      background: #fff;
+      color: #2c2528;
+      font-size: 17px;
+      outline: none;
+    }
+
+    .profile-field input {
+      min-height: 50px;
+      padding: 10px 12px;
+    }
+
+    .profile-field textarea {
+      min-height: 240px;
+      padding: 12px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .profile-field input:focus,
+    .profile-field textarea:focus {
+      border-color: #75666c;
     }
 
     .bottom-nav {
@@ -190,16 +219,82 @@
   <script src="js/simulation_character_001.js"></script>
   <script src="js/simulation_save.js"></script>
   <script>
+    const PROFILE_KEY = 'renaigame_simulation_profile_v1';
+
     const saveButton = document.getElementById('saveButton');
     const loadButton = document.getElementById('loadButton');
     const homeButton = document.getElementById('homeButton');
     const profileButton = document.getElementById('profileButton');
     const app = document.getElementById('app');
 
+    function readProfile() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+        return {
+          name: typeof saved.name === 'string' ? saved.name : '',
+          age: typeof saved.age === 'string' ? saved.age : '',
+          free: typeof saved.free === 'string' ? saved.free : ''
+        };
+      } catch (_) {
+        return { name: '', age: '', free: '' };
+      }
+    }
+
+    function writeProfile(profile) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    }
+
     function setActiveNav(button) {
       document.querySelectorAll('.bottom-nav button').forEach((item) => {
         item.classList.toggle('active', item === button);
       });
+    }
+
+    function showProfile() {
+      const profile = readProfile();
+      document.body.classList.remove('home-view');
+      app.innerHTML = `
+        <section class="content-panel" aria-labelledby="profileTitle">
+          <h2 id="profileTitle">プロフィール</h2>
+
+          <div class="profile-field">
+            <label for="profileName">名前</label>
+            <input id="profileName" type="text" autocomplete="name">
+          </div>
+
+          <div class="profile-field">
+            <label for="profileAge">年齢</label>
+            <input id="profileAge" type="text" inputmode="numeric">
+          </div>
+
+          <div class="profile-field">
+            <label for="profileFree">自由</label>
+            <textarea id="profileFree"></textarea>
+          </div>
+        </section>
+      `;
+
+      const nameInput = document.getElementById('profileName');
+      const ageInput = document.getElementById('profileAge');
+      const freeInput = document.getElementById('profileFree');
+
+      nameInput.value = profile.name;
+      ageInput.value = profile.age;
+      freeInput.value = profile.free;
+
+      const saveProfile = () => {
+        writeProfile({
+          name: nameInput.value,
+          age: ageInput.value,
+          free: freeInput.value
+        });
+      };
+
+      nameInput.addEventListener('input', saveProfile);
+      ageInput.addEventListener('input', saveProfile);
+      freeInput.addEventListener('input', saveProfile);
+
+      setActiveNav(profileButton);
     }
 
     homeButton.addEventListener('click', () => {
@@ -208,17 +303,7 @@
       setActiveNav(homeButton);
     });
 
-    profileButton.addEventListener('click', () => {
-      document.body.classList.remove('home-view');
-      app.innerHTML = `
-        <section class="content-panel" aria-labelledby="profileTitle">
-          <h2 id="profileTitle">プロフィール</h2>
-          <h3>主人公プロフィール</h3>
-          <p>プロフィール情報はまだ設定されていません。</p>
-        </section>
-      `;
-      setActiveNav(profileButton);
-    });
+    profileButton.addEventListener('click', showProfile);
 
     saveButton.addEventListener('click', async () => {
       if (!RenaiGameSave.getToken()) {
@@ -232,7 +317,9 @@
           version: 1,
           game: 'simulation',
           page: 'simulation_new.html',
-          state: {}
+          state: {
+            profile: readProfile()
+          }
         });
         alert('セーブしました。');
       } catch (error) {
@@ -257,6 +344,9 @@
         }
         if (!RenaiGameSave.isSafePage(save.page)) {
           throw new Error('セーブデータの移動先が正しくありません。');
+        }
+        if (save.state && save.state.profile) {
+          writeProfile(save.state.profile);
         }
         location.href = save.page;
       } catch (error) {

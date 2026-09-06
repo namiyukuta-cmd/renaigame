@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>恋愛シュミレーション - はじめから</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100dvh;
+      background: #f3edef;
+      color: #2c2528;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Hiragino Sans",
+        "Yu Gothic",
+        sans-serif;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding:
+        max(24px, env(safe-area-inset-top))
+        20px
+        max(32px, env(safe-area-inset-bottom));
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 48px;
+      color: #6e6066;
+      text-decoration: none;
+      font-size: 17px;
+    }
+
+    h1 {
+      margin: 28px 0;
+      text-align: center;
+      font-size: 28px;
+      line-height: 1.4;
+    }
+
+    #app {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <a class="back-link" href="simulation.html">← 恋愛シュミレーション</a>
+    <h1>はじめから</h1>
+    <section id="app"></section>
+  </main>
+</body>
+</html>

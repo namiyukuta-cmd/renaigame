@@ -2,18 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>恋愛ゲーム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f3edef">
+  <title>恋愛シュミレーション</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
+    html,
     body {
       margin: 0;
-      min-height: 100vh;
+      width: 100%;
+      min-height: 100%;
+      background: #f3edef;
+      color: #2c2528;
       font-family:
         -apple-system,
         BlinkMacSystemFont,
@@ -21,113 +23,226 @@
         "Hiragino Sans",
         "Yu Gothic",
         sans-serif;
-
-      background: #f5f1f3;
-      color: #2f292c;
-
-      display: flex;
-      justify-content: center;
     }
 
-    .page {
+    body {
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .screen {
+      width: min(100%, 520px);
+      height: 100dvh;
+      margin: 0 auto;
+      padding:
+        max(24px, env(safe-area-inset-top))
+        24px
+        max(24px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+    }
+
+    .title-area {
+      grid-row: 2;
       width: 100%;
-      max-width: 520px;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      margin: 20px 0 8px;
-      text-align: center;
-      font-size: 30px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-
-    .subtitle {
-      margin: 0 0 40px;
-      text-align: center;
-      font-size: 17px;
-      color: #70666b;
-    }
-
-    .game-list {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      align-items: center;
     }
 
-    .game-button {
-      display: block;
+    .title {
+      margin: 0 0 64px;
+      text-align: center;
+      font-size: clamp(30px, 8vw, 42px);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      line-height: 1.35;
+    }
+
+    .menu {
+      width: min(100%, 340px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .menu-button {
       width: 100%;
-      min-height: 86px;
-      padding: 18px 20px;
-
-      background: #ffffff;
-      color: #2f292c;
-
-      border: 1px solid #d9cdd2;
-      border-radius: 16px;
-
-      text-decoration: none;
-
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-
-      transition:
-        transform 0.1s ease,
-        background 0.1s ease;
+      min-height: 58px;
+      padding: 14px 18px;
+      border: 1px solid #bdaeb4;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.78);
+      color: #2c2528;
+      font-size: 19px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
-    .game-button:active {
-      transform: scale(0.98);
-      background: #eee7ea;
+    .menu-button:active {
+      transform: scale(0.985);
+      background: #e8dfe2;
     }
 
-    .game-title {
+    .menu-button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .status {
+      width: min(100%, 340px);
+      min-height: 24px;
+      margin: 18px auto 0;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #6e6066;
+    }
+
+    .status[data-kind="error"],
+    .settings-status[data-kind="error"] {
+      color: #8f3333;
+    }
+
+    .status[data-kind="success"],
+    .settings-status[data-kind="success"] {
+      color: #35613f;
+    }
+
+    dialog {
+      width: min(calc(100% - 32px), 460px);
+      padding: 0;
+      border: 1px solid #cdbfc4;
+      border-radius: 18px;
+      background: #faf7f8;
+      color: #2c2528;
+      box-shadow: 0 18px 55px rgba(41, 29, 34, 0.24);
+    }
+
+    dialog::backdrop {
+      background: rgba(31, 23, 26, 0.42);
+    }
+
+    .settings-panel {
+      padding: 24px;
+    }
+
+    .settings-title {
+      margin: 0 0 26px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .field-label {
       display: block;
-      margin-bottom: 6px;
-      font-size: 22px;
-      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 600;
     }
 
-    .game-description {
-      display: block;
-      font-size: 17px;
-      line-height: 1.5;
-      color: #71666b;
+    .token-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid #bcaeb3;
+      border-radius: 9px;
+      background: #fff;
+      color: #2c2528;
+      font-size: 16px;
+    }
+
+    .settings-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .settings-actions button,
+    .close-button {
+      min-height: 44px;
+      border: 1px solid #bcaeb3;
+      border-radius: 9px;
+      background: #fff;
+      color: #2c2528;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .settings-actions button:active,
+    .close-button:active {
+      background: #e8dfe2;
+    }
+
+    .settings-actions button:disabled {
+      opacity: 0.55;
+    }
+
+    .settings-status {
+      min-height: 44px;
+      margin: 16px 0 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #6e6066;
+    }
+
+    .close-button {
+      width: 100%;
+      margin-top: 6px;
     }
   </style>
 </head>
 
 <body>
+  <main class="screen">
+    <section class="title-area" aria-labelledby="titleText">
+      <h1 class="title" id="titleText"></h1>
 
-  <main class="page">
+      <nav class="menu" aria-label="タイトルメニュー">
+        <button class="menu-button" id="startButton" type="button"></button>
+        <button class="menu-button" id="continueButton" type="button"></button>
+        <button class="menu-button" id="settingsButton" type="button"></button>
+      </nav>
 
-    <h1>恋愛ゲーム</h1>
-
-    <p class="subtitle">
-      遊ぶ物語を選んでください
-    </p>
-
-    <div class="game-list">
-
-      <a class="game-button" href="prison/prison.html">
-        <span class="game-title">PRISON</span>
-        <span class="game-description">
-          収監中の男性との文通から始まる物語
-        </span>
-      </a>
-
-      <a class="game-button" href="werewolf/werewolf.html">
-        <span class="game-title">人狼</span>
-        <span class="game-description">
-          人ならざる者との恋愛
-        </span>
-      </a>
-
-    </div>
-
+      <p class="status" id="statusText" aria-live="polite"></p>
+    </section>
   </main>
 
+  <dialog id="settingsDialog">
+    <div class="settings-panel">
+      <h2 class="settings-title" id="settingsTitle"></h2>
+
+      <label class="field-label" id="tokenLabel" for="tokenInput"></label>
+      <input
+        class="token-input"
+        id="tokenInput"
+        type="password"
+        inputmode="text"
+        autocomplete="off"
+        spellcheck="false"
+      >
+
+      <div class="settings-actions">
+        <button id="saveTokenButton" type="button"></button>
+        <button id="checkTokenButton" type="button"></button>
+        <button id="deleteTokenButton" type="button"></button>
+        <button id="closeSettingsButton" type="button"></button>
+      </div>
+
+      <p class="settings-status" id="settingsStatus" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <script src="js/renaigame_save.js"></script>
+  <script src="js/title.js"></script>
 </body>
 </html>

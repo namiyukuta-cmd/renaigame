@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "characterId": "char_001",
+  "characterName": "アレクサンダー・クロス",
+  "stage": 1,
+  "stageName": "警戒",
+  "romanceScore": 0,
+  "trust": 0,
+  "attachment": 0,
+  "romanticAwareness": 0,
+  "jealousy": 0,
+  "hurt": 0,
+  "sadness": 0,
+  "anger": 0,
+  "longing": 0,
+  "desireForContact": 0,
+  "vulnerability": 0,
+  "futureThinking": 0,
+  "unresolvedEmotion": null,
+  "lastChangeReason": null,
+  "lastProgress": null,
+  "lastSceneSummary": null,
+  "importantFlags": [],
+  "history": [],
+  "updatePolicy": {
+    "onlyWhenUserExplicitlyRequestsGitHubUpdate": true,
+    "doNotUpdateOnGenerationAlone": true
+  }
+}

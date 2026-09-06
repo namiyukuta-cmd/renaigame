@@ -93,6 +93,32 @@
 
     #app {
       width: 100%;
+      margin-top: 22px;
+    }
+
+    .content-panel {
+      width: 100%;
+      padding: 22px 20px;
+      border: 1px solid #cdbfc4;
+      border-radius: 14px;
+      background: rgba(250, 247, 248, 0.94);
+    }
+
+    .content-panel h2 {
+      margin: 0 0 18px;
+      font-size: 24px;
+    }
+
+    .content-panel h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .content-panel p {
+      margin: 0;
+      color: #6e6066;
+      font-size: 15px;
+      line-height: 1.7;
     }
 
     .bottom-nav {
@@ -142,10 +168,10 @@
   </main>
 
   <nav class="bottom-nav" aria-label="メインメニュー">
-    <button class="active" type="button">ホーム</button>
+    <button id="homeButton" class="active" type="button">ホーム</button>
     <button type="button">恋愛相手</button>
     <button type="button">記録</button>
-    <button type="button">プロフィール</button>
+    <button id="profileButton" type="button">プロフィール</button>
   </nav>
 
   <script src="js/simulation_character_001.js"></script>
@@ -153,6 +179,31 @@
   <script>
     const saveButton = document.getElementById('saveButton');
     const loadButton = document.getElementById('loadButton');
+    const homeButton = document.getElementById('homeButton');
+    const profileButton = document.getElementById('profileButton');
+    const app = document.getElementById('app');
+
+    function setActiveNav(button) {
+      document.querySelectorAll('.bottom-nav button').forEach((item) => {
+        item.classList.toggle('active', item === button);
+      });
+    }
+
+    homeButton.addEventListener('click', () => {
+      app.innerHTML = '';
+      setActiveNav(homeButton);
+    });
+
+    profileButton.addEventListener('click', () => {
+      app.innerHTML = `
+        <section class="content-panel" aria-labelledby="profileTitle">
+          <h2 id="profileTitle">プロフィール</h2>
+          <h3>主人公プロフィール</h3>
+          <p>プロフィール情報はまだ設定されていません。</p>
+        </section>
+      `;
+      setActiveNav(profileButton);
+    });
 
     saveButton.addEventListener('click', async () => {
       if (!RenaiGameSave.getToken()) {

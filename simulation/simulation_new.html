@@ -34,6 +34,10 @@
         sans-serif;
     }
 
+    button {
+      font: inherit;
+    }
+
     .page {
       width: 100%;
       max-width: 520px;
@@ -45,6 +49,13 @@
         calc(86px + env(safe-area-inset-bottom));
     }
 
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .back-link {
       display: inline-flex;
       align-items: center;
@@ -52,6 +63,32 @@
       color: #6e6066;
       text-decoration: none;
       font-size: 17px;
+    }
+
+    .save-load {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .save-load button {
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid #bdaeb4;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #2c2528;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .save-load button:active {
+      background: #e8dfe2;
+    }
+
+    .save-load button:disabled {
+      opacity: 0.55;
     }
 
     h1 {
@@ -100,7 +137,14 @@
 </head>
 <body>
   <main class="page">
-    <a class="back-link" href="simulation.html">← 恋愛シュミレーション</a>
+    <div class="top-bar">
+      <a class="back-link" href="simulation.html">← 恋愛シュミレーション</a>
+      <div class="save-load">
+        <button id="saveButton" type="button">セーブ</button>
+        <button id="loadButton" type="button">ロード</button>
+      </div>
+    </div>
+
     <h1>はじめから</h1>
     <section id="app"></section>
   </main>
@@ -111,5 +155,57 @@
     <button type="button">記録</button>
     <button type="button">プロフィール</button>
   </nav>
+
+  <script src="../js/renaigame_save.js"></script>
+  <script>
+    const saveButton = document.getElementById('saveButton');
+    const loadButton = document.getElementById('loadButton');
+
+    saveButton.addEventListener('click', async () => {
+      if (!RenaiGameSave.getToken()) {
+        alert('タイトル画面の「設定」からGitHubトークンを設定してください。');
+        return;
+      }
+
+      saveButton.disabled = true;
+      try {
+        await RenaiGameSave.saveToGitHub({
+          version: 1,
+          game: 'simulation',
+          page: 'simulation_new.html',
+          state: {}
+        });
+        alert('セーブしました。');
+      } catch (error) {
+        alert(error.message || 'セーブできませんでした。');
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+
+    loadButton.addEventListener('click', async () => {
+      if (!RenaiGameSave.getToken()) {
+        alert('タイトル画面の「設定」からGitHubトークンを設定してください。');
+        return;
+      }
+
+      loadButton.disabled = true;
+      try {
+        const save = await RenaiGameSave.loadFromGitHub();
+        if (!save.hasSave || !save.page) {
+          alert('セーブデータはまだありません。');
+          return;
+        }
+        if (!RenaiGameSave.isSafePage(save.page)) {
+          throw new Error('セーブデータの移動先が正しくありません。');
+        }
+        location.href = save.page;
+      } catch (error) {
+        alert(error.message || 'ロードできませんでした。');
+      } finally {
+        loadButton.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

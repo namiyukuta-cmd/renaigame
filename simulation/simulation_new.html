@@ -163,6 +163,51 @@
       border-color: #75666c;
     }
 
+    .record-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .record-entry {
+      padding: 18px;
+      border: 1px solid #d8cdd1;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .record-entry h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .record-date {
+      margin-top: 4px;
+      color: #7d7075;
+      font-size: 13px;
+    }
+
+    .record-block {
+      margin-top: 18px;
+    }
+
+    .record-label {
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #65585e;
+    }
+
+    .record-text {
+      white-space: pre-wrap;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .record-summary {
+      padding-top: 14px;
+      border-top: 1px solid #eee5e8;
+    }
+
     .bottom-nav {
       position: fixed;
       left: 50%;
@@ -212,18 +257,20 @@
   <nav class="bottom-nav" aria-label="メインメニュー">
     <button id="homeButton" class="active" type="button">ホーム</button>
     <button type="button">恋愛相手</button>
-    <button type="button">記録</button>
+    <button id="recordButton" type="button">記録</button>
     <button id="profileButton" type="button">プロフィール</button>
   </nav>
 
   <script src="js/simulation_character_001.js"></script>
   <script src="js/simulation_save.js"></script>
+  <script src="js/simulation_record.js"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
 
     const saveButton = document.getElementById('saveButton');
     const loadButton = document.getElementById('loadButton');
     const homeButton = document.getElementById('homeButton');
+    const recordButton = document.getElementById('recordButton');
     const profileButton = document.getElementById('profileButton');
     const app = document.getElementById('app');
 
@@ -301,6 +348,12 @@
       document.body.classList.add('home-view');
       app.innerHTML = '';
       setActiveNav(homeButton);
+    });
+
+    recordButton.addEventListener('click', async () => {
+      document.body.classList.remove('home-view');
+      setActiveNav(recordButton);
+      await RenaiGameRecord.render(app);
     });
 
     profileButton.addEventListener('click', showProfile);

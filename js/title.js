@@ -114,7 +114,7 @@
 
   function init(){
     setText();
-    $('startButton').addEventListener('click', () => { location.href = 'games.html'; });
+    $('startButton').addEventListener('click', () => { location.href = 'simulation_new.html'; });
     $('continueButton').addEventListener('click', continueGame);
     $('settingsButton').addEventListener('click', () => openSettings());
     $('saveTokenButton').addEventListener('click', saveToken);

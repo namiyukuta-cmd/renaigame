@@ -38,7 +38,7 @@
       padding:
         max(24px, env(safe-area-inset-top))
         20px
-        max(32px, env(safe-area-inset-bottom));
+        calc(86px + env(safe-area-inset-bottom));
     }
 
     .back-link {
@@ -60,6 +60,38 @@
     #app {
       width: 100%;
     }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(100%, 520px);
+      padding-bottom: env(safe-area-inset-bottom);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #faf7f8;
+      border-top: 1px solid #cdbfc4;
+      z-index: 20;
+    }
+
+    .bottom-nav button {
+      min-width: 0;
+      min-height: 62px;
+      padding: 10px 4px;
+      border: 0;
+      background: transparent;
+      color: #65585e;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .bottom-nav button.active {
+      color: #2c2528;
+      font-weight: 700;
+      background: #eee5e8;
+    }
   </style>
 </head>
 <body>
@@ -68,5 +100,12 @@
     <h1>はじめから</h1>
     <section id="app"></section>
   </main>
+
+  <nav class="bottom-nav" aria-label="メインメニュー">
+    <button class="active" type="button">ホーム</button>
+    <button type="button">恋愛相手</button>
+    <button type="button">記録</button>
+    <button type="button">プロフィール</button>
+  </nav>
 </body>
 </html>

@@ -7,7 +7,8 @@
   // HTML側は変更しなくてよい。各個別JSは window.SimulationCharacters に自己登録する。
   const CHARACTER_SCRIPTS = [
     "simulation_character_001.js",
-    "simulation_character_002.js"
+    "simulation_character_002.js",
+    "simulation_character_003.js"
   ];
 
   let loadPromise = null;

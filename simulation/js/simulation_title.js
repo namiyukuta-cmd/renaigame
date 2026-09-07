@@ -14,6 +14,7 @@
 
   const PROFILE_KEY = 'renaigame_simulation_profile_v1';
   const SELECTED_CHARACTER_KEY = 'renaigame_simulation_selected_character_v1';
+  const SESSION_KEY = 'renaigame_simulation_session_v1';
   const $ = id => document.getElementById(id);
 
   function setText(){
@@ -55,6 +56,13 @@
     else dialog.removeAttribute('open');
   }
 
+  function newSession(){
+    return {
+      id: 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      recordsByCharacter: {}
+    };
+  }
+
   function applyLoadedState(save){
     const state = save && save.state ? save.state : {};
 
@@ -66,6 +74,12 @@
       localStorage.setItem(SELECTED_CHARACTER_KEY, state.selectedCharacterId);
     }else{
       localStorage.removeItem(SELECTED_CHARACTER_KEY);
+    }
+
+    if(state.session && typeof state.session === 'object'){
+      localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
+    }else{
+      localStorage.setItem(SESSION_KEY, JSON.stringify(newSession()));
     }
   }
 
@@ -133,6 +147,7 @@
     setText();
     $('startButton').addEventListener('click', () => {
       localStorage.removeItem(SELECTED_CHARACTER_KEY);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(newSession()));
       location.href = 'simulation_new.html';
     });
     $('continueButton').addEventListener('click', continueGame);

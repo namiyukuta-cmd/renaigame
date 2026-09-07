@@ -22,7 +22,7 @@
 3. `simulation/js/simulation_character_002_behavior.js`
 4. `simulation/state/simulation_character_002_state.json`
 
-### char_003 地元警察官（名前未定）
+### char_003 フローリアン・ブレンナー
 
 2. `simulation/js/simulation_character_003.js`
 3. `simulation/js/simulation_character_003_behavior.js`

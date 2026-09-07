@@ -22,6 +22,12 @@
 3. `simulation/js/simulation_character_002_behavior.js`
 4. `simulation/state/simulation_character_002_state.json`
 
+### char_003 地元警察官（名前未定）
+
+2. `simulation/js/simulation_character_003.js`
+3. `simulation/js/simulation_character_003_behavior.js`
+4. `simulation/state/simulation_character_003_state.json`
+
 生成対象に必要な4ファイルのうち1つでも取得できない場合、その攻略対象の返答を生成してはいけない。
 
 ## 生成時の扱い

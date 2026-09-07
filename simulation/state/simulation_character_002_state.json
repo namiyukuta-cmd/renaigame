@@ -4,17 +4,17 @@
   "characterName": "エリオット・グレイ",
   "stage": 1,
   "stageName": "警戒",
-  "romanceScore": 0,
+  "romanceScore": 1,
   "trust": 0,
-  "attachment": 0,
+  "attachment": 1,
   "romanticAwareness": 0,
   "jealousy": 0,
   "hurt": 0,
   "sadness": 0,
   "anger": 0,
-  "longing": 0,
+  "longing": 1,
   "desireForContact": 0,
-  "vulnerability": 0,
+  "vulnerability": 1,
   "futureThinking": 0,
   "sexualAttraction": true,
   "ethicalConflict": false,
@@ -22,10 +22,10 @@
   "lawyerKnown": false,
   "privateContact": false,
   "immigrationConcernKnown": false,
-  "unresolvedEmotion": null,
-  "lastChangeReason": "初期状態。主人公への強い性的関心はあるが、まだ客と店員の関係で恋愛感情としては整理していない。",
-  "lastProgress": "喫茶店兼キャンディーショップで主人公と接点を持つ初期段階。店の規則を守りながら、エリオット側から再来店や短い会話を起こして関係を進める。",
-  "lastSceneSummary": null,
+  "unresolvedEmotion": "忍を目当てに再来店したことが本人にも分かり始めているが、まだ恋愛感情としては整理していない。接客への強い性的動揺と、自分から彼女に話しかけたい気持ちが残っている。",
+  "lastChangeReason": "Chapter 1。二度目の来店で忍を覚えていることを自分から伝え、忍がいる可能性を意識して再来店したことが言葉に滲んだ。コーヒーだけで済ませようとしたが結局キャンディーも注文し、自分から短い雑談を始めたため、初期の関心と会いたさをわずかに上昇。",
+  "lastProgress": "忍との二度目の接点。エリオットは忍を覚えており、彼女のいる可能性を意識して店へ戻った。同じ正面席を選び、接客に強く動揺しながらもキャンディーを注文。さらに『前も、あなたでしたよね』『覚えていたので』『今日いるかどうかは、分かりませんでしたけど』と自分から会話を始めた。まだ客と店員の関係で、恋愛段階は警戒のまま。",
+  "lastSceneSummary": "Chapter 1：忍とエリオットの二度目の対面。忍の接客にエリオットは強く動揺する。コーヒーだけで終わらせようとしたものの高額な棒付きキャンディーも注文し、忍を覚えていたこと、彼女がいるかもしれないと思って来店したことが滲む言葉を自分から口にした。",
   "importantFlags": [
     "主人公・エリオットとも成人済み",
     "大人向けだが18禁表現はしない",
@@ -36,9 +36,23 @@
     "高額ギフトキャンディーは客が持ち、担当女性がカウンター越しに舐める",
     "連絡先交換は店の規則上自由",
     "エリオットは移民法弁護士で留学生・在留資格の問題に強い",
-    "エリオットは主人公を性的に強く意識しているが、主人公の困窮や在留不安を利用して恋愛を得ることを拒む"
+    "エリオットは主人公を性的に強く意識しているが、主人公の困窮や在留不安を利用して恋愛を得ることを拒む",
+    "Chapter 1時点で忍とエリオットは二度会っている",
+    "Chapter 1時点でエリオットは忍を覚えており、忍がいる可能性を意識して再来店した",
+    "Chapter 1時点でエリオットは自分から忍へ短い雑談を始めた"
   ],
-  "history": [],
+  "history": [
+    {
+      "chapter": 1,
+      "summary": "忍との二度目の対面。忍の接客に強く動揺し、コーヒーだけで済ませようとしたがキャンディーも注文。忍を覚えていたことを自分から伝え、彼女がいる可能性を意識して再来店したことが言葉に滲んだ。",
+      "stateChanges": {
+        "romanceScore": "+1",
+        "attachment": "+1",
+        "longing": "+1",
+        "vulnerability": "+1"
+      }
+    }
+  ],
   "updatePolicy": {
     "onlyWhenUserExplicitlyRequestsGitHubUpdate": true,
     "doNotUpdateOnGenerationAlone": true

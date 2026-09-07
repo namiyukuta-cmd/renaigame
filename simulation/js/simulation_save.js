@@ -1,5 +1,6 @@
 (function(){
   const TOKEN_KEY = 'renaigame_github_token_v1';
+  const SESSION_KEY = 'renaigame_simulation_session_v1';
   const CLOUD = {
     owner: 'namiyukuta-cmd',
     repo: 'private-game-data',
@@ -79,6 +80,22 @@
     return { ok: true, sha: file.sha || '' };
   }
 
+  function readLocalSession(){
+    try{
+      const value = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function applyLocalSession(save){
+    const state = save && save.state;
+    if(save && save.game === 'simulation' && state && state.session && typeof state.session === 'object'){
+      localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
+    }
+  }
+
   async function loadFromGitHub(){
     const token = getToken();
     if(!token) throw new Error('GitHubトークンが設定されていません。');
@@ -92,6 +109,7 @@
     if(!save || typeof save !== 'object' || Array.isArray(save)){
       throw new Error('恋愛シュミレーションのセーブデータを読み込めません。');
     }
+    applyLocalSession(save);
     return save;
   }
 
@@ -107,8 +125,16 @@
       if(error.status !== 404) throw error;
     }
 
-    const data = Object.assign({}, save, {
-      version: Number(save && save.version) || 1,
+    const prepared = Object.assign({}, save);
+    if(prepared.game === 'simulation'){
+      const state = Object.assign({}, prepared.state || {});
+      const session = readLocalSession();
+      if(session) state.session = session;
+      prepared.state = state;
+    }
+
+    const data = Object.assign({}, prepared, {
+      version: Number(prepared && prepared.version) || 1,
       hasSave: true,
       updatedAt: new Date().toISOString()
     });
@@ -139,6 +165,7 @@
 
   window.RenaiGameSave = {
     TOKEN_KEY,
+    SESSION_KEY,
     CLOUD,
     getToken,
     setToken,

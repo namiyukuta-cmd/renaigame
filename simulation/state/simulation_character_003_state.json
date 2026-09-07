@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "characterId": "char_003",
+  "characterName": "未定",
+  "roleLabel": "地元の警察官",
+  "stage": 1,
+  "stageName": "警戒",
+  "romanceScore": 0,
+  "trust": 0,
+  "attachment": 0,
+  "romanticAwareness": 0,
+  "jealousy": 0,
+  "hurt": 0,
+  "sadness": 0,
+  "anger": 0,
+  "longing": 0,
+  "desireForContact": 0,
+  "vulnerability": 0,
+  "futureThinking": 0,
+  "unresolvedEmotion": "観光客絡みの対応が続いた一日への疲労と辟易。主人公個人への感情ではなく、初対面時点では『面倒事を起こしてくれるな』という警戒が先にある。",
+  "lastChangeReason": "新規攻略対象の初期状態。まだ実際の会話・接触は開始していないため関係値は0。",
+  "lastProgress": "勤務を終え、翌日が休日のため行きつけのバーへ向かう。定位置近くに見慣れない観光客の主人公がいるが、席を変えるのも癪なので主人公から一席空けた定位置へ座るところから開始。",
+  "lastSceneSummary": "開始前提のみ登録。主人公は日本からの28歳の一人旅の観光客。彼は地元警察官。観光客対応で疲弊した勤務後、行きつけのバーで初めて同席する。",
+  "importantFlags": [
+    "protagonist_age_28",
+    "protagonist_from_japan",
+    "protagonist_solo_traveler",
+    "protagonist_experienced_traveler",
+    "protagonist_hidden_circumstance_unspecified",
+    "officer_off_duty",
+    "next_day_off",
+    "tourist_incident_fatigue",
+    "bar_regular_seat_one_stool_apart"
+  ],
+  "history": [],
+  "updatePolicy": {
+    "onlyWhenUserExplicitlyRequestsGitHubUpdate": true,
+    "doNotUpdateOnGenerationAlone": true
+  }
+}

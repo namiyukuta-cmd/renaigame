@@ -12,6 +12,8 @@
     close: '閉じる'
   };
 
+  const PROFILE_KEY = 'renaigame_simulation_profile_v1';
+  const SELECTED_CHARACTER_KEY = 'renaigame_simulation_selected_character_v1';
   const $ = id => document.getElementById(id);
 
   function setText(){
@@ -53,6 +55,20 @@
     else dialog.removeAttribute('open');
   }
 
+  function applyLoadedState(save){
+    const state = save && save.state ? save.state : {};
+
+    if(state.profile){
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile));
+    }
+
+    if(state.selectedCharacterId){
+      localStorage.setItem(SELECTED_CHARACTER_KEY, state.selectedCharacterId);
+    }else{
+      localStorage.removeItem(SELECTED_CHARACTER_KEY);
+    }
+  }
+
   async function continueGame(){
     setStatus('', '');
     if(!RenaiGameSave.getToken()){
@@ -73,6 +89,7 @@
       if(!RenaiGameSave.isSafePage(save.page)){
         throw new Error('セーブデータの移動先が正しくありません。');
       }
+      applyLoadedState(save);
       location.href = save.page;
     }catch(error){
       setStatus(error.message || 'セーブデータを読み込めませんでした。', 'error');
@@ -115,6 +132,7 @@
   function init(){
     setText();
     $('startButton').addEventListener('click', () => {
+      localStorage.removeItem(SELECTED_CHARACTER_KEY);
       location.href = 'simulation_new.html';
     });
     $('continueButton').addEventListener('click', continueGame);

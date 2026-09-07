@@ -56,6 +56,18 @@
     else dialog.removeAttribute('open');
   }
 
+  function openLoadDialog(){
+    const dialog = $('loadDialog');
+    if(typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+  }
+
+  function closeLoadDialog(){
+    const dialog = $('loadDialog');
+    if(typeof dialog.close === 'function') dialog.close();
+    else dialog.removeAttribute('open');
+  }
+
   function newSession(){
     return {
       id: 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
@@ -66,8 +78,10 @@
   function applyLoadedState(save){
     const state = save && save.state ? save.state : {};
 
-    if(state.profile){
+    if(state.profile && typeof state.profile === 'object'){
       localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile));
+    }else{
+      localStorage.removeItem(PROFILE_KEY);
     }
 
     if(state.selectedCharacterId){
@@ -83,6 +97,73 @@
     }
   }
 
+  function formatDate(value){
+    if(!value) return '';
+    const date = new Date(value);
+    if(Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  async function loadSelectedSave(id, button){
+    setStatus('', '');
+    button.disabled = true;
+    try{
+      const save = await RenaiGameSave.loadSaveById(id);
+      if(!save.hasSave || !save.page){
+        throw new Error('このセーブデータを読み込めません。');
+      }
+      if(!RenaiGameSave.isSafePage(save.page)){
+        throw new Error('セーブデータの移動先が正しくありません。');
+      }
+      applyLoadedState(save);
+      location.href = save.page;
+    }catch(error){
+      button.disabled = false;
+      setStatus(error.message || 'セーブデータを読み込めませんでした。', 'error');
+      closeLoadDialog();
+    }
+  }
+
+  function renderSaveList(saves){
+    const list = $('loadList');
+    list.innerHTML = '';
+
+    if(!saves.length){
+      const empty = document.createElement('div');
+      empty.className = 'load-empty';
+      empty.textContent = 'セーブデータはまだありません。';
+      list.appendChild(empty);
+      return;
+    }
+
+    saves.forEach(save => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'save-card';
+
+      const title = document.createElement('span');
+      title.className = 'save-card-title';
+      const protagonist = save.protagonistName || '主人公';
+      const partner = save.partnerName || '未選択';
+      title.textContent = protagonist + ' ＋ ' + partner;
+
+      const date = document.createElement('span');
+      date.className = 'save-card-date';
+      date.textContent = formatDate(save.updatedAt);
+
+      button.appendChild(title);
+      if(date.textContent) button.appendChild(date);
+      button.addEventListener('click', () => loadSelectedSave(save.id, button));
+      list.appendChild(button);
+    });
+  }
+
   async function continueGame(){
     setStatus('', '');
     if(!RenaiGameSave.getToken()){
@@ -95,16 +176,10 @@
     setStatus('セーブデータを読み込んでいます…', 'loading');
 
     try{
-      const save = await RenaiGameSave.loadFromGitHub();
-      if(!save.hasSave || !save.page){
-        setStatus('セーブデータはまだありません。', 'info');
-        return;
-      }
-      if(!RenaiGameSave.isSafePage(save.page)){
-        throw new Error('セーブデータの移動先が正しくありません。');
-      }
-      applyLoadedState(save);
-      location.href = save.page;
+      const saves = await RenaiGameSave.listSaves();
+      renderSaveList(saves);
+      setStatus('', '');
+      openLoadDialog();
     }catch(error){
       setStatus(error.message || 'セーブデータを読み込めませんでした。', 'error');
     }finally{
@@ -143,21 +218,29 @@
     }
   }
 
+  function startNewGame(){
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(SELECTED_CHARACTER_KEY);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(newSession()));
+    RenaiGameSave.clearCurrentSaveId();
+    location.href = 'simulation_new.html';
+  }
+
   function init(){
     setText();
-    $('startButton').addEventListener('click', () => {
-      localStorage.removeItem(SELECTED_CHARACTER_KEY);
-      localStorage.setItem(SESSION_KEY, JSON.stringify(newSession()));
-      location.href = 'simulation_new.html';
-    });
+    $('startButton').addEventListener('click', startNewGame);
     $('continueButton').addEventListener('click', continueGame);
     $('settingsButton').addEventListener('click', () => openSettings());
     $('saveTokenButton').addEventListener('click', saveToken);
     $('deleteTokenButton').addEventListener('click', deleteToken);
     $('checkTokenButton').addEventListener('click', checkToken);
     $('closeSettingsButton').addEventListener('click', closeSettings);
+    $('closeLoadButton').addEventListener('click', closeLoadDialog);
     $('settingsDialog').addEventListener('click', event => {
       if(event.target === $('settingsDialog')) closeSettings();
+    });
+    $('loadDialog').addEventListener('click', event => {
+      if(event.target === $('loadDialog')) closeLoadDialog();
     });
   }
 

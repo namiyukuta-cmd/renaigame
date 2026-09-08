@@ -71,7 +71,8 @@
   function newSession(){
     return {
       id: 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-      recordsByCharacter: {}
+      recordsByCharacter: {},
+      statesByCharacter: {}
     };
   }
 

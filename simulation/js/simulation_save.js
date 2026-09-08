@@ -12,7 +12,9 @@
 
   const LEGACY_SAVE_ID = '__legacy__';
   const KNOWN_CHARACTER_NAMES = {
-    char_001: 'アレクサンダー・クロス'
+    char_001: 'アレクサンダー・クロス',
+    char_002: 'エリオット・グレイ',
+    char_003: 'フローリアン・ブレンナー'
   };
 
   function cleanToken(token){
@@ -150,20 +152,30 @@
     return response.json();
   }
 
+  function normalizeObjectMap(value){
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  }
+
+  function normalizeSession(value){
+    const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    return {
+      id: typeof source.id === 'string' && source.id ? source.id : 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      recordsByCharacter: normalizeObjectMap(source.recordsByCharacter),
+      statesByCharacter: normalizeObjectMap(source.statesByCharacter)
+    };
+  }
+
   function readLocalSession(){
     try{
       const value = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-      return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+      return value && typeof value === 'object' && !Array.isArray(value) ? normalizeSession(value) : null;
     }catch(_){
       return null;
     }
   }
 
   function makeSession(){
-    return {
-      id: 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-      recordsByCharacter: {}
-    };
+    return normalizeSession(null);
   }
 
   function ensureLocalSession(){
@@ -171,22 +183,16 @@
     if(!session){
       session = makeSession();
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      return session;
     }
-    if(!session.id){
-      session.id = makeSession().id;
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
-    if(!session.recordsByCharacter || typeof session.recordsByCharacter !== 'object' || Array.isArray(session.recordsByCharacter)){
-      session.recordsByCharacter = {};
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     return session;
   }
 
   function applyLocalSession(save){
     const state = save && save.state;
     if(save && save.game === 'simulation' && state && state.session && typeof state.session === 'object'){
-      localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(normalizeSession(state.session)));
     }
   }
 

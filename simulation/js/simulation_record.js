@@ -7,16 +7,21 @@
   function makeSession() {
     return {
       id: `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      recordsByCharacter: {}
+      recordsByCharacter: {},
+      statesByCharacter: {}
     };
+  }
+
+  function normalizeObjectMap(value) {
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
   }
 
   function normalizeSession(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return makeSession();
-    const records = value.recordsByCharacter;
     return {
       id: typeof value.id === "string" && value.id ? value.id : makeSession().id,
-      recordsByCharacter: records && typeof records === "object" && !Array.isArray(records) ? records : {}
+      recordsByCharacter: normalizeObjectMap(value.recordsByCharacter),
+      statesByCharacter: normalizeObjectMap(value.statesByCharacter)
     };
   }
 
@@ -75,10 +80,30 @@
     return entry;
   }
 
+  function getCharacterState(characterId) {
+    if (!characterId) return null;
+    const session = ensureSession();
+    const value = session.statesByCharacter[characterId];
+    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  }
+
+  function setCharacterState(characterId, state) {
+    if (!characterId) return null;
+    const session = ensureSession();
+    if (state && typeof state === "object" && !Array.isArray(state)) {
+      session.statesByCharacter[characterId] = state;
+    } else {
+      delete session.statesByCharacter[characterId];
+    }
+    writeSession(session);
+    return session.statesByCharacter[characterId] || null;
+  }
+
   function clearCharacter(characterId) {
     if (!characterId) return;
     const session = ensureSession();
     delete session.recordsByCharacter[characterId];
+    delete session.statesByCharacter[characterId];
     writeSession(session);
   }
 
@@ -154,6 +179,7 @@
 
       appendTextBlock(article, "record-block", protagonistName, entry.protagonist);
       appendTextBlock(article, "record-block", characterName, entry.partner || entry.alexander);
+      appendTextBlock(article, "record-block", "ログ", entry.transcript);
       appendTextBlock(article, "record-block record-summary", "要約", entry.summary);
 
       list.appendChild(article);
@@ -169,6 +195,8 @@
     getRecords,
     setRecords,
     addEntry,
+    getCharacterState,
+    setCharacterState,
     clearCharacter,
     render
   });

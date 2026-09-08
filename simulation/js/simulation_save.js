@@ -165,6 +165,57 @@
     };
   }
 
+  function recordKey(entry){
+    if(!entry || typeof entry !== 'object') return String(entry || '');
+    return JSON.stringify([
+      entry.scene || '',
+      entry.date || '',
+      entry.protagonist || '',
+      entry.partner || entry.alexander || '',
+      entry.transcript || '',
+      entry.summary || ''
+    ]);
+  }
+
+  function mergeRecordArrays(remoteRecords, localRecords){
+    const merged = [];
+    const seen = new Set();
+    [remoteRecords, localRecords].forEach(list => {
+      if(!Array.isArray(list)) return;
+      list.forEach(entry => {
+        const key = recordKey(entry);
+        if(seen.has(key)) return;
+        seen.add(key);
+        merged.push(entry);
+      });
+    });
+    return merged;
+  }
+
+  function mergeSessions(remoteValue, localValue){
+    const remote = normalizeSession(remoteValue);
+    const local = normalizeSession(localValue);
+    const recordsByCharacter = {};
+    const statesByCharacter = Object.assign({}, local.statesByCharacter, remote.statesByCharacter);
+    const characterIds = new Set([
+      ...Object.keys(remote.recordsByCharacter),
+      ...Object.keys(local.recordsByCharacter)
+    ]);
+
+    characterIds.forEach(characterId => {
+      recordsByCharacter[characterId] = mergeRecordArrays(
+        remote.recordsByCharacter[characterId],
+        local.recordsByCharacter[characterId]
+      );
+    });
+
+    return {
+      id: local.id || remote.id,
+      recordsByCharacter,
+      statesByCharacter
+    };
+  }
+
   function readLocalSession(){
     try{
       const value = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
@@ -298,12 +349,24 @@
 
     const prepared = Object.assign({}, save);
     const state = Object.assign({}, prepared.state || {});
-    const session = ensureLocalSession();
-    state.session = session;
-    prepared.state = state;
+    const localSession = ensureLocalSession();
 
     let saveId = getCurrentSaveId();
-    if(!saveId) saveId = session.id || makeSession().id;
+    if(!saveId) saveId = localSession.id || makeSession().id;
+
+    const path = saveId === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(saveId);
+    const existing = await fetchJsonIfExists(token, path);
+    const remoteSession = existing.exists && existing.data && existing.data.state
+      ? existing.data.state.session
+      : null;
+
+    const mergedSession = remoteSession
+      ? mergeSessions(remoteSession, localSession)
+      : normalizeSession(localSession);
+
+    state.session = mergedSession;
+    prepared.state = state;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(mergedSession));
 
     const updatedAt = new Date().toISOString();
     const meta = buildMeta(prepared, saveId, updatedAt);

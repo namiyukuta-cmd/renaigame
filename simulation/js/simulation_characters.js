@@ -8,7 +8,8 @@
   const CHARACTER_SCRIPTS = [
     "simulation_character_001.js",
     "simulation_character_002.js",
-    "simulation_character_003.js"
+    "simulation_character_003.js",
+    "simulation_character_004.js"
   ];
 
   let loadPromise = null;

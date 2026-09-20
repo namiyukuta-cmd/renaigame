@@ -46,7 +46,7 @@
         son: {
           name: null,
           age: null,
-          currentFeeling: "現在の物語上の確定事実として、ミリアは死亡しており、マテオ自身がミリアを殺害した。マテオの現在の感情は未指定であり、ユーザー入力なしにAIが確定しない。",
+          currentFeeling: "息子には甘い。壊れた玩具を直し、安い菓子を買い、寝かしつけの歌を歌う。",
           rule: "息子の名前・年齢・外見など、ユーザーが決めていない情報はAIが勝手に補完しない。"
         }
       },
@@ -133,27 +133,6 @@
       { id: "specific_004_006", workId: "work_004", workName: "マテオ・ルッソ編", item: "核となる台詞", content: "俺がまだここにいるのは、お前のためじゃない。あの子のためだ。", notes: "似合う展開の中核。" }
     ],
 
-    storyCanonState: {
-      protagonist: {
-        name: "ミリア",
-        alive: false,
-        deathConfirmedByUser: true,
-        killed: true,
-        killer: "マテオ・ルッソ",
-        causeOfDeath: null,
-        method: null,
-        motive: null,
-        circumstances: null,
-        rule: "ユーザーが作中事実として『ミリアは死んだ』『殺された』『マテオが殺した』と明示したため確定。死因・方法・動機・経緯・遺体の状態は未指定なのでAIが補完しない。"
-      },
-      confirmedFacts: [
-        "ミリアは死亡している。",
-        "ミリアは殺害された。",
-        "殺害者はマテオ・ルッソである。",
-        "死因・殺害方法・動機・具体的経緯は未設定。"
-      ]
-    },
-
     aiInitialState: {
       saveId: "save_004",
       characterId: "char_004",
@@ -175,7 +154,7 @@
         lovesSon: true,
         remainsHomeForSon: true
       },
-      desiredNext: "次の本文では、ユーザーが作中事実として確定した『ミリアは死亡』『殺害された』『殺害者はマテオ』を保持する。死因・方法・動機・経緯は未指定のため補完しない。",
+      desiredNext: "物語本文として明示されたユーザー入力だけを物語上の確定事実として扱う。ユーザーの抗議・修正指示・メタ発言を作中事実へ変換しない。以後はミリアの入力を起点に、マテオ・NPC・環境だけを動かす。",
       forbidden: [
         "ミリアの台詞・心理・行動・身体反応・外見をAIが勝手に書くこと",
         "ミリアを物語の中心から外すこと",

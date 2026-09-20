@@ -14,7 +14,8 @@
   const KNOWN_CHARACTER_NAMES = {
     char_001: 'アレクサンダー・クロス',
     char_002: 'エリオット・グレイ',
-    char_003: 'フローリアン・ブレンナー'
+    char_003: 'フローリアン・ブレンナー',
+    char_004: 'マテオ・ルッソ'
   };
 
   function cleanToken(token){

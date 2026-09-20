@@ -59,6 +59,7 @@
       generationContract: {
         sourceOfTruth: "文章生成前に必ずこのsimulation_character_004.js全体を読み、ここに書かれている設定・継続状態・ユーザーの最新入力だけを使用する。過去の一般的な恋愛小説パターンやAI側の自動判断を優先しない。",
         latestUserInputPriority: "ユーザーの最新の明示入力が最優先。既存設定と衝突した場合、ユーザーが変更したと明示した事実のみ更新し、それ以外を勝手に連鎖変更しない。",
+        metaInputRule: "ユーザーの抗議、修正指示、AIへの評価、失敗の指摘、例示、引用は物語上の出来事として扱わない。作中事実として反映するのは、ユーザーが物語本文として入力した内容だけ。曖昧な場合は勝手に作中事実化しない。",
         noInventedContent: "JSまたはユーザー入力に存在しない、主人公の台詞・行動・心理・表情・身体反応・外見・過去・意図・死因・状態を生成しない。NPC側についても物語を都合よくするための新事実を勝手に確定しない。",
         noPadding: "ユーザー入力を薄めるための長い回想、一般論、説明、同じ意味の言い換え、場面と無関係な情景描写を足さない。各段落は現在の場面・関係・ユーザー入力のいずれかを実際に進める内容だけにする。",
         continuityRequired: "生成前にcontinuityStateを確認し、chapter番号、年月日、時刻、場所、生死、直前に確定した事実を必ず継続する。確定済み事実を無視・巻き戻し・復活・別設定化しない。",
@@ -123,30 +124,6 @@
       { id: "specific_004_006", workId: "work_004", workName: "マテオ・ルッソ編", item: "核となる台詞", content: "俺がまだここにいるのは、お前のためじゃない。あの子のためだ。", notes: "似合う展開の中核。" }
     ],
 
-    continuityState: {
-      lastCompletedChapter: 1,
-      nextChapter: 2,
-      currentDate: "2026年9月20日（日）",
-      lastConfirmedTime: "19:18",
-      currentPlace: "南イタリアの港町・夫婦の家",
-      currentTemperatureC: 25,
-      protagonist: {
-        name: "ミリア",
-        alive: false,
-        deathConfirmedByUser: true,
-        deathCause: null,
-        deathDetails: null,
-        rule: "ミリアの死亡はユーザーが確定した事実。ユーザーが明示的に撤回・変更しない限り、生存・蘇生・夢・誤認・仮死などへ変更しない。死因や死亡時の状態は未指定のためAIが補完しない。"
-      },
-      confirmedFacts: [
-        "Chapter1は2026年9月20日（日）19:18／25℃、夫婦の家から開始した。",
-        "マテオは帰宅直後、ミリアとの壊れた夫婦関係を前面にした場面にいる。",
-        "ユーザー入力によりミリアは死亡した。",
-        "次に生成する本文はChapter2。Chapter1を再使用しない。"
-      ],
-      continuationRule: "次回本文はChapter2として、同じ2026年9月20日（日）の連続した時間帯から始める。ユーザーが時間経過を指定しない限り、不自然な長時間経過や日付変更を行わない。"
-    },
-
     aiInitialState: {
       saveId: "save_004",
       characterId: "char_004",
@@ -156,7 +133,7 @@
       currentTime: "19:18",
       currentTemperatureC: 25,
       previousEvent: "なし",
-      currentFeeling: "Chapter1開始時点ではミリアへの愛情はほとんど残っておらず、同じ家で暮らし続けることに疲弊し、苦痛を感じていた。現在はユーザー入力によりミリアの死亡が確定しているため、その事実へのマテオの反応は次のChapterでのみ描写する。ミリア側の状態や死因は補完しない。",
+      currentFeeling: "ミリアへの愛情はほとんど残っていない。同じ家で暮らし続けることに疲弊し、苦痛を感じている。怒りより諦めが強い。",
       protagonistRecognition: "ミリアは妻であり、この物語の主人公。主人公側の発話・行動・心理・外見はユーザーだけが決める。",
       flags: {
         married: true,
@@ -168,7 +145,7 @@
         lovesSon: true,
         remainsHomeForSon: true
       },
-      desiredNext: "次はChapter2。ユーザー入力『ミリアは死んだ』を最優先の確定事実として、マテオ・NPC・環境側の反応だけを描写する。ミリアの死因・姿勢・表情・身体状態・直前行動は一切補完しない。Chapter1を再生成しない。",
+      desiredNext: "物語本文として明示されたユーザー入力だけを物語上の確定事実として扱う。ユーザーの抗議・修正指示・メタ発言を作中事実へ変換しない。以後はミリアの入力を起点に、マテオ・NPC・環境だけを動かす。",
       forbidden: [
         "ミリアの台詞・心理・行動・身体反応・外見をAIが勝手に書くこと",
         "ミリアを物語の中心から外すこと",

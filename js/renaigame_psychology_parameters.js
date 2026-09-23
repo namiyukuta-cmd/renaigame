@@ -30,6 +30,8 @@
         pursuitDrive: "自分から会いに行く、連絡する、誘う、引き止める、関係を動かす力。",
         emotionalNeed: "主人公の存在・言葉・愛情を精神的に必要とする強さ。",
         physicalNeed: "触れたい、抱きたい、キスしたい等の身体的親密欲求。性的欲求だけを意味しない。",
+        passion: "恋愛感情の熱量。冷静さを保ちにくくなるほど強く惹かれ、求める情熱。",
+        euphoria: "恋がうまくいっている、主人公に選ばれた・会えた等による浮かれ、高揚、嬉しさ。",
         longing: "会えない・離れている時の恋しさ、会いたさ。"
       },
 
@@ -107,6 +109,8 @@
       pursuitDrive: 0,
       emotionalNeed: 0,
       physicalNeed: 0,
+      passion: 0,
+      euphoria: 0,
       exclusivityNeed: 0,
       possessiveness: 0,
       controlUrge: 0,
@@ -254,6 +258,7 @@
         "fearOfLoss",
         "emotionalNeed",
         "physicalNeed",
+        "passion",
         "longing",
         "pursuitDrive",
         "restraintBreakingImpulse",
@@ -301,7 +306,7 @@
       "fearOfLoss + longing + seekHeroine が高い → 離れたくない、会いに行く、引き止める方向。",
       "hurt + seekHeroine が高い → 傷ついたから関係を捨てるのではなく、傷ついたまま理由・説明・修復を求める。",
       "anger + tenderness がともに高い → 怒っていても相手を傷つけたくない。怒りを消さず表現方法だけ変わる。",
-      "passion相当のphysicalNeed / emotionalNeed + guilt / shame が高い → 欲しいのに自分を恥じ、近づいては止まる。",
+      "passion + physicalNeed / emotionalNeed + guilt / shame が高い → 欲しいのに自分を恥じ、近づいては止まる。",
       "stress / fatigue / emotionalPressure が高い → 普段よりselfControlの実効値が下がり、隠していた感情が漏れやすい。",
       "pride + hurt が高い → seekHeroineが高くても素直に追えず、冷たさ・意地・遠回りな接近になりうる。",
       "needForClarity + unresolvedEmotion がある → 曖昧なまま時間で消さず、話し合い・確認を起こす。"

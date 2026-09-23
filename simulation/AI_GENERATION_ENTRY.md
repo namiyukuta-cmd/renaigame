@@ -5,7 +5,9 @@
 ## 最初に必ず読む
 
 1. `simulation/AI_GENERATION_ENTRY.md`（このファイル）
-2. `simulation/AI_SAVE_WORKFLOW.md`
+2. `simulation/AI_CONVERSATION_RULES.md`（毎Turnの短縮実行ルール）
+3. `simulation/AI_SAVE_WORKFLOW.md`
+4. 必要に応じて `simulation/PSYCHOLOGY_CONVERSATION_ARCHITECTURE.md`（設計正本）
 
 `AI_SAVE_WORKFLOW.md` が、以下の詳細な運用仕様を定める。
 
@@ -44,9 +46,13 @@ ChatGPTがGitHubから
 ・必要な過去実ログ
 を取得する
 ↓
-ChatGPTが現在stateと今回の主人公入力から、JSが必要とする入力値を用意する
+ChatGPTが現在state・stateHistory・実ログと今回の主人公入力を確認する
 ↓
-GitHubにある心理JSの関数・判定ロジックを計算機として使用する
+今回の主人公入力が、その人物の固定性格と現在stateへどう響いたかを「今回の心理変化量」として作る
+↓
+before + change から更新後stateを作る
+↓
+更新後stateを normalizeState したうえで、GitHubにある心理JSの関数・判定ロジックを計算機として使用する
 ↓
 normalizeState
 evaluateRomanceOnset
@@ -69,7 +75,10 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 ### 絶対条件
 
 - ChatGPTはJSを「参考資料」として読むだけで終わってはいけない。
-- 心理・恋愛進行・接近／回避・修復・親密行動は、**JSの計算結果を先に取得してから**文章生成する。
+- 心理・恋愛進行・接近／回避・修復・親密行動は、**今回入力を心理変化へ反映した更新後stateに対するJS計算結果を先に取得してから**文章生成する。
+- 前Turnのstateをevaluateしてから今回入力を見る順序は禁止する。必ず「今回入力 → 心理変化 → 更新後state → normalize/evaluate → 会話生成」の順にする。
+- 固定character / behavior / 心理計算基盤は通常会話で書き換えない。
+- 過去心理は消さず、保存時にstateHistoryへTurn単位で追記する。
 - JS計算後に、ChatGPTが独自判断で「やっぱり身を引く」「やっぱり愛情を下げる」「やっぱり何もしない」等へ上書きしてはいけない。
 - 生成用パケットはChatGPT内部でそのターンの生成条件として使う。GitHubへ別ファイルとして保存する必要はない。
 - GitHubへの保存操作はChatGPTが行う。GitHubが自動でChatGPTへ送信したり、自動で会話生成したりするものではない。
@@ -79,8 +88,10 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 
 - characterId / 攻略対象名
 - 現在stage / romanceScore
-- 現在の主要心理値
+- 今回Turnの before
 - 今回の主人公入力
+- 今回の心理変化 change
+- 更新後の主要心理値 after
 - evaluateRomanceOnset 結果
 - evaluateConflict 結果
 - evaluateApproachAvoidance 結果
@@ -115,6 +126,10 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 
 - `state.session.recordsByCharacter[characterId]` = そのセーブ・その攻略対象だけのChapter実ログ
 - `state.session.statesByCharacter[characterId]` = そのセーブ・その攻略対象だけの恋愛進行状態
+  - `currentState` = 最新心理状態。次Turnの開始地点。最新値へ更新可。
+  - `stateHistory` = Turnごとの `before / change / after / evaluation` 履歴。原則追記のみ。
+
+旧セーブで `statesByCharacter[characterId]` がflatなstateの場合は、生成時はそのflat値をcurrentState相当として読む。明示保存時に既存情報を失わない形で新形式へ移行できる。
 
 **同じ攻略対象でも、別主人公・別周回・別saveIdの情報を混ぜない。**
 
@@ -124,33 +139,34 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 
 ### 共通
 
-1. `simulation/AI_SAVE_WORKFLOW.md`
-2. `js/renaigame_romance_rules.js`
-3. `js/renaigame_psychology_parameters.js`
+1. `simulation/AI_CONVERSATION_RULES.md`
+2. `simulation/AI_SAVE_WORKFLOW.md`
+3. `js/renaigame_romance_rules.js`
+4. `js/renaigame_psychology_parameters.js`
 
 ### char_001 アレクサンダー・クロス
 
-4. `simulation/js/simulation_character_001.js`
-5. `simulation/js/simulation_character_001_behavior.js`
+5. `simulation/js/simulation_character_001.js`
+6. `simulation/js/simulation_character_001_behavior.js`
 
 ### char_002 エリオット・グレイ
 
-4. `simulation/js/simulation_character_002.js`
-5. `simulation/js/simulation_character_002_behavior.js`
+5. `simulation/js/simulation_character_002.js`
+6. `simulation/js/simulation_character_002_behavior.js`
 
 ### char_003 フローリアン・ブレンナー
 
-4. `simulation/js/simulation_character_003.js`
-5. `simulation/js/simulation_character_003_behavior.js`
+5. `simulation/js/simulation_character_003.js`
+6. `simulation/js/simulation_character_003_behavior.js`
 
 ### char_004 マテオ・ルッソ
 
-4. `simulation/js/simulation_character_004.js`
-5. `simulation/js/simulation_character_004_behavior.js`
+5. `simulation/js/simulation_character_004.js`
+6. `simulation/js/simulation_character_004_behavior.js`
 
 最後に現在進行中のセーブJSONを読む。
 
-6. `private-game-data/renaigame/simulation/saves/<saveId>.json`
+7. `private-game-data/renaigame/simulation/saves/<saveId>.json`
 
 現在saveIdが会話中ですでに確定している場合はそれを使う。
 不明なら `private-game-data/renaigame/simulation/saves/index.json` を読み、主人公名・攻略対象ID・実ログ内容を照合して現在周回を特定する。
@@ -245,6 +261,11 @@ Chapter実ログ：
 恋愛進行state：
 
 `state.session.statesByCharacter[characterId]`
+
+保存時の内部原則：
+- `currentState` は今回のafterへ更新する。
+- `stateHistory` は今回Turnを追記する。
+- 過去Turnのbefore/change/after/evaluationを新しい値へ書き換えない。
 
 絶対にしない：
 

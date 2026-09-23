@@ -153,6 +153,7 @@ state.session.statesByCharacter[characterId]
 - char_001 → `simulation/state/templates/char_001_initial_state.json`
 - char_002 → `simulation/state/templates/char_002_initial_state.json`
 - char_003 → `simulation/state/templates/char_003_initial_state.json`
+- char_004 → `simulation/state/templates/char_004_initial_state.json`
 
 テンプレートは**初期値を作るためだけ**に使う。
 

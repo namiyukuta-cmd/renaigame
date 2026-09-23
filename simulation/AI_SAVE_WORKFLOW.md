@@ -354,6 +354,8 @@ state.session.statesByCharacter[characterId]
 
 ### Step 6. 数値は出来事に基づいて更新
 
+恋愛発生経路を更新する場合は、保存前に `evaluateRomanceOnset` の結果と実ログを照合する。推定結果だけで `romanceOnsetType` を確定しない。
+
 恋愛発生経路もChapter数だけで固定しない。
 
 - 一目惚れは、初対面時点の強い魅力・chemistry・encounterImpact等に実ログ上の根拠がある場合のみ成立させる。

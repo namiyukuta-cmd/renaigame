@@ -205,6 +205,17 @@
     },
 
     stateDefaults: {
+      trust: 0,
+      attachment: 0,
+      romanticAwareness: 0,
+      jealousy: 0,
+      hurt: 0,
+      sadness: 0,
+      anger: 0,
+      longing: 0,
+      desireForContact: 0,
+      vulnerability: 0,
+      futureThinking: 0,
       seekHeroine: 0,
       pursuitDrive: 0,
       emotionalNeed: 0,
@@ -677,7 +688,24 @@
       "invitationImpulse + romanticBoldness が高く、intimacyCautionが低め → 自宅・部屋・次の場所へ比較的直接誘う。",
       "invitationImpulseが高いがintimacyCaution / shame / hesitationも高い → 遠回しな誘い、言い直し、寸前で引く等の揺れになる。",
       "kissImpulse / embraceImpulse が高くphysicalInitiativeも高い → 段階と状況が許せば攻略対象側から軽い身体接触を起こす。",
-      "sexualIntimacyWishが高くても、露骨な性行為描写へ直結させない。成人同士の『この先も一緒にいたい』という期待・誘い・緊張として表す。"
+      "sexualIntimacyWishが高くても、露骨な性行為描写へ直結させない。成人同士の『この先も一緒にいたい』という期待・誘い・緊張として表す。",
+      "perceivedAffection が高いのに romanticConfidence / deservingLove が低い → 好意を感じても『本当に自分でいいのか』と信じ切れない。",
+      "certaintyOfHerAffection が高く fearOfRejection が低い → 同じ欲求でも自分から動きやすい。",
+      "fearOfRejection + missedChanceFear がともに高い → 断られるのも怖いが、何もしないで失うのも怖い。迷いながら踏み込む状態になる。",
+      "selfWorth が低く seekHeroine / needToBeChosen が高い → 必要以上の不安・確認欲求が生じうるが、attachmentAvoidance が高ければ逆に距離を取ることもある。",
+      "needToBeNeeded + needToProtect / needToCaretake が高い → 主人公の役に立ちたい。ただし助けを恋愛の対価にはしない。",
+      "needToReceiveCare / needToDepend が高く vulnerabilityTolerance が低い → 甘えたいのに頼れず、弱音を隠したり遠回しに助けを求める。",
+      "fearOfEngulfment + emotionalNeed が高い → 近づきたいのに近づきすぎると怖い、という押し引きが発生する。",
+      "approachImpulse + withdrawalImpulse がともに高い → 近づいては止まる、離れてから戻る等のpush-pullを許す。",
+      "repairDrive + apologyImpulse が高いが pride / stubbornResistance も高い → 仲直りしたいのにすぐ謝れず、遠回りな修復行動になる。",
+      "resentment / unresolvedConflictWeight が高く forgivenessReadiness が低い → 表面的に会話できてもわだかまりは残る。",
+      "recentAcceptanceImpact / recentAffectionImpact が高い → romanticConfidence / perceivedSafety / courage が上がりやすい。",
+      "recentRejectionImpact / rejectionPain が高い → fearOfRejection / hesitation / withdrawalImpulse が上がりやすい。",
+      "negativeMemorySalience が高い → 過去の傷が現在の疑い・防御へ影響しやすい。positiveMemorySalience が高い場合は良い記憶も同時に関係修復を後押しできる。",
+      "perceivedBetrayal + trust がともに高い → 信じていたからこそ傷つく。trust を即0にせず、疑いと信頼が並存してよい。",
+      "roleConflict / dutyPressure が高い → 恋愛感情ではなく行動の可否・タイミングを抑制する。seekHeroine を消さない。",
+      "privacyNeed / fearOfJudgment が高い → 人前では抑え、二人きりでは感情が出やすい差を作れる。",
+      "courage + missedChanceFear が上がると、fearOfRejection が残っていても告白・誘い・引き止めへ踏み出しやすい。"
     ],
 
     updateRules: [
@@ -686,7 +714,12 @@
       "一時的な感情状態と固定的な性格傾向を混同しない。性格はpsychologyTraits、現在状態はstate各値として扱う。",
       "恋愛段階が進んだ後、理由なくseekHeroineだけを低値へ戻して受け身化しない。",
       "謝罪・説明があってもhurt / resentment / suspicion等を即0にしない。納得度と人物傾向に応じて段階的に変える。",
-      "主人公が何もしなくても、seekHeroine / pursuitDrive / longing / needForClarity 等が高ければ攻略対象自身を起点に行動を開始する。"
+      "主人公が何もしなくても、seekHeroine / pursuitDrive / longing / needForClarity 等が高ければ攻略対象自身を起点に行動を開始する。",
+      "selfWorth / romanticConfidence / perceivedAffection 等の認知値は、事実そのものではなく攻略対象本人の現在認知として扱う。実ログと矛盾する誤解を持つこともある。",
+      "recentAcceptanceImpact / recentRejectionImpact / recentAffectionImpact / recentJealousyImpact は時間や新しい出来事で徐々に弱まる。1場面で理由なく0へしない。",
+      "unresolvedConflictWeight は未解決の問題が残る限り維持し、話し合い・謝罪・説明・行動変化等が起きてから下げる。",
+      "固定傾向は急変させない。psychologyTraits は人物設定変更がない限り原則維持し、場面ごとの変動はstate側で表現する。",
+      "現在状態は固定人格ではない。同じ人物でも睡眠不足、拒絶、再会、成功、嫉妬、安心等で複数値が一時的に変化してよい。"
     ]
   };
 
@@ -754,6 +787,162 @@
       delta: Math.round(delta),
       outcome,
       meaning: psychology.conflictModel.outcomes[outcome]
+    };
+  };
+
+  psychology.evaluateApproachAvoidance = (rawState = {}, characterId = rawState.characterId) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const avg = values => values.reduce((sum, value) => sum + clamp(value), 0) / values.length;
+
+    const approachPressure = avg([
+      state.seekHeroine,
+      state.approachImpulse,
+      state.pursuitDrive,
+      state.returnImpulse,
+      state.repairDrive,
+      state.longing,
+      state.needToBeChosen,
+      state.needForClarity,
+      state.missedChanceFear,
+      state.courage,
+      state.perceivedReciprocity,
+      t.pursuitTendency,
+      t.closenessNeedTrait
+    ]);
+
+    const avoidancePressure = avg([
+      state.withdrawalImpulse,
+      state.escapeImpulse,
+      state.fearOfRejection,
+      state.fearOfJudgment,
+      state.shame,
+      state.humiliation,
+      state.selfDoubt,
+      state.hesitation,
+      state.fearOfEngulfment,
+      state.regretAnticipation,
+      t.attachmentAvoidance,
+      t.conflictAvoidance,
+      t.rejectionSensitivityTrait
+    ]);
+
+    const delta = approachPressure - avoidancePressure;
+    let mode = "push_pull";
+    if (delta >= 25) mode = "approach";
+    else if (delta >= 8) mode = "approach_with_fear";
+    else if (delta <= -25) mode = "defensive_withdrawal";
+    else if (delta <= -8) mode = "withdraw_but_attached";
+
+    return {
+      approachPressure: Math.round(approachPressure),
+      avoidancePressure: Math.round(avoidancePressure),
+      delta: Math.round(delta),
+      mode,
+      guidance: {
+        approach: "求める力が明確に勝つ。自分から会う、聞く、誘う、修復する方向へ進みやすい。",
+        approach_with_fear: "怖さ・羞恥・拒絶不安を抱えたまま、それでも主人公へ近づく。",
+        push_pull: "近づきたい力と逃げたい力が拮抗。近づいて止まる、離れて戻る、言って撤回しかける等の揺れを出せる。",
+        withdraw_but_attached: "一時的に距離を取る力がやや勝つが、愛着やseekHeroineは残る。後から戻る余地を保持する。",
+        defensive_withdrawal: "防御的距離が強い。今は接近より退避を選びやすいが、恋愛感情そのものを自動消去しない。"
+      }[mode]
+    };
+  };
+
+  psychology.evaluateRepairDrive = (rawState = {}, characterId = rawState.characterId) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const avg = values => values.reduce((sum, value) => sum + clamp(value), 0) / values.length;
+
+    const repairPressure = avg([
+      state.repairDrive,
+      state.apologyImpulse,
+      state.returnImpulse,
+      state.relationshipHope,
+      state.expectationOfRepair,
+      state.seekHeroine,
+      state.attachment,
+      state.wantToBelieve,
+      t.repairTendency,
+      t.forgivenessTendency
+    ]);
+
+    const resistance = avg([
+      state.resentment,
+      state.hurt,
+      state.anger,
+      state.stubbornResistance,
+      state.pride,
+      state.perceivedBetrayal,
+      state.unresolvedConflictWeight,
+      100 - state.forgivenessReadiness,
+      t.stubbornness,
+      t.grudgeTendency
+    ]);
+
+    const delta = repairPressure - resistance;
+    let mode = "repair_conflicted";
+    if (delta >= 25) mode = "repair_now";
+    else if (delta >= 8) mode = "repair_cautiously";
+    else if (delta <= -25) mode = "not_ready";
+    else if (delta <= -8) mode = "wants_repair_but_resists";
+
+    return {
+      repairPressure: Math.round(repairPressure),
+      resistance: Math.round(resistance),
+      delta: Math.round(delta),
+      mode,
+      guidance: {
+        repair_now: "関係修復へ自分から動きやすい。謝罪・説明要求・会う提案などを具体的に起こせる。",
+        repair_cautiously: "修復したいが傷は残る。すぐ元通りにせず、条件や確認を伴う。",
+        repair_conflicted: "仲直りしたい気持ちと怒り・意地が拮抗。遠回り、言い淀み、態度の揺れとして出せる。",
+        wants_repair_but_resists: "本心では関係を捨てたくないが、傷・意地・不信が強く、すぐには折れない。",
+        not_ready: "現時点では修復を受け入れにくい。無理に許さず、未解決感情を維持する。"
+      }[mode]
+    };
+  };
+
+  psychology.evaluateAttachmentTension = (rawState = {}, characterId = rawState.characterId) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const closenessPull = (
+      state.emotionalNeed +
+      state.needForAffection +
+      state.needToBeChosen +
+      state.needToDepend +
+      state.clingImpulse +
+      state.separationDistress +
+      t.attachmentAnxiety +
+      t.closenessNeedTrait
+    ) / 8;
+
+    const distancePull = (
+      state.needForAutonomy +
+      state.fearOfEngulfment +
+      state.fearOfDependency +
+      state.withdrawalImpulse +
+      state.privacyNeed +
+      t.attachmentAvoidance +
+      t.autonomyNeedTrait
+    ) / 7;
+
+    const difference = closenessPull - distancePull;
+    let mode = "balanced_tension";
+    if (closenessPull >= 65 && distancePull >= 65) mode = "strong_push_pull";
+    else if (difference >= 20) mode = "closeness_seeking";
+    else if (difference <= -20) mode = "distance_protecting";
+
+    return {
+      closenessPull: Math.round(closenessPull),
+      distancePull: Math.round(distancePull),
+      difference: Math.round(difference),
+      mode,
+      guidance: {
+        closeness_seeking: "親密さ・確認・愛情を強く求める。拒絶不安が高ければ甘えや確認行動が増える。",
+        distance_protecting: "好意があっても自立・防御・私生活を守る力が強い。距離を取ることを愛情消失と同一視しない。",
+        strong_push_pull: "強く近づきたいのに、近づきすぎるのも怖い。恋愛の押し引き・矛盾が最も出やすい。",
+        balanced_tension: "親密さと自立の両方をある程度保てる。現在イベント次第でどちらにも揺れる。"
+      }[mode]
     };
   };
 

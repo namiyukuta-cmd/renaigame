@@ -51,25 +51,26 @@
 
 1. `simulation/AI_SAVE_WORKFLOW.md`
 2. `js/renaigame_romance_rules.js`
+3. `js/renaigame_psychology_parameters.js`
 
 ### char_001 アレクサンダー・クロス
 
-3. `simulation/js/simulation_character_001.js`
-4. `simulation/js/simulation_character_001_behavior.js`
+4. `simulation/js/simulation_character_001.js`
+5. `simulation/js/simulation_character_001_behavior.js`
 
 ### char_002 エリオット・グレイ
 
-3. `simulation/js/simulation_character_002.js`
-4. `simulation/js/simulation_character_002_behavior.js`
+4. `simulation/js/simulation_character_002.js`
+5. `simulation/js/simulation_character_002_behavior.js`
 
 ### char_003 フローリアン・ブレンナー
 
-3. `simulation/js/simulation_character_003.js`
-4. `simulation/js/simulation_character_003_behavior.js`
+4. `simulation/js/simulation_character_003.js`
+5. `simulation/js/simulation_character_003_behavior.js`
 
 最後に現在進行中のセーブJSONを読む。
 
-5. `private-game-data/renaigame/simulation/saves/<saveId>.json`
+6. `private-game-data/renaigame/simulation/saves/<saveId>.json`
 
 現在saveIdが会話中ですでに確定している場合はそれを使う。
 不明なら `private-game-data/renaigame/simulation/saves/index.json` を読み、主人公名・攻略対象ID・実ログ内容を照合して現在周回を特定する。
@@ -112,6 +113,13 @@
 - 主人公の台詞・心理・行動・受諾・身体反応・未設定プロフィールを勝手に作らない。
 - 攻略対象は主人公に従属する受け身の存在にしない。
 - 現在セーブの恋愛段階、恋愛度、信頼、感情、未解決事項を確認する。
+- `seekHeroine` を最優先の恋愛駆動値として確認する。恋愛段階が進んでいるのに理由なく低値へ戻して受け身化しない。
+- `renaigame_psychology_parameters.js` の心理項目を確認し、束縛欲・独占欲・嫉妬・疑い・信頼・情熱・浮かれ・理性・倫理・自制等を別々に保持する。
+- 相反する値を自動相殺しない。例：嫉妬80＋信頼80、束縛欲70＋倫理95は同時に成立する。
+- 欲求側と抑制側を `evaluateConflict` で確認し、理性が勝つ／感情が漏れる／拮抗する／欲求が部分的に勝つ／欲求が強く勝つを描写へ反映する。
+- 親密さの場面では `evaluateIntimacyInitiative` も確認し、その人物が自分から行けるか、遠回しになるか、寸前で止まるかを性格と現在状態から決める。
+- 成人同士では、実際の性行為を露骨に描かなくても、自宅へ誘う、帰したくないと伝える、もっと二人でいたいと匂わせる等のより深い親密さを望むニュアンスを出してよい。
+- 段階・性格・状況が許せば、攻略対象側から髪や手に触れる、抱きしめる、キスする等の軽い接触を起こしてよい。主人公側の受諾・反応は補完しない。
 - `hurt / sadness / anger / jealousy / longing / unresolvedEmotion` を理由なく消さない。
 - 現在段階で可能なら、攻略対象自身の欲求から具体的な行動を起こす。
 - 無条件の肯定、即時理解、即時許し、何でも主人公に合わせる反応は禁止。
@@ -170,7 +178,8 @@ Chapter実ログ：
 5. 対象キャラの `simulation_character_XXX_behavior.js`
 6. 対象キャラの `simulation_character_XXX.js`
 7. `renaigame_romance_rules.js`
-8. 現在セーブのstate要約・数値
+8. `js/renaigame_psychology_parameters.js`
+9. 現在セーブのstate要約・数値
 
 実ログとstate要約が食い違う場合は実ログを優先し、次回の明示的状態更新時にstateを整合させる。
 

@@ -214,6 +214,12 @@ state.session.statesByCharacter[characterId]
 - importantFlags
 - history
 - psychologyModelVersion / psychologyTraits
+- romanceOnsetType / romanceOnsetEstablished / romanceOnsetEstablishedAt / lastRomanceOnsetEvaluation
+- priorAwareness / priorFamiliarity / priorInterest / priorCrush / priorAdmiration / priorCuriosity / priorFantasy
+- firstImpression / appearanceAttraction / sexualAttraction / intellectualAttraction / emotionalAttraction / chemistry
+- familiarity / comfort / similarity / complementarity / intrigue / romanticOpenness / readinessForLove / lonelinessCatalyst
+- memoryFrequency / spontaneousThought / anticipation / encounterImpact / reunionImpact / unexpectedDiscoveryImpact
+- attractionGrowth / romanticSpark / latentAffection / romanticMomentum / onsetCertainty
 - seekHeroine / pursuitDrive / emotionalNeed / physicalNeed / passion / euphoria
 - exclusivityNeed / possessiveness / controlUrge / rivalry
 - fearOfLoss / abandonmentFear / insecurity / suspicion / anxiety / wantToBelieve
@@ -340,8 +346,21 @@ state.session.statesByCharacter[characterId]
 - importantFlags
 - history
 - キャラ固有フラグ
+- romanceOnsetType / romanceOnsetEstablished / romanceOnsetEstablishedAt / lastRomanceOnsetEvaluation
+- priorAwareness / priorFamiliarity / priorInterest / priorCrush / priorAdmiration / priorCuriosity / priorFantasy
+- firstImpression / appearanceAttraction / sexualAttraction / intellectualAttraction / emotionalAttraction / chemistry
+- familiarity / comfort / similarity / complementarity / intrigue / romanticOpenness / readinessForLove / lonelinessCatalyst
+- memoryFrequency / spontaneousThought / anticipation / encounterImpact / reunionImpact / unexpectedDiscoveryImpact / attractionGrowth / romanticSpark / latentAffection / romanticMomentum / onsetCertainty
 
 ### Step 6. 数値は出来事に基づいて更新
+
+恋愛発生経路もChapter数だけで固定しない。
+
+- 一目惚れは、初対面時点の強い魅力・chemistry・encounterImpact等に実ログ上の根拠がある場合のみ成立させる。
+- slow_burn は、反復接触・familiarity・comfort・memoryFrequency等の積み重ねから成立させる。
+- preexisting_crush は、事前好意の設定または実ログがある場合のみ成立させる。
+- physical_to_emotional 等は、最初の魅力と後から育った愛着の両方を実ログで確認する。
+- `lastRomanceOnsetEvaluation` は推定値として保存できるが、`romanceOnsetType` を確定する時は根拠となる実ログを `lastChangeReason` または history に残す。
 
 恋愛度等をChapter数だけで機械的に上げない。
 

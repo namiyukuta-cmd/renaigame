@@ -8,6 +8,67 @@
 
 ---
 
+## 0. 絶対運用：AI → GitHub → JS計算 → AI生成 → GitHub保存
+
+この恋愛シミュレーションでは、**ChatGPTが実行主体**。
+
+GitHubは自律的に何かをするものではなく、次の3用途だけに使う。
+
+1. キャラクター設定・心理ルール・計算ロジックを置く
+2. 現在セーブ・Chapter実ログを置く
+3. ChatGPTが使う計算機としてJSを提供する
+
+毎ターンの処理順：
+
+```text
+主人公の最新入力
+↓
+ChatGPTが現在セーブと実ログを取得
+↓
+ChatGPTがcharacter / behavior / romance rules / psychology JSを取得
+↓
+ChatGPTが現在stateをJSへ入力
+↓
+JSの計算ロジックで現在心理と派生判定を算出
+↓
+ChatGPTが計算結果を生成用パケットとして固定
+↓
+ChatGPTがパケットどおりに文章だけ生成
+↓
+ユーザーが保存を指示
+↓
+ChatGPTがChapter実ログ＋更新stateを現在saveIdへ保存
+```
+
+### ChatGPTが生成前に必ず取得するJS計算結果
+
+- normalizeState
+- evaluateRomanceOnset
+- evaluateConflict
+- evaluateApproachAvoidance
+- evaluateAttachmentTension
+- evaluateRepairDrive
+- evaluateIntimacyInitiative
+
+必要なキャラ固有判定が追加された場合はそれも取得する。
+
+### 禁止
+
+- JSを読んだだけで、実際の判定結果を出さず文章生成へ進む。
+- AIの感覚で心理値・恋愛進行・行動方針を先に決める。
+- JS計算結果が出た後に、AI判断で別の心理・別の行動へ差し替える。
+- 「配慮」「倫理」「自然さ」等を理由に、JSが保持している欲求・執着・嫉妬・傷つき・修復欲求を消す。
+- GitHubが自動で送信・保存・生成する前提で設計する。
+- 生成用パケットを新たな正本として扱う。正本は現在saveId内の実ログとstate。
+
+### 保存担当
+
+**GitHubへの保存担当はChatGPT。**
+
+ユーザーが「記録と情報更新」「GitHubに保存」等を指示した場合、ChatGPTが現在saveIdを再取得し、実ログと更新stateを書き込む。
+
+---
+
 ## 1. データの役割
 
 ### renaigame リポジトリ

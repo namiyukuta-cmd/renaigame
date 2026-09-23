@@ -644,6 +644,7 @@
       ],
 
       outcomes: {
+        low_activation: "そもそもの欲求圧が低い。理性が勝ったのではなく、強い葛藤自体がまだ起きていない。",
         restraint_wins: "理性・倫理・自制が優勢。欲求は消さず、視線、沈黙、言い淀み、予定確認など小さな漏れとして出してよい。seekHeroineが高いなら無関心・撤退へ変換しない。",
         restraint_leaks: "抑制が勝っているが完全には隠せない。嫉妬を認める、理由を聞く、会いたいと言う、少し強く引き止める等が漏れる。",
         conflict: "欲求と抑制が拮抗。言う／言わない、近づく／止まる、責めたい／信じたい等の矛盾を同じ場面に残す。",
@@ -774,7 +775,8 @@
     const delta = desirePressure - effectiveRestraint;
 
     let outcome = "conflict";
-    if (delta <= -25) outcome = "restraint_wins";
+    if (desirePressure < 15) outcome = "low_activation";
+    else if (delta <= -25) outcome = "restraint_wins";
     else if (delta <= -6) outcome = "restraint_leaks";
     else if (delta < 15) outcome = "conflict";
     else if (delta < 35) outcome = "desire_partly_wins";
@@ -828,8 +830,10 @@
     ]);
 
     const delta = approachPressure - avoidancePressure;
+    const approachActivation = Math.max(state.seekHeroine, state.approachImpulse, state.pursuitDrive, state.longing, state.repairDrive);
     let mode = "push_pull";
-    if (delta >= 25) mode = "approach";
+    if (approachActivation < 15 && state.perceivedBondThreat < 15 && state.fearOfRejection < 15) mode = "neutral";
+    else if (delta >= 25) mode = "approach";
     else if (delta >= 8) mode = "approach_with_fear";
     else if (delta <= -25) mode = "defensive_withdrawal";
     else if (delta <= -8) mode = "withdraw_but_attached";
@@ -840,6 +844,7 @@
       delta: Math.round(delta),
       mode,
       guidance: {
+        neutral: "接近・回避の葛藤自体がまだ強く動いていない。無理に押し引きを発生させない。",
         approach: "求める力が明確に勝つ。自分から会う、聞く、誘う、修復する方向へ進みやすい。",
         approach_with_fear: "怖さ・羞恥・拒絶不安を抱えたまま、それでも主人公へ近づく。",
         push_pull: "近づきたい力と逃げたい力が拮抗。近づいて止まる、離れて戻る、言って撤回しかける等の揺れを出せる。",
@@ -881,8 +886,17 @@
     ]);
 
     const delta = repairPressure - resistance;
+    const conflictActivation = Math.max(
+      state.unresolvedConflictWeight,
+      state.hurt,
+      state.anger,
+      state.resentment,
+      state.perceivedBetrayal,
+      state.rejectionPain
+    );
     let mode = "repair_conflicted";
-    if (delta >= 25) mode = "repair_now";
+    if (conflictActivation < 15) mode = "no_conflict";
+    else if (delta >= 25) mode = "repair_now";
     else if (delta >= 8) mode = "repair_cautiously";
     else if (delta <= -25) mode = "not_ready";
     else if (delta <= -8) mode = "wants_repair_but_resists";
@@ -893,6 +907,7 @@
       delta: Math.round(delta),
       mode,
       guidance: {
+        no_conflict: "修復すべき明確な喧嘩・傷つきが現在ない。仲直り行動を無理に発生させない。",
         repair_now: "関係修復へ自分から動きやすい。謝罪・説明要求・会う提案などを具体的に起こせる。",
         repair_cautiously: "修復したいが傷は残る。すぐ元通りにせず、条件や確認を伴う。",
         repair_conflicted: "仲直りしたい気持ちと怒り・意地が拮抗。遠回り、言い淀み、態度の揺れとして出せる。",

@@ -783,6 +783,7 @@
       ],
       onsetTypes: {
         none_yet: "まだ恋愛発生と呼べる状態ではない。",
+        existing_relationship: "物語開始時点ですでに交際・婚姻などの恋愛関係が成立している。現在の課題は恋の発生ではなく、その関係の維持・再燃・変化。",
         preexisting_crush: "物語開始前からすでに好意が存在していた。",
         love_at_first_sight: "初対面または初めて個人的に認識した瞬間に、恋愛感情が強く発火した。",
         instant_attraction: "初対面で強く惹かれたが、まだ恋そのものとまでは自覚していない。",
@@ -967,6 +968,26 @@
 
   psychology.evaluateRomanceOnset = (rawState = {}, characterId = rawState.characterId) => {
     const state = psychology.normalizeState(rawState, characterId);
+    if (
+      rawState.romanceOnsetEstablished === true &&
+      rawState.romanceOnsetType &&
+      rawState.romanceOnsetType !== "none_yet" &&
+      psychology.romanceOnsetModel.onsetTypes[rawState.romanceOnsetType]
+    ) {
+      return {
+        onsetType: rawState.romanceOnsetType,
+        confidence: 100,
+        computedSpark: clamp(state.romanticSpark),
+        attractionComposite: 0,
+        firstEncounterSpark: 0,
+        gradualBond: 0,
+        priorBond: 0,
+        currentActivation: Math.round((state.seekHeroine + state.attachment + state.romanticMomentum) / 3),
+        candidates: [{ type: rawState.romanceOnsetType, score: 100 }],
+        meaning: psychology.romanceOnsetModel.onsetTypes[rawState.romanceOnsetType],
+        established: true
+      };
+    }
     const t = state.psychologyTraits;
     const avg = values => values.reduce((sum, value) => sum + clamp(value), 0) / values.length;
 

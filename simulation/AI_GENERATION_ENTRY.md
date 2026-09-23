@@ -22,6 +22,81 @@
 
 ---
 
+## 最重要：ChatGPTがGitHubのJSを「計算機」として使う
+
+GitHub自体が自律的に判断・生成・保存するものではない。
+
+**実行主体はChatGPT。GitHubは、設定・セーブ・ログを置く保存箱であり、そこにあるJSはChatGPTが使う計算機。**
+
+1ターンごとに必ず次の順番で処理する。
+
+```text
+ユーザーが主人公の入力をChatGPTへ送る
+↓
+ChatGPTが現在saveIdを特定する
+↓
+ChatGPTがGitHubから
+・攻略対象character JS
+・攻略対象behavior JS
+・共通恋愛ルールJS
+・共通心理パラメーターJS
+・現在セーブstate
+・必要な過去実ログ
+を取得する
+↓
+ChatGPTが現在stateと今回の主人公入力から、JSが必要とする入力値を用意する
+↓
+GitHubにある心理JSの関数・判定ロジックを計算機として使用する
+↓
+normalizeState
+evaluateRomanceOnset
+evaluateConflict
+evaluateApproachAvoidance
+evaluateAttachmentTension
+evaluateRepairDrive
+evaluateIntimacyInitiative
+等の計算結果を取得する
+↓
+ChatGPTは、そのJS計算結果を「生成用パケット」として固定する
+↓
+ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用パケットに従って攻略対象・NPC・環境の文章だけを生成する
+↓
+ユーザーが保存を指示したら、ChatGPTが生成結果・実ログ・更新stateを現在saveIdへ保存する
+↓
+次ターンも同じ
+```
+
+### 絶対条件
+
+- ChatGPTはJSを「参考資料」として読むだけで終わってはいけない。
+- 心理・恋愛進行・接近／回避・修復・親密行動は、**JSの計算結果を先に取得してから**文章生成する。
+- JS計算後に、ChatGPTが独自判断で「やっぱり身を引く」「やっぱり愛情を下げる」「やっぱり何もしない」等へ上書きしてはいけない。
+- 生成用パケットはChatGPT内部でそのターンの生成条件として使う。GitHubへ別ファイルとして保存する必要はない。
+- GitHubへの保存操作はChatGPTが行う。GitHubが自動でChatGPTへ送信したり、自動で会話生成したりするものではない。
+- 保存時は、確定した実ログと更新後stateだけを現在saveIdへ書き戻す。
+
+### 生成用パケットに最低限含めるもの
+
+- characterId / 攻略対象名
+- 現在stage / romanceScore
+- 現在の主要心理値
+- 今回の主人公入力
+- evaluateRomanceOnset 結果
+- evaluateConflict 結果
+- evaluateApproachAvoidance 結果
+- evaluateAttachmentTension 結果
+- evaluateRepairDrive 結果
+- evaluateIntimacyInitiative 結果
+- unresolvedEmotion
+- 今回、攻略対象側から起こすべき行動
+- 今回、抑制される行動
+- 主人公側を勝手に補完しない等の絶対禁止事項
+- 現在場面に必要な直近実ログ・重要過去ログ
+
+**文章生成より先にJS計算。JS計算より先に現在セーブと実ログ確認。保存はChatGPTが行う。**
+
+---
+
 ## 最重要：セーブJSONが正本
 
 恋愛進行状態とChapter記録は、攻略対象ごとの共通ファイルに保存しない。

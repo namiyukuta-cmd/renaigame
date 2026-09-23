@@ -797,12 +797,22 @@
     const t = state.psychologyTraits;
     const avg = values => values.reduce((sum, value) => sum + clamp(value), 0) / values.length;
 
+    const repairRelevant = Math.max(
+      state.unresolvedConflictWeight,
+      state.hurt,
+      state.anger,
+      state.resentment,
+      state.perceivedBetrayal,
+      state.rejectionPain
+    ) >= 15;
+    const activeRepairDrive = repairRelevant ? state.repairDrive : 0;
+
     const approachPressure = avg([
       state.seekHeroine,
       state.approachImpulse,
       state.pursuitDrive,
       state.returnImpulse,
-      state.repairDrive,
+      activeRepairDrive,
       state.longing,
       state.needToBeChosen,
       state.needForClarity,
@@ -830,7 +840,15 @@
     ]);
 
     const delta = approachPressure - avoidancePressure;
-    const approachActivation = Math.max(state.seekHeroine, state.approachImpulse, state.pursuitDrive, state.longing, state.repairDrive);
+    const approachActivation = Math.max(
+      state.seekHeroine,
+      state.approachImpulse,
+      state.pursuitDrive,
+      state.longing,
+      state.returnImpulse,
+      activeRepairDrive,
+      state.missedChanceFear
+    );
     let mode = "push_pull";
     if (approachActivation < 15 && state.perceivedBondThreat < 15 && state.fearOfRejection < 15) mode = "neutral";
     else if (delta >= 25) mode = "approach";

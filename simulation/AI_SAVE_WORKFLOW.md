@@ -186,6 +186,9 @@ state.session.statesByCharacter[characterId]
 - seekHeroine を最優先の恋愛駆動値として扱い、恋愛段階が進んでいるのに傷つき・倫理・遠慮だけを理由に主人公を求めなくしない。
 - 束縛欲、独占欲、嫉妬、疑い、信頼、情熱、浮かれ、理性、倫理、自制等は別々の値として持ち、矛盾していても自動相殺しない。
 - `evaluateConflict` で欲求と抑制の拮抗を確認し、理性優勢／感情漏れ／拮抗／欲求部分優勢／欲求優勢の差を描写する。
+- `evaluateApproachAvoidance` で、近づきたい力と逃げたい力の両方を見る。距離を取る行動を恋愛感情消失と短絡しない。
+- `evaluateAttachmentTension` で、親密さを求める力と自立・防御を求める力の衝突を見る。
+- 喧嘩・誤解・傷つき後は `evaluateRepairDrive` で、修復欲求と怒り・意地・不信の両方を見る。即時許し・即時破局に単純化しない。
 - 親密場面では `evaluateIntimacyInitiative` を確認し、キャラの `romanticBoldness / physicalInitiative / intimacyCaution / sexualDirectness` と現在stateから、自分から行く・遠回しに行く・寸前で止まる等を決める。
 - 成人同士では、露骨な性行為描写をしなくても、自宅へ誘う、帰したくない、もっと一緒にいたい等の親密さを望むニュアンスを出してよい。
 - 段階・性格・状況が許せば、髪や手に触れる、手を取る、抱きしめる、キスする等を攻略対象側から起こしてよい。主人公の受諾・心理・身体反応は勝手に作らない。
@@ -223,7 +226,17 @@ state.session.statesByCharacter[characterId]
 - ambivalence / confusion / guilt / shame / hesitation
 - emotionalPressure / stress / fatigue
 - needForReciprocity / needForClarity
-- lastPsychologyConflict / lastIntimacyInitiative
+- admiration / fascination / gratitude / joy / relief / relationshipHope
+- selfWorth / romanticConfidence / desirabilityConfidence / deservingLove / inferiority / selfDoubt / humiliation / rejectionPain / rightToAsk
+- needForAffection / needToBeChosen / needToBeNeeded / needToBeReliedOn / needToProtect / needToCaretake / needToReceiveCare / needToDepend / needForAutonomy / closenessComfort / fearOfEngulfment / separationDistress
+- approachImpulse / withdrawalImpulse / escapeImpulse / clingImpulse / returnImpulse / silenceImpulse / protestImpulse / appeasementImpulse
+- repairDrive / apologyImpulse / forgivenessReadiness / stubbornResistance
+- perceivedReciprocity / perceivedAffection / perceivedRejection / perceivedBondThreat / perceivedRivalThreat / perceivedBetrayal / perceivedFairness / perceivedSafety
+- certaintyOfHerAffection / certaintyOfOwnFeelings / expectationOfRepair
+- reputationConcern / roleConflict / dutyPressure / privacyNeed / fearOfJudgment / fearOfRidicule / fearOfRejection / fearOfDependency / fearOfLosingControl / regretAnticipation / missedChanceFear
+- recentAcceptanceImpact / recentRejectionImpact / recentAffectionImpact / recentJealousyImpact / unresolvedConflictWeight / promiseImportance / positiveMemorySalience / negativeMemorySalience
+- emotionalActivation / calmness / courage / decisiveness / patience
+- lastPsychologyConflict / lastIntimacyInitiative / lastApproachAvoidance / lastRepairEvaluation / lastAttachmentTension
 
 既存セーブにこれらが無い場合は `RenaiGamePsychologyParameters.normalizeState` で不足項目だけ補完して生成判断する。明示的な保存指示があるまでは、補完しただけでGitHubへ書き戻さない。
 

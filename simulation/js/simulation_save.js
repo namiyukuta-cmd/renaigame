@@ -197,7 +197,7 @@
     const remote = normalizeSession(remoteValue);
     const local = normalizeSession(localValue);
     const recordsByCharacter = {};
-    const statesByCharacter = Object.assign({}, remote.statesByCharacter, local.statesByCharacter);
+    const statesByCharacter = Object.assign({}, local.statesByCharacter, remote.statesByCharacter);
     const characterIds = new Set([
       ...Object.keys(remote.recordsByCharacter),
       ...Object.keys(local.recordsByCharacter)

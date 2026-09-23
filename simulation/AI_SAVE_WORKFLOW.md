@@ -23,13 +23,17 @@ GitHubは自律的に何かをするものではなく、次の3用途だけに�
 ```text
 主人公の最新入力
 ↓
-ChatGPTが現在セーブと実ログを取得
+ChatGPTが現在セーブの currentState / stateHistory / 実ログを取得
 ↓
 ChatGPTがcharacter / behavior / romance rules / psychology JSを取得
 ↓
-ChatGPTが現在stateをJSへ入力
+今回入力が固定性格と現在stateにどう響いたかを心理変化 change として算出
 ↓
-JSの計算ロジックで現在心理と派生判定を算出
+before + change から更新後stateを作る
+↓
+更新後stateを normalizeState
+↓
+JSの計算ロジックで各evaluate結果を算出
 ↓
 ChatGPTが計算結果を生成用パケットとして固定
 ↓
@@ -40,7 +44,12 @@ ChatGPTがパケットどおりに文章だけ生成
 ChatGPTがChapter実ログ＋更新stateを現在saveIdへ保存
 ```
 
-### ChatGPTが生成前に必ず取得するJS計算結果
+### ChatGPTが生成前に必ず確定するもの
+
+- before = 今回入力前のcurrentState
+- change = 今回入力による心理変化
+- after = before + change をnormalizeした更新後state
+- 以下のJS計算結果
 
 - normalizeState
 - evaluateRomanceOnset
@@ -55,6 +64,9 @@ ChatGPTがChapter実ログ＋更新stateを現在saveIdへ保存
 ### 禁止
 
 - JSを読んだだけで、実際の判定結果を出さず文章生成へ進む。
+- 前Turnのstateのままevaluateし、その後で今回入力を解釈する。
+- 固定character / behavior / 心理計算基盤を会話ごとの気分で書き換える。
+- 過去Turnの心理値を最新値で上書きして履歴を消す。
 - AIの感覚で心理値・恋愛進行・行動方針を先に決める。
 - JS計算結果が出た後に、AI判断で別の心理・別の行動へ差し替える。
 - 「配慮」「倫理」「自然さ」等を理由に、JSが保持している欲求・執着・嫉妬・傷つき・修復欲求を消す。
@@ -122,7 +134,21 @@ state.session.recordsByCharacter[characterId]
 state.session.statesByCharacter[characterId]
 ```
 
-= 恋愛度、信頼、執着、嫉妬、傷つき、未解決感情、重要フラグ、履歴などの現在状態。
+= その攻略対象の進行状態。
+
+新形式では内部に次を持つ。
+
+```json
+{
+  "currentState": {},
+  "stateHistory": []
+}
+```
+
+- `currentState` = 最新の恋愛度・信頼・執着・嫉妬・傷つき・未解決感情・重要フラグ等。次Turnの計算開始地点。
+- `stateHistory` = Turnごとの `before / change / after / evaluation`。原則追記のみ。
+
+旧flat stateは互換対象。生成時はflat state全体をcurrentState相当として読み、明示保存時に既存情報を失わない形で新形式へ移行できる。
 
 **キャラクターIDだけで進行データを選んではいけない。必ず saveId まで一致させる。**
 
@@ -190,7 +216,9 @@ state.session.statesByCharacter[characterId]
 
 - `state.profile`
 - `state.selectedCharacterId`
-- `state.session.statesByCharacter[characterId]`
+- `state.session.statesByCharacter[characterId].currentState`（新形式）
+- `state.session.statesByCharacter[characterId].stateHistory`（新形式）
+- 旧flat stateの場合は `state.session.statesByCharacter[characterId]` 全体
 - `state.session.recordsByCharacter[characterId]`
 
 ### 過去ログ
@@ -221,6 +249,39 @@ state.session.statesByCharacter[characterId]
 プレイ進行後の値をテンプレートへ書き戻さない。
 
 ---
+
+
+## 5A. 今回入力を反映してからevaluateする
+
+会話生成時は必ず次の順番にする。
+
+```text
+currentState = before
+↓
+今回の主人公入力を読む
+↓
+固定character / behavior / 過去ログ / beforeを使って今回の心理変化 change を作る
+↓
+before + change から新stateを作る
+↓
+normalizeState
+↓
+evaluateRomanceOnset
+evaluateConflict
+evaluateApproachAvoidance
+evaluateAttachmentTension
+evaluateRepairDrive
+evaluateIntimacyInitiative
+↓
+after と各evaluationを「今回の会話ステータス」として固定
+↓
+文章生成
+```
+
+前Turnのstateでevaluateしてから今回入力を見る順序は禁止。
+
+同じ入力でも人物の固定性格・現在state・過去の残留感情によってchangeは異なってよい。
+矛盾する心理値は相殺せず同時に保持する。
 
 ## 6. 文章生成時のルール
 
@@ -386,7 +447,36 @@ state.session.statesByCharacter[characterId]
 
 `state.session.statesByCharacter[characterId]`
 
-更新対象例：
+新形式では：
+
+- `currentState` を今回のafterへ更新する。
+- `stateHistory` へ今回Turnを追記する。
+- 過去Turnは変更しない。
+
+推奨stateHistoryエントリ：
+
+```json
+{
+  "turn": 14,
+  "scene": "Chapter 4",
+  "input": "主人公の今回入力全文",
+  "before": {},
+  "change": {},
+  "after": {},
+  "evaluation": {
+    "romanceOnset": {},
+    "conflict": {},
+    "approachAvoidance": {},
+    "attachmentTension": {},
+    "repair": {},
+    "intimacy": {}
+  }
+}
+```
+
+旧flat stateを保存対象にした場合は、既存フィールドを失わずにcurrentStateへ引き継ぎ、stateHistoryを追加する。
+
+currentStateの更新対象例：
 
 - stage / stageName
 - romanceScore
@@ -434,9 +524,11 @@ state.session.statesByCharacter[characterId]
 
 例：初対面で挨拶しただけなら、警戒段階・恋愛度0・信頼0を維持してよい。
 
-### Step 7. historyを残す
+### Step 7. stateHistory と history を残す
 
-state内 `history` にはChapterごとの進展概要を残す。
+`stateHistory` はTurnごとの心理計算履歴として追記する。
+
+既存の `history` はChapterごとの進展概要として残してよい。
 
 実ログ全文は `recordsByCharacter` が正本。
 
@@ -509,7 +601,9 @@ state内 `history` にはChapterごとの進展概要を残す。
 | キャラ行動ルール | `simulation/js/simulation_character_XXX_behavior.js` | 設定変更指示時のみ |
 | 新規周回初期state | `simulation/state/templates/char_XXX_initial_state.json` | プレイ進行では更新しない |
 | Chapter実ログ | 現在saveの `recordsByCharacter[characterId]` | 同じ場所 |
-| 恋愛度・感情・進行state | 現在saveの `statesByCharacter[characterId]` | 同じ場所 |
+| 最新心理state | 現在saveの `statesByCharacter[characterId].currentState`（旧形式はflat state） | currentStateを最新afterへ更新 |
+| 心理Turn履歴 | 現在saveの `statesByCharacter[characterId].stateHistory` | 今回Turnを追記のみ |
+| 恋愛度・感情・進行state | currentState | currentState内で更新 |
 | セーブ特定 | `private-game-data/.../saves/index.json` | 通常はゲーム側が更新 |
 | 旧共有state | `simulation/state/simulation_character_XXX_state.json` | 更新しない |
 | 旧共有Chapter | `simulation/record/...` | 新規保存しない |
@@ -536,4 +630,4 @@ state内 `history` にはChapterごとの進展概要を残す。
 
 ## 14. 一言での原則
 
-**キャラ設定は renaigame、プレイした出来事と恋愛進行は saveId ごとの private-game-data。生成時は両方読む。保存時は現在saveIdだけを書き換える。**
+**キャラ設定と心理計算基盤は renaigame で固定。プレイした出来事と心理変化は saveId ごとの private-game-data に蓄積する。毎Turn「今回入力 → change → after → evaluate → 会話生成」、保存時は currentState更新＋stateHistory追記＋実ログ追記。**

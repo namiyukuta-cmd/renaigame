@@ -481,123 +481,6 @@
       border-top: 1px solid #eee5e8;
     }
 
-    .chat-panel {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #cdbfc4;
-      border-radius: 14px;
-      background: #faf7f8;
-      overflow: hidden;
-    }
-
-    .chat-head {
-      padding: 16px 18px 12px;
-      border-bottom: 1px solid #e5dade;
-      flex: 0 0 auto;
-    }
-
-    .chat-head h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .chat-status {
-      min-height: 20px;
-      margin-top: 6px;
-      color: #766970;
-      font-size: 12px;
-      line-height: 1.45;
-    }
-
-    .chat-log {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 16px;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .chat-entry {
-      margin-bottom: 20px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid #eee5e8;
-    }
-
-    .chat-entry:last-child {
-      border-bottom: 0;
-    }
-
-    .chat-scene {
-      margin-bottom: 10px;
-      color: #7b6d73;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .chat-speaker {
-      margin: 10px 0 5px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #65585e;
-    }
-
-    .chat-text {
-      white-space: pre-wrap;
-      line-height: 1.75;
-      font-size: 16px;
-    }
-
-    .chat-input-area {
-      flex: 0 0 auto;
-      padding: 12px;
-      border-top: 1px solid #e5dade;
-      background: #f8f3f5;
-    }
-
-    .chat-input-area textarea {
-      width: 100%;
-      min-height: 82px;
-      max-height: 180px;
-      padding: 11px 12px;
-      border: 1px solid #bdaeb4;
-      border-radius: 10px;
-      background: #fff;
-      color: #2c2528;
-      line-height: 1.55;
-      resize: vertical;
-      outline: none;
-    }
-
-    .chat-input-area textarea:focus {
-      border-color: #75666c;
-    }
-
-    .chat-send {
-      width: 100%;
-      min-height: 48px;
-      margin-top: 8px;
-      border: 1px solid #9d8d93;
-      border-radius: 10px;
-      background: #fff;
-      color: #2c2528;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .chat-send:disabled {
-      opacity: .55;
-      cursor: default;
-    }
-
-    .chat-empty {
-      padding: 28px 10px;
-      text-align: center;
-      color: #766970;
-      line-height: 1.7;
-    }
-
     .bottom-nav {
       position: fixed;
       left: 50%;
@@ -606,7 +489,7 @@
       width: min(100%, 520px);
       padding-bottom: env(safe-area-inset-bottom);
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       background: #faf7f8;
       border-top: 1px solid #cdbfc4;
       z-index: 20;
@@ -646,26 +529,20 @@
 
   <nav class="bottom-nav" aria-label="メインメニュー">
     <button id="homeButton" class="active" type="button">ホーム</button>
-    <button id="talkButton" type="button">会話</button>
     <button id="romanceButton" type="button">恋愛相手</button>
     <button id="recordButton" type="button">記録</button>
     <button id="profileButton" type="button">プロフィール</button>
   </nav>
 
-  <script src="../js/renaigame_psychology_parameters.js"></script>
-  <script src="../js/renaigame_romance_rules.js"></script>
   <script src="js/simulation_characters.js"></script>
   <script src="js/simulation_save.js"></script>
   <script src="js/simulation_record.js"></script>
-  <script src="js/simulation_state_engine.js"></script>
-  <script src="js/simulation_ai_bridge.js"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
 
     const saveButton = document.getElementById('saveButton');
     const loadButton = document.getElementById('loadButton');
     const homeButton = document.getElementById('homeButton');
-    const talkButton = document.getElementById('talkButton');
     const romanceButton = document.getElementById('romanceButton');
     const recordButton = document.getElementById('recordButton');
     const profileButton = document.getElementById('profileButton');
@@ -819,126 +696,6 @@
       setActiveNav(romanceButton);
     }
 
-    function renderChatLog(container, character) {
-      const records = RenaiGameStateEngine.getRecords(character.id);
-      container.innerHTML = '';
-
-      if (!records.length) {
-        const empty = document.createElement('div');
-        empty.className = 'chat-empty';
-        empty.textContent = 'まだ会話記録はありません。下の欄に主人公の台詞・行動を入力してください。';
-        container.appendChild(empty);
-        return;
-      }
-
-      records.slice(-12).forEach((entry) => {
-        const block = document.createElement('article');
-        block.className = 'chat-entry';
-
-        const scene = document.createElement('div');
-        scene.className = 'chat-scene';
-        scene.textContent = entry.scene || '';
-        block.appendChild(scene);
-
-        if (entry.protagonist) {
-          const pLabel = document.createElement('div');
-          pLabel.className = 'chat-speaker';
-          pLabel.textContent = readProfile().name || '主人公';
-          block.appendChild(pLabel);
-
-          const pText = document.createElement('div');
-          pText.className = 'chat-text';
-          pText.textContent = entry.protagonist;
-          block.appendChild(pText);
-        }
-
-        if (entry.partner) {
-          const aLabel = document.createElement('div');
-          aLabel.className = 'chat-speaker';
-          aLabel.textContent = character.name || '恋愛相手';
-          block.appendChild(aLabel);
-
-          const aText = document.createElement('div');
-          aText.className = 'chat-text';
-          aText.textContent = entry.partner;
-          block.appendChild(aText);
-        }
-
-        container.appendChild(block);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function showTalk() {
-      const character = RenaiGameCharacters.getSelected();
-
-      if (!character) {
-        app.innerHTML = `
-          <section class="content-panel">
-            <h2>会話</h2>
-            <p class="panel-note">先に「恋愛相手」から相手を選んでください。</p>
-          </section>
-        `;
-        setActiveNav(talkButton);
-        return;
-      }
-
-      app.innerHTML = `
-        <section class="chat-panel" aria-label="会話">
-          <div class="chat-head">
-            <h2>${character.name}</h2>
-            <div class="chat-status" id="chatStatus"></div>
-          </div>
-          <div class="chat-log" id="chatLog"></div>
-          <div class="chat-input-area">
-            <textarea id="chatInput" placeholder="主人公の台詞・行動を入力"></textarea>
-            <button id="chatSend" class="chat-send" type="button">送る</button>
-          </div>
-        </section>
-      `;
-
-      const log = document.getElementById('chatLog');
-      const input = document.getElementById('chatInput');
-      const send = document.getElementById('chatSend');
-      const status = document.getElementById('chatStatus');
-
-      renderChatLog(log, character);
-
-      send.addEventListener('click', async () => {
-        const protagonistInput = input.value.trim();
-        if (!protagonistInput) return;
-
-        if (!RenaiGameAIBridge.getEndpoint()) {
-          status.textContent = 'タイトル画面の「設定」でAIバックエンドURLを設定してください。';
-          return;
-        }
-
-        send.disabled = true;
-        input.disabled = true;
-        status.textContent = '生成中…';
-
-        try {
-          await RenaiGameAIBridge.runTurn({
-            characterId: character.id,
-            protagonistInput,
-            profile: readProfile()
-          });
-          input.value = '';
-          status.textContent = '';
-          renderChatLog(log, character);
-        } catch (error) {
-          status.textContent = error.message || 'AI会話を生成できませんでした。';
-        } finally {
-          send.disabled = false;
-          input.disabled = false;
-          input.focus();
-        }
-      });
-
-      setActiveNav(talkButton);
-    }
-
     function showProfile() {
       const profile = readProfile();
       app.innerHTML = `
@@ -986,7 +743,6 @@
     }
 
     homeButton.addEventListener('click', showHome);
-    talkButton.addEventListener('click', showTalk);
     romanceButton.addEventListener('click', showRomanceTargets);
 
     recordButton.addEventListener('click', async () => {

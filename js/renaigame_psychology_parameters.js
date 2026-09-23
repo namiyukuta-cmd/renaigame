@@ -61,6 +61,8 @@
         spontaneousThought: "用事がないのに主人公をふと思い出す強さ。",
         anticipation: "次に会う・話すことへの期待。",
         encounterImpact: "直近の出会い・再会・会話が心に残した衝撃。",
+        reunionImpact: "以前から知っていた主人公との再会が感情を再燃・変化させた強さ。",
+        unexpectedDiscoveryImpact: "主人公の予想外の一面を知ったことが魅力を急上昇させた強さ。",
         attractionGrowth: "最近の出来事によって魅力が増している勢い。",
         romanticSpark: "恋愛として火がつきかけている瞬間的な発火値。",
         latentAffection: "本人がまだ恋愛と自覚していない潜在的な好意。",
@@ -275,6 +277,8 @@
       spontaneousThought: 0,
       anticipation: 0,
       encounterImpact: 0,
+      reunionImpact: 0,
+      unexpectedDiscoveryImpact: 0,
       attractionGrowth: 0,
       romanticSpark: 0,
       latentAffection: 0,
@@ -891,6 +895,282 @@
     }
 
     return state;
+  };
+
+  psychology.evaluateRomanceOnset = (rawState = {}, characterId = rawState.characterId) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const avg = values => values.reduce((sum, value) => sum + clamp(value), 0) / values.length;
+
+    const attractionComposite = (
+      state.appearanceAttraction * (t.physicalAttractionWeight / 100) +
+      state.sexualAttraction * (t.physicalAttractionWeight / 100) +
+      state.intellectualAttraction * (t.intellectualAttractionWeight / 100) +
+      state.emotionalAttraction * (t.emotionalAttractionWeight / 100) +
+      state.chemistry * (t.chemistrySensitivity / 100)
+    ) / Math.max(
+      0.01,
+      ((t.physicalAttractionWeight * 2) +
+       t.intellectualAttractionWeight +
+       t.emotionalAttractionWeight +
+       t.chemistrySensitivity) / 100
+    );
+
+    const openness = avg([
+      state.romanticOpenness,
+      state.readinessForLove,
+      t.romanticOpennessTrait,
+      100 - state.fearOfRejection,
+      100 - state.fearOfEngulfment
+    ]);
+
+    const firstEncounterSpark = avg([
+      state.firstImpression,
+      state.chemistry,
+      state.encounterImpact,
+      attractionComposite,
+      openness,
+      t.loveAtFirstSightSusceptibility
+    ]);
+
+    const gradualBond = avg([
+      state.familiarity,
+      state.comfort,
+      state.trust,
+      state.emotionalAttraction,
+      state.memoryFrequency,
+      state.spontaneousThought,
+      state.anticipation,
+      state.attractionGrowth,
+      t.slowBurnTendency,
+      t.familiarityBondingTendency
+    ]);
+
+    const priorBond = avg([
+      state.priorAwareness,
+      state.priorFamiliarity,
+      state.priorInterest,
+      state.priorCrush,
+      state.priorAdmiration,
+      state.priorCuriosity,
+      state.priorFantasy,
+      t.preexistingCrushPersistence
+    ]);
+
+    const currentActivation = avg([
+      attractionComposite,
+      state.intrigue,
+      state.fascination,
+      state.latentAffection,
+      state.romanticSpark,
+      state.romanticMomentum,
+      state.memoryFrequency,
+      state.spontaneousThought,
+      state.anticipation,
+      state.seekHeroine
+    ]);
+
+    const computedSpark = clamp(
+      (firstEncounterSpark * 0.35) +
+      (gradualBond * 0.25) +
+      (priorBond * 0.20) +
+      (currentActivation * 0.20)
+    );
+
+    let onsetType = "none_yet";
+    let confidence = 0;
+
+    const candidates = [];
+
+    candidates.push({
+      type: "preexisting_crush",
+      score: avg([state.priorCrush, state.priorInterest, state.priorAwareness, t.preexistingCrushPersistence])
+    });
+
+    candidates.push({
+      type: "love_at_first_sight",
+      score: avg([
+        firstEncounterSpark,
+        attractionComposite,
+        state.encounterImpact,
+        state.chemistry,
+        t.loveAtFirstSightSusceptibility,
+        100 - state.familiarity
+      ])
+    });
+
+    candidates.push({
+      type: "instant_attraction",
+      score: avg([
+        attractionComposite,
+        state.intrigue,
+        state.chemistry,
+        state.firstImpression,
+        state.encounterImpact,
+        100 - state.familiarity
+      ])
+    });
+
+    candidates.push({
+      type: "latent_crush",
+      score: avg([
+        state.priorInterest,
+        state.priorCuriosity,
+        state.latentAffection,
+        state.encounterImpact,
+        state.attractionGrowth,
+        state.romanticMomentum
+      ])
+    });
+
+    candidates.push({
+      type: "slow_burn",
+      score: avg([
+        gradualBond,
+        state.familiarity,
+        state.comfort,
+        state.memoryFrequency,
+        state.anticipation,
+        t.slowBurnTendency,
+        t.familiarityBondingTendency
+      ])
+    });
+
+    candidates.push({
+      type: "friendship_to_love",
+      score: avg([
+        state.familiarity,
+        state.trust,
+        state.comfort,
+        state.emotionalAttraction,
+        state.perceivedSafety,
+        t.friendshipToLoveTendency
+      ])
+    });
+
+    candidates.push({
+      type: "admiration_to_love",
+      score: avg([
+        state.admiration,
+        state.priorAdmiration,
+        state.intellectualAttraction,
+        state.emotionalAttraction,
+        state.fascination,
+        t.admirationToLoveTendency
+      ])
+    });
+
+    candidates.push({
+      type: "physical_to_emotional",
+      score: avg([
+        state.appearanceAttraction,
+        state.sexualAttraction,
+        state.emotionalAttraction,
+        state.attachment,
+        state.familiarity,
+        t.physicalAttractionWeight
+      ])
+    });
+
+    candidates.push({
+      type: "emotional_to_romantic",
+      score: avg([
+        state.emotionalAttraction,
+        state.comfort,
+        state.trust,
+        state.tenderness,
+        state.attachment,
+        state.latentAffection
+      ])
+    });
+
+    candidates.push({
+      type: "conflict_to_attraction",
+      score: avg([
+        state.intrigue,
+        state.chemistry,
+        state.emotionalActivation,
+        state.attractionGrowth,
+        Math.min(100, state.anger + state.frustration),
+        state.fascination
+      ])
+    });
+
+    candidates.push({
+      type: "reunion_rekindling",
+      score: avg([
+        state.priorAwareness,
+        state.priorInterest,
+        state.priorFamiliarity,
+        state.reunionImpact,
+        state.encounterImpact,
+        state.romanticMomentum
+      ])
+    });
+
+    candidates.push({
+      type: "unexpected_fall",
+      score: avg([
+        state.unexpectedDiscoveryImpact,
+        state.attractionGrowth,
+        state.romanticSpark,
+        state.intrigue,
+        state.fascination,
+        state.romanticMomentum
+      ])
+    });
+
+    candidates.sort((a, b) => b.score - a.score);
+    const best = candidates[0];
+
+    const activeRomanceEvidence = Math.max(
+      state.romanceScore,
+      state.seekHeroine,
+      state.romanticAwareness,
+      state.latentAffection,
+      state.romanticMomentum,
+      state.romanticSpark,
+      computedSpark
+    );
+
+    if (activeRomanceEvidence >= 35 && best.score >= 45) {
+      onsetType = best.type;
+      confidence = Math.round(best.score);
+    }
+
+    // 一目惚れは高い閾値を要求し、単なる外見的魅力と混同しない。
+    if (onsetType === "love_at_first_sight" &&
+        !(firstEncounterSpark >= 72 &&
+          attractionComposite >= 65 &&
+          state.encounterImpact >= 60 &&
+          state.familiarity <= 30)) {
+      onsetType = "instant_attraction";
+      confidence = Math.round(Math.max(
+        candidates.find(x => x.type === "instant_attraction")?.score || 0,
+        firstEncounterSpark
+      ));
+    }
+
+    // 物語開始前の恋は、明確な事前好意がない限り勝手に成立させない。
+    if (onsetType === "preexisting_crush" && state.priorCrush < 50) {
+      onsetType = state.priorInterest >= 45 ? "latent_crush" : "none_yet";
+    }
+
+    return {
+      onsetType,
+      confidence,
+      computedSpark: Math.round(computedSpark),
+      attractionComposite: Math.round(attractionComposite),
+      firstEncounterSpark: Math.round(firstEncounterSpark),
+      gradualBond: Math.round(gradualBond),
+      priorBond: Math.round(priorBond),
+      currentActivation: Math.round(currentActivation),
+      candidates: candidates.slice(0, 4).map(x => ({
+        type: x.type,
+        score: Math.round(x.score)
+      })),
+      meaning: psychology.romanceOnsetModel.onsetTypes[onsetType]
+    };
   };
 
   psychology.evaluateConflict = (rawState = {}, characterId = rawState.characterId) => {

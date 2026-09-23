@@ -347,13 +347,33 @@
       unresolvedEmotion: ""
     },
 
+    stateHistoryPolicy: {
+      principle: "固定character・behavior・共通心理計算基盤は通常会話で変更しない。現在心理はcurrentStateとして更新し、過去の心理変化はstateHistoryへTurn単位で追記して残す。",
+      order: [
+        "現在セーブのcurrentState・stateHistory・実ログを読む。",
+        "今回の主人公入力が、固定性格・currentState・過去の残留感情へどう響いたかをchangeとして算出する。",
+        "before + change から更新後stateを作る。",
+        "更新後stateをnormalizeStateしてから各evaluateを実行する。",
+        "afterとevaluate結果を今回の会話ステータスとして固定してから文章生成する。",
+        "明示保存時だけcurrentStateをafterへ更新し、stateHistoryと会話実ログへ追記する。"
+      ],
+      prohibitions: [
+        "前Turnのstateでevaluateしてから今回入力を見る順序にしない。",
+        "過去Turnの心理値を最新値で上書きしない。",
+        "会話ごとの都合で固定性格・behavior・心理計算基盤を書き換えない。",
+        "計算後にAI判断で心理・恋愛度・行動方針をやり直さない。"
+      ]
+    },
+
     aiWorkflow: [
-      "1. 最新セーブJSONを読む。",
-      "2. 対象キャラクターJSを読む。",
+      "1. 最新セーブJSONのcurrentState・stateHistory・実ログを読む。旧flat stateならcurrentState相当として読む。",
+      "2. 対象キャラクターJSとbehavior JSを読む。",
       "3. この共通恋愛ルールを読む。",
-      "4. js/renaigame_psychology_parameters.js を読み、旧stateなら不足項目をnormalizeStateで補完して判断に使う。",
+      "4. js/renaigame_psychology_parameters.js を読む。",
       "5. 作品固有の恋愛ルールを読む。",
-      "6. 主人公の最新入力と過去履歴を確認する。",
+      "6. 主人公の最新入力と過去履歴を確認し、固定性格・currentState・残留感情から今回の心理変化changeを作る。",
+      "6a. before + change から更新後stateを作り、その更新後stateをnormalizeStateする。",
+      "6b. 必ず更新後stateに対して各evaluateを行う。前Turnのstateでevaluateしてから今回入力を見る順序は禁止。",
       "7. 最初にseekHeroineを確認し、この人物が今どれほど主人公を求めているかを固定する。傷つき・嫉妬・倫理等で都合よく消さない。",
       "7a. evaluateRomanceOnsetで、事前認知・初対面・反復接触・相性・安心感・再会・記憶頻度から現在の恋愛発生経路候補を確認する。",
       "7b. priorAwareness / priorCrush等は人物設定・実ログ・ユーザー指定に根拠がある場合だけ高値にする。主人公側が知らない事前好意をAIが勝手に捏造しない。",
@@ -371,7 +391,7 @@
       "18. 更新後の状態に合う、キャラクターとして自然な返答を書く。",
       "19. 主人公への無条件肯定・即時許容・過剰な理解者化・無感情な身引きが起きていないか確認する。",
       "20. 必要な条件が揃ったときだけ恋愛段階を進める。",
-      "21. 明示的な保存指示がある場合のみ、心理値と各派生判定結果・恋愛状態を現在saveIdへ書き戻す。",
+      "21. 明示的な保存指示がある場合のみ、currentStateを今回のafterへ更新し、stateHistoryへbefore/change/after/evaluationを新規追記し、会話実ログも現在saveIdへ追記・統合する。過去Turnは上書きしない。",
       "22. 直前までに成立した本文・出来事・結果をAI判断で破棄・リセット・巻き戻ししていないか確認する."
     ]
   };

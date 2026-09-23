@@ -8,7 +8,7 @@
   };
 
   const psychology = {
-    version: 2,
+    version: 3,
 
     principle: [
       "恋愛相手の心理は、好意1個で決めない。複数の矛盾する感情・欲求・判断・抑制を同時に保持する。",
@@ -33,6 +33,39 @@
         passion: "恋愛感情の熱量。冷静さを保ちにくくなるほど強く惹かれ、求める情熱。",
         euphoria: "恋がうまくいっている、主人公に選ばれた・会えた等による浮かれ、高揚、嬉しさ。",
         longing: "会えない・離れている時の恋しさ、会いたさ。"
+      },
+
+      romanceOnset: {
+        priorAwareness: "物語開始前から主人公の存在を知っていた度合い。名前だけ、顔だけ、職場で見かけた等も含む。",
+        priorFamiliarity: "物語開始前から主人公を顔見知り・知人として認識していた親近度。",
+        priorInterest: "物語開始前から主人公が気になっていた度合い。",
+        priorCrush: "物語開始前からすでに恋愛的好意を持っていた度合い。",
+        priorAdmiration: "物語開始前から主人公を尊敬・憧憬していた度合い。",
+        priorCuriosity: "物語開始前からもっと知りたいと思っていた度合い。",
+        priorFantasy: "物語開始前から主人公との私的な関係を想像したことがある度合い。",
+        firstImpression: "初対面または初めて個人的に話した時の総合印象。",
+        appearanceAttraction: "外見・雰囲気・表情・所作への魅力。",
+        sexualAttraction: "成人同士として感じる身体的・性的魅力。露骨な性描写とは別。",
+        intellectualAttraction: "知性・考え方・会話への魅力。",
+        emotionalAttraction: "感情の在り方・人柄・一緒にいる時の感覚への魅力。",
+        chemistry: "理由を説明しきれない相性・火花・妙に惹かれる感覚。",
+        familiarity: "会う回数や共有経験によって増える親近感。",
+        comfort: "一緒にいて落ち着く・安心できる感覚。",
+        similarity: "価値観・趣味・考え方等の共通性を感じる度合い。",
+        complementarity: "自分にないものを主人公が持つことへの魅力。",
+        intrigue: "なぜか気になる、理解したいという引っかかり。",
+        romanticOpenness: "現在どれだけ恋愛を受け入れられる心理状態か。",
+        readinessForLove: "誰かを好きになり関係を深める準備が整っている度合い。",
+        lonelinessCatalyst: "孤独や空白が恋愛感情の発生を後押ししている度合い。孤独だけで恋愛を成立させない。",
+        memoryFrequency: "主人公を思い出す頻度。",
+        spontaneousThought: "用事がないのに主人公をふと思い出す強さ。",
+        anticipation: "次に会う・話すことへの期待。",
+        encounterImpact: "直近の出会い・再会・会話が心に残した衝撃。",
+        attractionGrowth: "最近の出来事によって魅力が増している勢い。",
+        romanticSpark: "恋愛として火がつきかけている瞬間的な発火値。",
+        latentAffection: "本人がまだ恋愛と自覚していない潜在的な好意。",
+        romanticMomentum: "恋愛感情が進行方向へ動いている勢い。",
+        onsetCertainty: "自分の中で『これは恋だ』と認識し始めている確信。romanticAwarenessより発生初期に限定して使う。"
       },
 
       exclusivityAndControl: {
@@ -216,6 +249,38 @@
       desireForContact: 0,
       vulnerability: 0,
       futureThinking: 0,
+
+      priorAwareness: 0,
+      priorFamiliarity: 0,
+      priorInterest: 0,
+      priorCrush: 0,
+      priorAdmiration: 0,
+      priorCuriosity: 0,
+      priorFantasy: 0,
+      firstImpression: 50,
+      appearanceAttraction: 0,
+      sexualAttraction: 0,
+      intellectualAttraction: 0,
+      emotionalAttraction: 0,
+      chemistry: 0,
+      familiarity: 0,
+      comfort: 0,
+      similarity: 0,
+      complementarity: 0,
+      intrigue: 0,
+      romanticOpenness: 50,
+      readinessForLove: 50,
+      lonelinessCatalyst: 0,
+      memoryFrequency: 0,
+      spontaneousThought: 0,
+      anticipation: 0,
+      encounterImpact: 0,
+      attractionGrowth: 0,
+      romanticSpark: 0,
+      latentAffection: 0,
+      romanticMomentum: 0,
+      onsetCertainty: 0,
+
       seekHeroine: 0,
       pursuitDrive: 0,
       emotionalNeed: 0,
@@ -397,7 +462,19 @@
       privacyTendency: 50,
       dutyOrientation: 50,
       memoryOfHurtPersistence: 50,
-      positiveMemoryBias: 50
+      positiveMemoryBias: 50,
+      loveAtFirstSightSusceptibility: 50,
+      slowBurnTendency: 50,
+      familiarityBondingTendency: 50,
+      friendshipToLoveTendency: 50,
+      admirationToLoveTendency: 50,
+      physicalAttractionWeight: 50,
+      intellectualAttractionWeight: 50,
+      emotionalAttractionWeight: 50,
+      chemistrySensitivity: 50,
+      romanticOpennessTrait: 50,
+      preexistingCrushPersistence: 50,
+      noveltySeekingInLove: 50
     },
 
     characterTraitFallbacks: {
@@ -455,7 +532,19 @@
         privacyTendency: 72,
         dutyOrientation: 84,
         memoryOfHurtPersistence: 58,
-        positiveMemoryBias: 55
+        positiveMemoryBias: 55,
+        loveAtFirstSightSusceptibility: 34,
+        slowBurnTendency: 78,
+        familiarityBondingTendency: 72,
+        friendshipToLoveTendency: 62,
+        admirationToLoveTendency: 68,
+        physicalAttractionWeight: 48,
+        intellectualAttractionWeight: 72,
+        emotionalAttractionWeight: 78,
+        chemistrySensitivity: 54,
+        romanticOpennessTrait: 48,
+        preexistingCrushPersistence: 64,
+        noveltySeekingInLove: 32
       },
       char_002: {
         rationality: 82,
@@ -511,7 +600,19 @@
         privacyTendency: 78,
         dutyOrientation: 94,
         memoryOfHurtPersistence: 66,
-        positiveMemoryBias: 52
+        positiveMemoryBias: 52,
+        loveAtFirstSightSusceptibility: 62,
+        slowBurnTendency: 58,
+        familiarityBondingTendency: 68,
+        friendshipToLoveTendency: 46,
+        admirationToLoveTendency: 54,
+        physicalAttractionWeight: 88,
+        intellectualAttractionWeight: 62,
+        emotionalAttractionWeight: 74,
+        chemistrySensitivity: 76,
+        romanticOpennessTrait: 56,
+        preexistingCrushPersistence: 74,
+        noveltySeekingInLove: 46
       },
       char_003: {
         rationality: 91,
@@ -567,7 +668,19 @@
         privacyTendency: 84,
         dutyOrientation: 96,
         memoryOfHurtPersistence: 62,
-        positiveMemoryBias: 48
+        positiveMemoryBias: 48,
+        loveAtFirstSightSusceptibility: 28,
+        slowBurnTendency: 82,
+        familiarityBondingTendency: 76,
+        friendshipToLoveTendency: 58,
+        admirationToLoveTendency: 62,
+        physicalAttractionWeight: 52,
+        intellectualAttractionWeight: 66,
+        emotionalAttractionWeight: 70,
+        chemistrySensitivity: 44,
+        romanticOpennessTrait: 38,
+        preexistingCrushPersistence: 56,
+        noveltySeekingInLove: 28
       }
     },
 
@@ -587,6 +700,32 @@
       "告白・合意": 75,
       "交際": 80,
       "交際後": 80
+    },
+
+    romanceOnsetModel: {
+      principle: [
+        "恋の始まり方をキャラクター作成時に一種類へ固定しない。事前認知・初対面の魅力・相性・親近感・出来事・現在の恋愛余力から結果として判定する。",
+        "一目惚れは可能だが必須ではない。初対面で何も起きず、顔見知り・友人・仕事仲間から徐々に好意が育つことも同じシステムで扱う。",
+        "主人公側が初対面でも、攻略対象側には priorAwareness / priorInterest / priorCrush がある可能性を持てる。ただし実ログ・人物設定に根拠がない事前関係をAIが勝手に確定してはいけない。",
+        "romanceScoreの増減だけで恋愛開始を表現しない。思い出す、次に会うのが楽しみ、理由なく気になる、安心する等の前兆を蓄積して恋愛へ移行できる。"
+      ],
+      onsetTypes: {
+        none_yet: "まだ恋愛発生と呼べる状態ではない。",
+        preexisting_crush: "物語開始前からすでに好意が存在していた。",
+        love_at_first_sight: "初対面または初めて個人的に認識した瞬間に、恋愛感情が強く発火した。",
+        instant_attraction: "初対面で強く惹かれたが、まだ恋そのものとまでは自覚していない。",
+        latent_crush: "以前から気になっていた感情が、接触をきっかけに恋愛へ表面化した。",
+        slow_burn: "反復接触・親近感・安心感・記憶の蓄積から徐々に恋愛へ育った。",
+        friendship_to_love: "親しさ・信頼・友情に近い関係から恋愛へ移行した。",
+        admiration_to_love: "尊敬・憧れ・能力への評価が恋愛感情へ変化した。",
+        physical_to_emotional: "最初は外見・身体的魅力が中心だったが、後から人柄・愛着へ深まった。",
+        emotional_to_romantic: "安心・共感・心の近さが先に育ち、後から恋愛として自覚した。",
+        conflict_to_attraction: "反発・緊張・意識し合う関係の中で魅力が育った。",
+        reunion_rekindling: "以前の認知・好意が再会によって再燃した。",
+        unexpected_fall: "本人の想定外の出来事や一面によって、短期間で恋愛へ傾いた。"
+      },
+      progressionRule: "onsetTypeは人格ラベルではなく、その恋がどう始まったかの経路。途中で新しい証拠が増えた場合、none_yet→slow_burn等へ更新してよいが、確定した過去経路を都合よく書き換えない。",
+      preexistingRule: "priorAwareness等は0でもよい。人物設定・実ログ・ユーザー指定がある場合のみ高値を持たせる。"
     },
 
     compatibility: {

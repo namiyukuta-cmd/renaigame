@@ -77,7 +77,9 @@
       intimacyRule: "RenaiGamePsychologyParameters.evaluateIntimacyInitiativeを補助として使い、性格と状態に応じて、何もしない／欲求だけ漏れる／遠回しに誘う／明確に誘う／軽い接触へ進む等を判断する。",
       approachAvoidanceRule: "evaluateApproachAvoidanceで、主人公へ近づきたい力と拒絶・羞恥・防御から逃げたい力を両方見る。距離を取っただけで恋愛感情消失と判断しない。",
       attachmentRule: "evaluateAttachmentTensionで、親密さを求める力と自立・防御・飲み込まれる恐れを両方見る。近づきたいのに近づきすぎるのが怖い状態を許す。",
-      repairRule: "喧嘩・誤解・傷つきの後はevaluateRepairDriveを使い、修復したい気持ちと怒り・意地・不信の拮抗を見る。即時許しにも即時破局にも単純化しない。"
+      repairRule: "喧嘩・誤解・傷つきの後はevaluateRepairDriveを使い、修復したい気持ちと怒り・意地・不信の拮抗を見る。即時許しにも即時破局にも単純化しない。",
+      romanceOnsetRule: "evaluateRomanceOnsetで、事前認知・初対面の引力・親近感・安心感・相性・再会・反復接触等から恋の成立経路を推定する。人物を最初から一目惚れ型・スローバーン型へ固定しない。",
+      romanceOnsetPersistence: "lastRomanceOnsetEvaluationは現在の推定。romanceOnsetTypeは実ログと積み重ねから成立経路が十分に確定した時だけ保存する。一度確定した過去経路をAI都合で別経路へ書き換えない。"
     },
 
     emotionalPersistence: {
@@ -138,7 +140,7 @@
       stage: 0,
       stageName: "他人",
       romanceScore: 0,
-      psychologyModelVersion: 2,
+      psychologyModelVersion: 3,
       psychologyTraits: null,
 
       seekHeroine: 0,

@@ -16,6 +16,8 @@
 
 - 共通恋愛ルール
   - `js/renaigame_romance_rules.js`
+- 共通心理パラメーター・理性対欲求・親密行動判定
+  - `js/renaigame_psychology_parameters.js`
 - 攻略対象の人物設定
   - `simulation/js/simulation_character_XXX.js`
 - 攻略対象固有の行動・恋愛進行ルール
@@ -112,15 +114,16 @@ state.session.statesByCharacter[characterId]
 1. `simulation/AI_GENERATION_ENTRY.md`
 2. `simulation/AI_SAVE_WORKFLOW.md`（このファイル）
 3. `js/renaigame_romance_rules.js`
+4. `js/renaigame_psychology_parameters.js`
 
 ### 攻略対象別
 
-4. `simulation/js/simulation_character_XXX.js`
-5. `simulation/js/simulation_character_XXX_behavior.js`
+5. `simulation/js/simulation_character_XXX.js`
+6. `simulation/js/simulation_character_XXX_behavior.js`
 
 ### 現在周回
 
-6. `private-game-data/renaigame/simulation/saves/<saveId>.json`
+7. `private-game-data/renaigame/simulation/saves/<saveId>.json`
 
 その中から最低限、次を確認する。
 
@@ -180,6 +183,12 @@ state.session.statesByCharacter[characterId]
 - `unresolvedEmotion` を理由なく解消しない。
 - 明確な拒絶があれば追跡・説得・接触を続けない。
 - キャラ固有behaviorを一般的な「優しい男」に薄めない。
+- seekHeroine を最優先の恋愛駆動値として扱い、恋愛段階が進んでいるのに傷つき・倫理・遠慮だけを理由に主人公を求めなくしない。
+- 束縛欲、独占欲、嫉妬、疑い、信頼、情熱、浮かれ、理性、倫理、自制等は別々の値として持ち、矛盾していても自動相殺しない。
+- `evaluateConflict` で欲求と抑制の拮抗を確認し、理性優勢／感情漏れ／拮抗／欲求部分優勢／欲求優勢の差を描写する。
+- 親密場面では `evaluateIntimacyInitiative` を確認し、キャラの `romanticBoldness / physicalInitiative / intimacyCaution / sexualDirectness` と現在stateから、自分から行く・遠回しに行く・寸前で止まる等を決める。
+- 成人同士では、露骨な性行為描写をしなくても、自宅へ誘う、帰したくない、もっと一緒にいたい等の親密さを望むニュアンスを出してよい。
+- 段階・性格・状況が許せば、髪や手に触れる、手を取る、抱きしめる、キスする等を攻略対象側から起こしてよい。主人公の受諾・心理・身体反応は勝手に作らない。
 
 ### 状態参照
 
@@ -201,6 +210,22 @@ state.session.statesByCharacter[characterId]
 - unresolvedEmotion
 - importantFlags
 - history
+- psychologyModelVersion / psychologyTraits
+- seekHeroine / pursuitDrive / emotionalNeed / physicalNeed / passion / euphoria
+- exclusivityNeed / possessiveness / controlUrge / rivalry
+- fearOfLoss / abandonmentFear / insecurity / suspicion / anxiety / wantToBelieve
+- empathy / tenderness / loneliness / frustration / resentment / pride
+- confrontationDrive / reassuranceSeeking
+- touchImpulse / hairTouchImpulse / handTouchImpulse / embraceImpulse / kissImpulse
+- privateTimeWish / reluctanceToPart / invitationImpulse / sexualIntimacyWish
+- confessionImpulse / restraintBreakingImpulse
+- reason / selfControl / ethics / socialRestraint / respectForHeroine / fearOfHurtingHeroine
+- ambivalence / confusion / guilt / shame / hesitation
+- emotionalPressure / stress / fatigue
+- needForReciprocity / needForClarity
+- lastPsychologyConflict / lastIntimacyInitiative
+
+既存セーブにこれらが無い場合は `RenaiGamePsychologyParameters.normalizeState` で不足項目だけ補完して生成判断する。明示的な保存指示があるまでは、補完しただけでGitHubへ書き戻さない。
 
 キャラ固有state項目がある場合はそれも確認する。
 
@@ -383,6 +408,7 @@ state内 `history` にはChapterごとの進展概要を残す。
 | 内容 | 読む場所 | 更新する場所 |
 |---|---|---|
 | 共通恋愛ルール | `js/renaigame_romance_rules.js` | 通常更新しない |
+| 共通心理・理性対欲求・親密判定 | `js/renaigame_psychology_parameters.js` | 通常更新しない |
 | キャラ人物設定 | `simulation/js/simulation_character_XXX.js` | 設定変更指示時のみ |
 | キャラ行動ルール | `simulation/js/simulation_character_XXX_behavior.js` | 設定変更指示時のみ |
 | 新規周回初期state | `simulation/state/templates/char_XXX_initial_state.json` | プレイ進行では更新しない |
@@ -405,7 +431,8 @@ state内 `history` にはChapterごとの進展概要を残す。
 5. 対象キャラbehavior
 6. 対象キャラ人物設定
 7. 共通恋愛ルール
-8. 現在セーブのstate要約・数値
+8. 共通心理パラメーター `js/renaigame_psychology_parameters.js`
+9. 現在セーブのstate要約・数値
 
 ただし、ユーザー未指定の主人公設定をAIが補完してよい、という意味にはならない。
 

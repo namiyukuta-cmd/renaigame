@@ -6,7 +6,8 @@
     settings: '設定',
     settingsTitle: '設定',
     tokenLabel: 'GitHubトークン',
-    tokenSave: '保存',
+    aiBackendLabel: 'AIバックエンドURL',
+    tokenSave: '設定を保存',
     tokenDelete: '削除',
     tokenCheck: '接続確認',
     close: '閉じる'
@@ -15,6 +16,7 @@
   const PROFILE_KEY = 'renaigame_simulation_profile_v1';
   const SELECTED_CHARACTER_KEY = 'renaigame_simulation_selected_character_v1';
   const SESSION_KEY = 'renaigame_simulation_session_v1';
+  const AI_BACKEND_KEY = 'renaigame_ai_backend_url_v1';
   const $ = id => document.getElementById(id);
 
   function setText(){
@@ -24,6 +26,7 @@
     $('settingsButton').textContent = TEXT.settings;
     $('settingsTitle').textContent = TEXT.settingsTitle;
     $('tokenLabel').textContent = TEXT.tokenLabel;
+    $('aiBackendLabel').textContent = TEXT.aiBackendLabel;
     $('saveTokenButton').textContent = TEXT.tokenSave;
     $('deleteTokenButton').textContent = TEXT.tokenDelete;
     $('checkTokenButton').textContent = TEXT.tokenCheck;
@@ -45,6 +48,7 @@
   function openSettings(message){
     const dialog = $('settingsDialog');
     $('tokenInput').value = RenaiGameSave.getToken();
+    $('aiBackendInput').value = localStorage.getItem(AI_BACKEND_KEY) || '';
     setSettingsStatus(message || '', message ? 'error' : '');
     if(typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');
@@ -190,11 +194,35 @@
 
   function saveToken(){
     const token = $('tokenInput').value;
-    if(!RenaiGameSave.setToken(token)){
-      setSettingsStatus('GitHubトークンを入力してください。', 'error');
+    const backendUrl = $('aiBackendInput').value.trim();
+
+    if(token){
+      RenaiGameSave.setToken(token);
+    }
+
+    if(backendUrl){
+      let parsed;
+      try{
+        parsed = new URL(backendUrl);
+      }catch(_){
+        setSettingsStatus('AIバックエンドURLが正しくありません。', 'error');
+        return;
+      }
+      if(!/^https?:$/.test(parsed.protocol)){
+        setSettingsStatus('AIバックエンドURLはhttp/httpsで入力してください。', 'error');
+        return;
+      }
+      localStorage.setItem(AI_BACKEND_KEY, parsed.href);
+    }else{
+      localStorage.removeItem(AI_BACKEND_KEY);
+    }
+
+    if(!RenaiGameSave.getToken() && !backendUrl){
+      setSettingsStatus('GitHubトークンまたはAIバックエンドURLを入力してください。', 'error');
       return;
     }
-    setSettingsStatus('この端末にトークンを保存しました。', 'success');
+
+    setSettingsStatus('この端末に設定を保存しました。', 'success');
   }
 
   function deleteToken(){

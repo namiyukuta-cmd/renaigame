@@ -80,6 +80,14 @@
         confrontationDrive: "問いただす、反論する、責める、話し合いを要求する衝動。",
         reassuranceSeeking: "愛情・関係・選択を確かめたい衝動。",
         touchImpulse: "身体的に触れたい衝動。",
+        hairTouchImpulse: "髪や頬などへそっと触れたい衝動。",
+        handTouchImpulse: "手に触れる、手を取る、手をつなぎたい衝動。",
+        embraceImpulse: "抱きしめたい、腕の中へ引き寄せたい衝動。",
+        kissImpulse: "キスしたい衝動。",
+        privateTimeWish: "二人きりの時間をもっと続けたい、私的な場所で一緒にいたい欲求。",
+        reluctanceToPart: "別れ際に帰したくない、離れたくない気持ち。",
+        invitationImpulse: "自宅・部屋・もう一軒など、二人の時間が続く場所へ自分から誘いたい衝動。",
+        sexualIntimacyWish: "成人同士として、キスより先を含むより深い親密さを望む気持ち。実際の性行為を露骨に描写するための値ではなく、誘い・躊躇・期待・切なさ等のニュアンス生成に使う。",
         confessionImpulse: "好意・欲求・本音を言葉にしたい衝動。",
         restraintBreakingImpulse: "普段守っている自分のルールを破ってでも主人公へ踏み込みたい衝動。",
         desireForContact: "会話・連絡・接触を持ちたい現在欲求。"
@@ -129,6 +137,14 @@
       confrontationDrive: 0,
       reassuranceSeeking: 0,
       touchImpulse: 0,
+      hairTouchImpulse: 0,
+      handTouchImpulse: 0,
+      embraceImpulse: 0,
+      kissImpulse: 0,
+      privateTimeWish: 0,
+      reluctanceToPart: 0,
+      invitationImpulse: 0,
+      sexualIntimacyWish: 0,
       confessionImpulse: 0,
       restraintBreakingImpulse: 0,
       reason: 70,
@@ -163,6 +179,10 @@
       prideTendency: 50,
       emotionalExpressiveness: 50,
       pursuitTendency: 50,
+      romanticBoldness: 50,
+      physicalInitiative: 50,
+      intimacyCaution: 50,
+      sexualDirectness: 50,
       dependencyTendency: 50,
       conflictAvoidance: 50,
       tendernessTendency: 50
@@ -182,6 +202,10 @@
         prideTendency: 66,
         emotionalExpressiveness: 30,
         pursuitTendency: 64,
+        romanticBoldness: 58,
+        physicalInitiative: 60,
+        intimacyCaution: 76,
+        sexualDirectness: 42,
         dependencyTendency: 40,
         conflictAvoidance: 35,
         tendernessTendency: 72
@@ -199,6 +223,10 @@
         prideTendency: 42,
         emotionalExpressiveness: 58,
         pursuitTendency: 61,
+        romanticBoldness: 34,
+        physicalInitiative: 42,
+        intimacyCaution: 94,
+        sexualDirectness: 24,
         dependencyTendency: 58,
         conflictAvoidance: 62,
         tendernessTendency: 78
@@ -216,6 +244,10 @@
         prideTendency: 68,
         emotionalExpressiveness: 25,
         pursuitTendency: 57,
+        romanticBoldness: 49,
+        physicalInitiative: 52,
+        intimacyCaution: 89,
+        sexualDirectness: 34,
         dependencyTendency: 35,
         conflictAvoidance: 32,
         tendernessTendency: 58
@@ -261,6 +293,12 @@
         "passion",
         "longing",
         "pursuitDrive",
+        "privateTimeWish",
+        "reluctanceToPart",
+        "invitationImpulse",
+        "sexualIntimacyWish",
+        "kissImpulse",
+        "embraceImpulse",
         "restraintBreakingImpulse",
         "needForReciprocity",
         "needForClarity"
@@ -297,6 +335,25 @@
       }
     },
 
+    intimacyExpression: {
+      scope: "主人公・攻略対象が成人である恋愛作品における、非露骨な親密さの希望・誘い・軽い身体接触を扱う。",
+      allowedNonExplicitSignals: [
+        "自宅や部屋へ誘う。例：『うち来る？』",
+        "別れたくない気持ちを言う。例：『今日は帰したくないな』",
+        "この先も一緒にいたい、帰る気になれない等を匂わせる。",
+        "二人きりになりたい、もう少し一緒にいたいと伝える。",
+        "髪・頬・手に触れる。",
+        "手を取る、手をつなぐ。",
+        "抱きしめる、抱き寄せる。",
+        "キスする、キスしようと距離を詰める。",
+        "キスより先の親密さを望んでいることを、露骨な性行為描写なしに台詞・間・視線・躊躇・誘いとして示す。"
+      ],
+      notRequired: "実際の性行為を描写する必要はない。sexualIntimacyWishは『もっと一緒にいたい』『帰したくない』『部屋へ誘いたい』等の成人同士の親密な希望を自然に発生させるために使う。",
+      protagonistAgency: "攻略対象が自分から誘う・触れる・抱きしめる・キスする等の行動は生成してよいが、主人公側の受諾・台詞・心理・身体反応をAIが勝手に補完しない。",
+      refusalRule: "主人公が明確に拒絶した場合は、それ以降の接触・説得・追跡を続けない。拒絶前の欲求・迷い・切なさまで無かったことにはしない。",
+      personalityRule: "同じ欲求値でも、romanticBoldness / physicalInitiative / intimacyCaution / sexualDirectness と現在の理性・倫理・自制によって、直接誘う、遠回しに言う、触れる寸前で止まる、言葉だけ漏れる等へ変える。"
+    },
+
     combinationEffects: [
       "jealousy + anger が高い → 問いただす、責める、言葉が硬くなる方向。",
       "jealousy + sadness が高い → 落ち込み、口数減少、切なさ。ただしseekHeroineが高ければそのまま消えず、後で関係を求める。",
@@ -309,7 +366,12 @@
       "passion + physicalNeed / emotionalNeed + guilt / shame が高い → 欲しいのに自分を恥じ、近づいては止まる。",
       "stress / fatigue / emotionalPressure が高い → 普段よりselfControlの実効値が下がり、隠していた感情が漏れやすい。",
       "pride + hurt が高い → seekHeroineが高くても素直に追えず、冷たさ・意地・遠回りな接近になりうる。",
-      "needForClarity + unresolvedEmotion がある → 曖昧なまま時間で消さず、話し合い・確認を起こす。"
+      "needForClarity + unresolvedEmotion がある → 曖昧なまま時間で消さず、話し合い・確認を起こす。",
+      "reluctanceToPart + privateTimeWish + seekHeroine が高い → 『もう少し一緒にいたい』『帰したくない』等の別れを惜しむ言動へ。",
+      "invitationImpulse + romanticBoldness が高く、intimacyCautionが低め → 自宅・部屋・次の場所へ比較的直接誘う。",
+      "invitationImpulseが高いがintimacyCaution / shame / hesitationも高い → 遠回しな誘い、言い直し、寸前で引く等の揺れになる。",
+      "kissImpulse / embraceImpulse が高くphysicalInitiativeも高い → 段階と状況が許せば攻略対象側から軽い身体接触を起こす。",
+      "sexualIntimacyWishが高くても、露骨な性行為描写へ直結させない。成人同士の『この先も一緒にいたい』という期待・誘い・緊張として表す。"
     ],
 
     updateRules: [
@@ -386,6 +448,65 @@
       delta: Math.round(delta),
       outcome,
       meaning: psychology.conflictModel.outcomes[outcome]
+    };
+  };
+
+  psychology.evaluateIntimacyInitiative = (rawState = {}, characterId = rawState.characterId) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const conflict = psychology.evaluateConflict(state, characterId);
+
+    const intimacyDesire = (
+      state.seekHeroine +
+      state.physicalNeed +
+      state.passion +
+      state.privateTimeWish +
+      state.reluctanceToPart +
+      state.invitationImpulse +
+      state.kissImpulse +
+      state.embraceImpulse +
+      state.sexualIntimacyWish
+    ) / 9;
+
+    const initiativeTrait = (
+      t.romanticBoldness +
+      t.physicalInitiative +
+      t.pursuitTendency
+    ) / 3;
+
+    const caution = (
+      t.intimacyCaution +
+      state.reason +
+      state.selfControl +
+      state.socialRestraint +
+      state.respectForHeroine
+    ) / 5;
+
+    const score = clamp(
+      (intimacyDesire * 0.55) +
+      (initiativeTrait * 0.30) +
+      (state.restraintBreakingImpulse * 0.15) -
+      (caution * 0.25)
+    );
+
+    let mode = "none";
+    if (score >= 75) mode = "direct_initiative";
+    else if (score >= 55) mode = "clear_signal";
+    else if (score >= 35) mode = "indirect_signal";
+    else if (intimacyDesire >= 45) mode = "suppressed_desire";
+
+    return {
+      score: Math.round(score),
+      intimacyDesire: Math.round(intimacyDesire),
+      conflict,
+      mode,
+      guidance: {
+        none: "親密な誘い・接触を無理に発生させない。",
+        suppressed_desire: "望んではいるが理性や性格が勝つ。視線、沈黙、名残惜しさ、言いかけて止める等で欲求を残す。",
+        indirect_signal: "『もう少し一緒にいたい』等の遠回しな希望や、手・髪へ触れたい素振りなどを出せる。",
+        clear_signal: "自宅へ誘う、帰したくないと伝える、抱きしめる、キスへ進む等を性格と段階に合わせて自発的に選べる。",
+        direct_initiative: "欲求が強く理性が部分的に負けている。普段より直接的な誘い・引き止め・抱擁・キス等が出る。ただし明確な拒絶後は継続しない。"
+      }[mode]
     };
   };
 

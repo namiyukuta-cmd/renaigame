@@ -68,6 +68,11 @@
 4. `simulation/js/simulation_character_003.js`
 5. `simulation/js/simulation_character_003_behavior.js`
 
+### char_004 マテオ・ルッソ
+
+4. `simulation/js/simulation_character_004.js`
+5. `simulation/js/simulation_character_004_behavior.js`
+
 最後に現在進行中のセーブJSONを読む。
 
 6. `private-game-data/renaigame/simulation/saves/<saveId>.json`
@@ -86,6 +91,7 @@
 - char_001: `simulation/state/templates/char_001_initial_state.json`
 - char_002: `simulation/state/templates/char_002_initial_state.json`
 - char_003: `simulation/state/templates/char_003_initial_state.json`
+- char_004: `simulation/state/templates/char_004_initial_state.json`
 
 テンプレートは新規周回の初期値専用。
 プレイ中の状態を書き戻さない。

@@ -30,9 +30,11 @@
 
 6. 固定character・behavior・更新後state・evaluate結果から「今回の会話ステータス」を確定する。
 
-7. ChatGPTはその会話ステータスに従って攻略対象・NPC・環境だけを生成する。計算後に心理・恋愛度・行動方針をAI判断でやり直さない。
+7. ChatGPTはその会話ステータスに従い、`simulation/AI_NOVEL_GENERATION_RULES.md` を必ず適用して攻略対象・NPC・環境だけを小説本文として生成する。計算後に心理・恋愛度・行動方針をAI判断でやり直さない。
 
 8. 主人公の台詞・行動・心理・感情・身体反応・表情・受諾・拒否・未設定プロフィールを勝手に生成しない。
+
+8a. 小説本文のChapterヘッダ、文体、攻略対象の英語台詞＋日本語訳、恋愛進行、親密場面、終わり方は `AI_NOVEL_GENERATION_RULES.md` を正本とする。
 
 9. 明示保存時だけGitHubを更新する。
    - `currentState` = 最新afterへ更新

@@ -12,6 +12,14 @@
       note: "物語開始時点。2026年9月分の固定費は支払済みとして開始し、10月分から台帳で処理する。"
     },
 
+    incomeSources: {
+      miliaPartTime: {
+        label: "ミリアのパート収入",
+        requiresExplicitAmount: true,
+        note: "時給・日給・勤務日数・勤務時間はユーザー未指定。金額をAI判断で固定しない。"
+      }
+    },
+
     dayLabor: {
       noWork: { label: "仕事なし", min: 0, max: 0, defaultPay: 0 },
       marketCargo: { label: "市場の荷運び", min: 55, max: 75, defaultPay: 65 },
@@ -147,6 +155,36 @@
     return state;
   };
 
+  const addPartTimeIncome = (finance, {
+    id,
+    date,
+    amount,
+    note = ""
+  }) => {
+    const state = cloneState(finance);
+    if (!assertUniqueTransaction(state, id)) return state;
+
+    if (amount == null || !Number.isFinite(Number(amount))) {
+      throw new Error("Milia part-time income requires an explicit amount");
+    }
+
+    const pay = roundMoney(amount);
+    if (pay < 0) throw new Error("part-time income must be >= 0");
+
+    state.cash = roundMoney(state.cash + pay);
+    state.earnedThisMonth = roundMoney(state.earnedThisMonth + pay);
+    state.ledger.push({
+      id,
+      date,
+      kind: "income",
+      category: "miliaPartTime",
+      label: config.incomeSources.miliaPartTime.label,
+      amount: pay,
+      note
+    });
+    return state;
+  };
+
   const addExpense = (finance, {
     id,
     date,
@@ -259,6 +297,7 @@
     totalMonthlyPlan,
     makeInitialFinanceState,
     addIncome,
+    addPartTimeIncome,
     addExpense,
     startMonth,
     applyDailyLivingCosts,

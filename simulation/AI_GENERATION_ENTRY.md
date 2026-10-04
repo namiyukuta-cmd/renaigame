@@ -14,8 +14,9 @@
 
 1. `simulation/AI_GENERATION_ENTRY.md`（このファイル）
 2. `simulation/AI_CONVERSATION_RULES.md`（毎Turnの短縮実行ルール）
-3. `simulation/AI_SAVE_WORKFLOW.md`
-4. 必要に応じて `simulation/PSYCHOLOGY_CONVERSATION_ARCHITECTURE.md`（設計正本）
+3. `simulation/AI_NOVEL_GENERATION_RULES.md`（小説本文の書き方・視点・進行）
+4. `simulation/AI_SAVE_WORKFLOW.md`
+5. 必要に応じて `simulation/PSYCHOLOGY_CONVERSATION_ARCHITECTURE.md`（設計正本）
 
 `AI_SAVE_WORKFLOW.md` が、以下の詳細な運用仕様を定める。
 
@@ -73,7 +74,7 @@ evaluateIntimacyInitiative
 ↓
 ChatGPTは、そのJS計算結果を「生成用パケット」として固定する
 ↓
-ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用パケットに従って攻略対象・NPC・環境の文章だけを生成する
+ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用パケットに従い、`AI_NOVEL_GENERATION_RULES.md` の形式で攻略対象・NPC・環境の小説本文だけを生成する
 ↓
 ユーザーが保存を指示したら、ChatGPTが生成結果・実ログ・更新stateを現在saveIdへ保存する
 ↓
@@ -148,9 +149,10 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 ### 共通
 
 1. `simulation/AI_CONVERSATION_RULES.md`
-2. `simulation/AI_SAVE_WORKFLOW.md`
-3. `js/renaigame_romance_rules.js`
-4. `js/renaigame_psychology_parameters.js`
+2. `simulation/AI_NOVEL_GENERATION_RULES.md`
+3. `simulation/AI_SAVE_WORKFLOW.md`
+4. `js/renaigame_romance_rules.js`
+5. `js/renaigame_psychology_parameters.js`
 
 ### char_001 アレクサンダー・クロス
 

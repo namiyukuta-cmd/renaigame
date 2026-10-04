@@ -297,6 +297,22 @@
     },
     "earnedThisMonth": 0,
     "ledger": [],
-    "appliedTransactionIds": []
+    "appliedTransactionIds": [],
+    "incomeSources": {
+      "matteoDayLabor": {
+        "active": true,
+        "type": "day_labor"
+      },
+      "miliaPartTime": {
+        "active": true,
+        "type": "part_time",
+        "amountRule": "explicit_only",
+        "workplace": null,
+        "jobType": null,
+        "hourlyWage": null,
+        "workDays": null,
+        "workHours": null
+      }
+    }
   }
 }

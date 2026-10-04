@@ -21,6 +21,7 @@
 | 内容 | 場所 |
 |---|---|
 | 会話の実行順 | [短縮運用ルール](simulation/AI_CONVERSATION_RULES.md) |
+| 小説本文の書き方・視点・進行 | [小説生成ルール](simulation/AI_NOVEL_GENERATION_RULES.md) |
 | セーブ・記録の読み書き | [保存運用仕様](simulation/AI_SAVE_WORKFLOW.md) |
 | 共通恋愛ルール | [恋愛ルール](js/renaigame_romance_rules.js) |
 | 心理計算 | [心理パラメーター](js/renaigame_psychology_parameters.js) |

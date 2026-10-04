@@ -314,5 +314,6 @@
         "workHours": null
       }
     }
-  }
+  },
+  "seekHeroineFloorOverride": 0
 }

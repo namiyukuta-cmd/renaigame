@@ -61,7 +61,7 @@
     ],
 
     sceneGenerationChecklist: [
-      "0. 家計・収入・支出を扱う場面では simulation_character_004_economy.js と state.householdFinance を読み、金額を推測で作らずその設定と台帳関数に従う。",
+      "0. 家計・収入・支出を扱う場面では simulation_character_004_economy.js と state.householdFinance を読み、マテオの日雇い収入だけでなくミリアのパート収入も家計収入として扱う。金額を推測で作らず、未設定額はユーザー指定または物語内で確定した額のみ台帳へ反映する。",
       "1. simulation_character_004.js を読む。",
       "2. 現在saveIdのstateと直近実ログを読む。",
       "3. 今回の主人公入力による心理changeを作る。",

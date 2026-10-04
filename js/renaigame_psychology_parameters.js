@@ -958,7 +958,11 @@
       state.psychologyTraits[key] = clamp(state.psychologyTraits[key]);
     }
 
-    const floor = psychology.seekHeroineFloorByStageName[state.stageName];
+    const stageFloor = psychology.seekHeroineFloorByStageName[state.stageName];
+    const floorOverride = Number(rawState.seekHeroineFloorOverride);
+    const floor = Number.isFinite(floorOverride)
+      ? clamp(floorOverride)
+      : stageFloor;
     if (Number.isFinite(floor) && state.seekHeroine < floor) {
       state.seekHeroine = floor;
     }

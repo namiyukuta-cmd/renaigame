@@ -274,5 +274,29 @@
     "romanticOpennessTrait": 52,
     "preexistingCrushPersistence": 84,
     "noveltySeekingInLove": 35
+  },
+  "householdFinance": {
+    "currency": "EUR",
+    "cash": 180,
+    "currentMonth": "2026-09",
+    "fixedBillsPaid": {
+      "rent": true,
+      "utilities": true,
+      "childcare": true,
+      "communications": true
+    },
+    "spentThisMonth": {
+      "rent": 0,
+      "utilities": 0,
+      "childcare": 0,
+      "food": 0,
+      "communications": 0,
+      "misc": 0,
+      "clothing": 0,
+      "hygiene": 0
+    },
+    "earnedThisMonth": 0,
+    "ledger": [],
+    "appliedTransactionIds": []
   }
 }

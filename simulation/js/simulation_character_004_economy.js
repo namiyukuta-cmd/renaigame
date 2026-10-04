@@ -20,6 +20,10 @@
       other: { label: "その他の日雇い", min: 50, max: 70, defaultPay: 60 }
     },
 
+    dailyAutoExpenses: {
+      food: 11
+    },
+
     monthlyExpenses: {
       rent: {
         label: "家賃",
@@ -200,6 +204,22 @@
     return state;
   };
 
+  const applyDailyLivingCosts = (finance, { date }) => {
+    let state = cloneState(finance);
+
+    for (const [category, amount] of Object.entries(config.dailyAutoExpenses)) {
+      state = addExpense(state, {
+        id: `${date}:daily:${category}`,
+        date,
+        category,
+        amount,
+        note: "日次生活費"
+      });
+    }
+
+    return state;
+  };
+
   const applyDueFixedBills = (finance, { date }) => {
     let state = cloneState(finance);
     const day = Number(String(date).slice(-2));
@@ -241,6 +261,7 @@
     addIncome,
     addExpense,
     startMonth,
+    applyDailyLivingCosts,
     applyDueFixedBills,
     summary
   });

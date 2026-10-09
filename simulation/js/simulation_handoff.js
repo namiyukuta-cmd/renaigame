@@ -165,6 +165,16 @@
 
     copyButton.addEventListener('click', async () => {
       if (copyButton.disabled || !textArea.value) return;
+      // Keep this synchronous within the tap for browsers that support native copy.
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, textArea.value.length);
+      try {
+        if (typeof document.execCommand === 'function' && document.execCommand('copy')) {
+          status.textContent = 'コピーしました。ChatGPTへ貼り付けてください。';
+          return;
+        }
+      } catch (_) {}
       try {
         if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('clipboard');
         await navigator.clipboard.writeText(textArea.value);

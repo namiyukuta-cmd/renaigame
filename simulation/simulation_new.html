@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="css/simulation_handoff.css?v=20261004-1">
+  <link rel="stylesheet" href="css/simulation_handoff.css?v=20261009-1">
 
   <style>
     * {
@@ -622,6 +622,7 @@
       button.type = 'button';
       button.className = 'target-card';
       if (character.id === selectedId) button.classList.add('selected');
+      button.setAttribute('aria-pressed', String(character.id === selectedId));
 
       const thumb = document.createElement('div');
       thumb.className = 'target-thumb';
@@ -646,12 +647,10 @@
       meta.textContent = [age, occupation].filter(Boolean).join(' / ');
       text.appendChild(meta);
 
-      if (character.id === selectedId) {
-        const status = document.createElement('div');
-        status.className = 'target-status';
-        status.textContent = '選択中';
-        text.appendChild(status);
-      }
+      const status = document.createElement('div');
+      status.className = 'target-status';
+      status.textContent = character.id === selectedId ? '選択中' : 'タップして選択';
+      text.appendChild(status);
 
       button.appendChild(thumb);
       button.appendChild(text);
@@ -668,7 +667,7 @@
       app.innerHTML = `
         <section class="content-panel" aria-labelledby="romanceTitle">
           <h2 id="romanceTitle">恋愛相手</h2>
-          <p class="panel-note">ホームに表示する相手を選びます。</p>
+          <p class="panel-note">カードをタップして恋愛相手を選びます。「AIに渡す」の画面内でも選べます。</p>
           <div class="target-list" id="targetList"></div>
         </section>
       `;
@@ -756,6 +755,11 @@
 
     profileButton.addEventListener('click', showProfile);
 
+    window.addEventListener('renaigame:handoff-selection', () => {
+      if (romanceButton.classList.contains('active')) showRomanceTargets();
+      else if (homeButton.classList.contains('active')) showHome();
+    });
+
     saveButton.addEventListener('click', async () => {
       if (!RenaiGameSave.getToken()) {
         alert('タイトル画面の「設定」からGitHubトークンを設定してください。');
@@ -829,6 +833,7 @@
 
     init();
   </script>
-  <script src="js/simulation_handoff.js?v=20261004-1"></script>
+  <script src="js/simulation_handoff.js?v=20261009-1"></script>
 </body>
 </html>
+

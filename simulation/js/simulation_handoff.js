@@ -66,40 +66,105 @@
     dialog.className = 'handoff-dialog';
     dialog.setAttribute('aria-labelledby', 'handoffTitle');
     dialog.innerHTML = '<h2 id="handoffTitle">AIに渡す</h2>' +
+      '<label class="handoff-selection">恋愛相手<select class="handoff-character" aria-label="AIに渡す恋愛相手"></select></label>' +
       '<p class="handoff-context"></p>' +
-      '<p>下の文章をコピーして、ChatGPTへ貼り付けてください。その後、主人公の台詞や行動を入力して遊べます。</p>' +
-      '<textarea class="handoff-text" readonly aria-label="AIに渡す文章"></textarea>' +
+      '<p class="handoff-instructions" hidden>下の文章をコピーして、ChatGPTへ貼り付けてください。その後、主人公の台詞や行動を入力して遊べます。</p>' +
+      '<textarea class="handoff-text" hidden readonly aria-label="AIに渡す文章"></textarea>' +
       '<p class="handoff-status" role="status" aria-live="polite"></p>' +
-      '<div class="handoff-actions"><button type="button" class="handoff-copy">コピー</button><button type="button" class="handoff-close">閉じる</button></div>';
+      '<div class="handoff-actions"><button type="button" class="handoff-copy" hidden disabled>コピー</button><button type="button" class="handoff-close">閉じる</button></div>';
     document.body.append(openButton, dialog);
+    const characterSelect = dialog.querySelector('.handoff-character');
+    const context = dialog.querySelector('.handoff-context');
+    const instructions = dialog.querySelector('.handoff-instructions');
     const textArea = dialog.querySelector('.handoff-text');
     const status = dialog.querySelector('.handoff-status');
     const copyButton = dialog.querySelector('.handoff-copy');
+    let openRequest = 0;
+
+    function clearPrompt() {
+      context.textContent = '';
+      textArea.value = '';
+      textArea.hidden = true;
+      instructions.hidden = true;
+      copyButton.hidden = true;
+      copyButton.disabled = true;
+    }
+
+    function populateCharacters() {
+      characterSelect.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '相手を選んでください';
+      placeholder.disabled = true;
+      characterSelect.appendChild(placeholder);
+      RenaiGameCharacters.getAll().forEach(character => {
+        const option = document.createElement('option');
+        option.value = character.id;
+        option.textContent = character.name;
+        characterSelect.appendChild(option);
+      });
+      const character = RenaiGameCharacters.getSelected();
+      characterSelect.value = character ? character.id : '';
+    }
+
+    function refreshPrompt() {
+      clearPrompt();
+      const character = RenaiGameCharacters.getSelected();
+      if (!character) {
+        status.textContent = '上の「恋愛相手」で相手を選ぶと、コピーする文章が表示されます。';
+        return;
+      }
+      try {
+        const saveId = RenaiGameSave.getCurrentSaveId();
+        const profile = JSON.parse(localStorage.getItem('renaigame_simulation_profile_v1') || '{}');
+        textArea.value = buildPrompt({ character, profile, saveId, session: RenaiGameRecord.exportSession() });
+        context.textContent = character.name + ' ／ ' +
+          (saveId ? '保存済みの記録から続けます。未保存の変更は先に「セーブ」を押してください。' : '未保存の周回です。現在のプロフィールを渡します。');
+        instructions.hidden = false;
+        textArea.hidden = false;
+        copyButton.hidden = false;
+        copyButton.disabled = false;
+        status.textContent = '';
+      } catch (error) {
+        status.textContent = error.message || '渡す文章を作れませんでした。';
+      }
+    }
 
     openButton.addEventListener('click', async () => {
-      status.textContent = '';
-      textArea.value = '';
-      copyButton.disabled = true;
-      dialog.querySelector('.handoff-context').textContent = '';
+      const request = ++openRequest;
+      clearPrompt();
+      status.textContent = '恋愛相手を読み込んでいます。';
+      characterSelect.disabled = true;
+      characterSelect.innerHTML = '';
       if (!dialog.open) {
         if (typeof dialog.showModal === 'function') dialog.showModal();
         else dialog.setAttribute('open', '');
       }
       try {
         await RenaiGameCharacters.loadAll();
-        const character = RenaiGameCharacters.getSelected();
-        const saveId = RenaiGameSave.getCurrentSaveId();
-        const profile = JSON.parse(localStorage.getItem('renaigame_simulation_profile_v1') || '{}');
-        textArea.value = buildPrompt({ character, profile, saveId, session: RenaiGameRecord.exportSession() });
-        dialog.querySelector('.handoff-context').textContent = character.name + ' ／ ' +
-          (saveId ? '保存済みの記録から続けます。未保存の変更は先に「セーブ」を押してください。' : '未保存の周回です。現在のプロフィールを渡します。');
-        copyButton.disabled = false;
+        if (!dialog.open || request !== openRequest) return;
+        populateCharacters();
+        characterSelect.disabled = false;
+        refreshPrompt();
       } catch (error) {
+        if (!dialog.open || request !== openRequest) return;
         status.textContent = error.message || '渡す文章を作れませんでした。';
       }
     });
 
+    characterSelect.addEventListener('change', () => {
+      clearPrompt();
+      try {
+        RenaiGameCharacters.setSelectedId(characterSelect.value);
+        window.dispatchEvent(new CustomEvent('renaigame:handoff-selection'));
+        refreshPrompt();
+      } catch (error) {
+        status.textContent = error.message || '恋愛相手を選択できませんでした。';
+      }
+    });
+
     copyButton.addEventListener('click', async () => {
+      if (copyButton.disabled || !textArea.value) return;
       try {
         if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('clipboard');
         await navigator.clipboard.writeText(textArea.value);
@@ -125,3 +190,4 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+

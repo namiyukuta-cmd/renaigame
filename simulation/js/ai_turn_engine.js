@@ -14,7 +14,8 @@
     "evaluateApproachAvoidance",
     "evaluateAttachmentTension",
     "evaluateRepairDrive",
-    "evaluateIntimacyInitiative"
+    "evaluateIntimacyInitiative",
+    "evaluateYoinomaInvitation"
   ]);
 
   function fail(message) {
@@ -138,6 +139,41 @@
     return clone(transition);
   }
 
+
+  function ensureYoinomaContext(args) {
+    const context = args.yoinomaContext || {};
+    if (!record(context)) fail("yoinomaContextが不正です");
+    const evidence = context.evidence || {};
+    if (!record(evidence)) fail("宵の間の場面根拠が不正です");
+    const booleanKeys = ["protagonistAdult", "canSpendPrivateTime", "privatePlaceAvailable", "onDuty", "explicitRejection", "reopenedByProtagonist"];
+    const keys = [...booleanKeys, "atmosphere", "response"];
+    for (const key of Object.keys(context)) {
+      if (key !== "evidence" && !keys.includes(key)) fail("宵の間の未知の場面項目: " + key);
+    }
+    for (const key of keys) {
+      if (context[key] === undefined) continue;
+      if (booleanKeys.includes(key) && typeof context[key] !== "boolean") fail(key + "は真偽値が必要です");
+      if (key === "atmosphere" && (typeof context[key] !== "number" || !Number.isFinite(context[key]) || context[key] < 0 || context[key] > 100)) fail("atmosphereは0〜100です");
+      if (key === "response" && !["accepted", "refused"].includes(context[key])) fail("誘いへの返答が不正です");
+      const cite = evidence[key];
+      if (!record(cite) || typeof cite.quote !== "string" || !cite.quote.trim()) fail(key + "の場面根拠が必要です");
+      let text = "";
+      if (cite.source === "input") text = args.protagonistInput;
+      else if (cite.source === "record" && key !== "response" && key !== "reopenedByProtagonist" && Number.isInteger(cite.index) && cite.index >= 0) {
+        const entry = args.records[cite.index];
+        const allowed = ["protagonist", "partner", "transcript"];
+        const fields = key === "response" || key === "reopenedByProtagonist" ? ["protagonist"] : allowed;
+        if (entry && fields.includes(cite.field)) text = entry[cite.field] || "";
+      }
+      // 年齢は既存の主人公設定にも根拠を持てる。セーブから取得したprofileを渡す。
+      else if (key === "protagonistAdult" && cite.source === "profile" && record(args.protagonistProfile)) {
+        text = JSON.stringify(args.protagonistProfile);
+      }
+      if (typeof text !== "string" || !text.includes(cite.quote)) fail(key + "の根拠が入力・実ログ・主人公設定にありません");
+    }
+    return clone(context);
+  }
+
   function runTurn(args) {
     const raw = ensureSources(args);
     const psychology = args.psychology;
@@ -154,11 +190,15 @@
     const after = psychology.normalizeState(afterDraft, args.characterId);
     const evaluations = {};
     const invoked = [];
+    const yoinomaContext = ensureYoinomaContext(args);
     for (const name of FUNCTION_NAMES.slice(1)) {
-      evaluations[name] = psychology[name](after, args.characterId);
+      evaluations[name] = name === "evaluateYoinomaInvitation"
+        ? psychology[name](after, args.characterId, yoinomaContext, args.character)
+        : psychology[name](after, args.characterId);
       if (!record(evaluations[name])) fail(name + " の計算結果が不正です");
       invoked.push(name);
     }
+    after.yoinomaInvitation = { status: evaluations.evaluateYoinomaInvitation.nextStatus };
     const packet = {
       version: 1,
       saveId: args.saveId,
@@ -167,6 +207,7 @@
       changes: checked.changes,
       evidence: checked.evidence,
       stageTransition,
+      yoinomaContext,
       before,
       after,
       evaluations,
@@ -175,6 +216,7 @@
         behavior: fingerprint(args.behavior),
         before: fingerprint(raw),
         records: fingerprint(args.records),
+        protagonistProfile: fingerprint(args.protagonistProfile || {}),
         psychologyVersion: psychology.version
       },
       execution: {
@@ -215,10 +257,17 @@
     }
   }
 
-  function validateStory(args, packet, story) {
+  function validateStory(args, packet, story, storyActions = {}) {
     const verified = verifyTurn(args, packet);
     const errors = [...verified.errors];
     const warnings = [];
+    const invitation = packet && packet.evaluations && packet.evaluations.evaluateYoinomaInvitation;
+    if (invitation && invitation.mustInvite && storyActions.yoinomaInvitation !== invitation.mode) {
+      errors.push("判定どおりの宵の間の誘いを本文に含め、storyActions.yoinomaInvitationを指定してください");
+    }
+    if (invitation && !invitation.mustInvite && storyActions.yoinomaInvitation && storyActions.yoinomaInvitation !== "none") {
+      errors.push("宵の間の誘いを出せない判定です");
+    }
     if (typeof story !== "string" || !story.trim()) {
       errors.push("本文が空です");
     } else {

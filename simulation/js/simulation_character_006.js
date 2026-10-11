@@ -16,6 +16,7 @@
     assets: { default: null },
 
     common: {
+      baseRomanticInitiative: 1,
       age: 31,
       nationality: "カナダ",
       heightCm: 176,

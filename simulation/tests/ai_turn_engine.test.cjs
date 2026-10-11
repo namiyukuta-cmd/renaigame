@@ -39,7 +39,7 @@ function test() {
   const args = options();
   const packet = engine.runTurn(args);
   assert.equal(packet.execution.status, "executed");
-  assert.equal(packet.execution.invoked.length, 6);
+  assert.equal(packet.execution.invoked.length, 7);
   assert.deepEqual(Array.from(packet.execution.invoked), engine.functionNames.slice(1));
   assert.equal(packet.after.trust, Math.min(100, packet.before.trust + 3));
   assert.equal(packet.after.seekHeroine, Math.min(100, packet.before.seekHeroine + 5));
@@ -77,6 +77,53 @@ function test() {
     evidence: {},
     stageTransition: { to: 6, stageName: "告白前", evidence: "また会いたい" }
   })), /1段階/);
+
+
+  // 宵の間：低積極度でも欲求が十分なら実際に誘う。場所・返答の根拠も検証する。
+  const sceneText = "成人です。今夜は仕事なし。時間があります。2人で過ごせる部屋があります。会話は弾んでいます。拒絶していません。";
+  const scene = {
+    protagonistAdult: true, canSpendPrivateTime: true, privatePlaceAvailable: true,
+    onDuty: false, explicitRejection: false, atmosphere: 100,
+    evidence: Object.fromEntries(["protagonistAdult", "canSpendPrivateTime", "privatePlaceAvailable", "onDuty", "explicitRejection", "atmosphere"]
+      .map(key => [key, {source: "input", quote: sceneText}]))
+  };
+  const strong = {...initial, privateTimeWish: 100, invitationImpulse: 100, seekHeroine: 100,
+    reluctanceToPart: 100, physicalNeed: 100, trust: 100, comfort: 100, perceivedReciprocity: 100,
+    romanceScore: 100, fearOfRejection: 80, hesitation: 80, selfControl: 80, socialRestraint: 80,
+    psychologyTraits: {intimacyCaution: 80}};
+  const invitationArgs = options({
+    protagonistInput: sceneText, changes: {}, evidence: {}, yoinomaContext: scene,
+    character: {...window.SimulationCharacter003,
+      common: {...window.SimulationCharacter003.common, age: 31, baseRomanticInitiative: 1}},
+    stateEntry: {currentState: strong}
+  });
+  const shy = engine.runTurn(invitationArgs);
+  assert.equal(shy.evaluations.evaluateYoinomaInvitation.mode, "indirect");
+  assert.equal(shy.after.yoinomaInvitation.status, "pending");
+  assert.equal(engine.verifyTurn(invitationArgs, shy).ok, true);
+  assert.equal(engine.validateStory(invitationArgs, shy, goodStory).ok, false);
+  const inviteStory = goodStory + "\n“Would you like to spend a little more time with me at my place?”\n「よければ、僕の家でもう少し一緒に過ごしませんか」";
+  assert.equal(engine.validateStory(invitationArgs, shy, inviteStory, {yoinomaInvitation: "indirect"}).ok, true);
+  const directArgs = {...invitationArgs, character: {...invitationArgs.character,
+    common: {...invitationArgs.character.common, baseRomanticInitiative: 10}}};
+  assert.equal(engine.runTurn(directArgs).evaluations.evaluateYoinomaInvitation.mode, "direct");
+  for (const extra of [{onDuty: true}, {privatePlaceAvailable: false}, {protagonistAdult: false}, {explicitRejection: true}]) {
+    assert.equal(engine.runTurn({...invitationArgs, yoinomaContext: {...scene, ...extra}}).evaluations.evaluateYoinomaInvitation.mustInvite, false);
+  }
+  assert.equal(engine.runTurn({...invitationArgs, yoinomaContext: {}}).evaluations.evaluateYoinomaInvitation.mustInvite, false);
+  const pendingArgs = {...invitationArgs, stateEntry: {currentState: shy.after}};
+  assert.equal(engine.runTurn(pendingArgs).evaluations.evaluateYoinomaInvitation.mustInvite, false);
+  const refusal = engine.runTurn({...pendingArgs, protagonistInput: "お断りします。",
+    yoinomaContext: {response: "refused", evidence: {response: {source: "input", quote: "お断りします。"}}}});
+  assert.equal(refusal.after.yoinomaInvitation.status, "refused");
+  assert.equal(engine.runTurn({...invitationArgs, stateEntry: {currentState: refusal.after}}).evaluations.evaluateYoinomaInvitation.mustInvite, false);
+  const accepted = engine.runTurn({...pendingArgs, protagonistInput: "ええ、ご一緒します。",
+    yoinomaContext: {response: "accepted", evidence: {response: {source: "input", quote: "ご一緒します"}}}});
+  assert.equal(accepted.evaluations.evaluateYoinomaInvitation.mode, "accepted");
+  assert.equal(accepted.after.yoinomaInvitation.status, "accepted");
+  assert.throws(() => engine.runTurn({...invitationArgs, yoinomaContext: {...scene,
+    evidence: {...scene.evidence, onDuty: {source: "input", quote: "根拠のない文章"}}}}), /根拠/);
+  assert.equal(engine.verifyTurn({...invitationArgs, yoinomaContext: {...scene, atmosphere: 0}}, shy).ok, false);
 
   console.log("PASS: actual psychology JS evaluation, replay integrity, save isolation, legacy guard, story validation");
 }

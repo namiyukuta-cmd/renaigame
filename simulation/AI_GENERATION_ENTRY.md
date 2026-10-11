@@ -16,6 +16,26 @@
 
 主人公の未入力の台詞・行動・心理・反応は生成しない。
 
+
+## 宵の間への自動提案
+
+毎Turn、`runTurn` 内で `evaluateYoinomaInvitation` を実行する。身体接触の判定とは別に、更新後心理・固定積極度・現在の場面から誘いを決める。
+
+- 固定値は `character.common.baseRomanticInitiative`（1〜10）。恋愛経験とは別の値。ニコラスは1。未設定キャラは既存の固定 `romanticBoldness` から1〜10へ換算する。毎Turn都合よく変更しない。
+- `args.yoinomaContext` に `protagonistAdult / canSpendPrivateTime / privatePlaceAvailable / onDuty / explicitRejection`（真偽値）、`atmosphere`（0〜100）を渡す。現在の実ログ・今回入力で確認できた場面を使い、不明なら未指定にする。雰囲気の解釈にはAI判断が入るが、夜・親切・笑顔だけを承諾の証拠にしない。
+- 各場面項目の `evidence` は `{source:"input",quote:"今回入力の抜粋"}`、または `{source:"record",index:実ログ配列の位置,field:"protagonist"|"partner"|"transcript",quote:"抜粋"}`。成人確認はセーブから取得した `args.protagonistProfile` と `{source:"profile",quote:"設定の抜粋"}` も利用可。抜粋の存在検査と、意味的にその判断を支えるかの確認を両方行う。
+- 成人同士、時間、私的な場所、勤務外、拒絶なしの条件が確認できてから数値判定する。不足時は `missing` に不足情報が返る。主人公の年齢・予定・承諾・施設を新しく捏造しない。
+- 欲求＝私的時間希望30%＋誘い衝動25%＋主人公を求める力20%＋離れがたさ15%＋身体的親密欲求10%。
+- 抑制＝拒絶恐怖30%＋ためらい25%＋固定の親密慎重さ20%＋自制15%＋社会的遠慮10%。
+- 判定点＝欲求×0.60＋固定積極度×2＋雰囲気×0.10＋関係値×0.10−抑制×0.30（0〜100）。関係値は恋愛度・信頼・安心感・相互性認知の平均。恋愛度未設定時は信頼。
+- 欲求25未満または判定点35未満は `none`。判定点65以上かつ固定積極度5以上は `direct`。それ以外の誘い成立は `indirect`。低積極度でも欲求が十分なら控えめに誘える。
+- `mustInvite:true` なら本文に具体的な誘いを必ず含める。`indirect` は言い淀み・短い言葉・遠回しな言い方でも、実際に誘いが伝わる文章にする。「誘いたいが言えなかった」だけで終わらせない。`direct` でも主人公の承諾・移動・身体反応を補完しない。
+- `validateStory(args,packet,text,{yoinomaInvitation:"indirect"|"direct"})` を使う。誘い判定と行動申告の一致を検査する。申告だけで本文の意味が保証されるわけではないので、本文に具体的な誘いが存在することも照合する。
+- `after.yoinomaInvitation.status` は `idle / pending / refused / accepted`。誘いを本文へ出した後は返答待ち。同じ誘いを繰り返さない。検証に合格した本文とafterだけを、明示保存時に保存する。
+- 今回の主人公入力が誘いへの明確な返答なら `yoinomaContext.response:"accepted"|"refused"` と今回入力の根拠を渡す。承諾は `pending` の誘いがある時だけ成立する。断られた後は主人公自身が再開した今回入力に根拠がある場合だけ `reopenedByProtagonist:true` を使える。過去の承諾を今回の承諾に使わない。
+- `accepted` は宵の間への移行を扱える判定であり、ゲーム画面の自動起動や性行為への同意を意味しない。別れ・場面終了等でこの誘いが完了したら、実ログに沿って明示保存時に状態をidleへ戻す。自動で返答待ちを解除しない。
+
+
 ## 画面から渡された開始・再開情報
 
 ゲーム画面の「AIに渡す」は、選択中の攻略対象と現在のセーブIDを含む文章を作る。ユーザーがその文章を貼り付けた場合、そのIDを使って現在セーブを読む。最新の別セーブへ切り替えない。
@@ -55,7 +75,7 @@
 
 1. 今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
 2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。
-3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと7つの心理関数の実行証跡が含まれる。
+3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと8つの心理関数の実行証跡が含まれる。
 4. `RenaiGameTurnEngine.verifyTurn(args, packet)`で、同じ元データから**再計算**して`ok === true`を確認する。不一致・不足時は停止する。
 5. packetのafterとevaluate結果、人物JS、実ログを固定条件にして本文を書く。心理結果をAIの好みで変更しない。
 6. `RenaiGameTurnEngine.validateStory(args, packet, text)`を呼び、`ok === true`まで出力前に修正する。機械検査の後にも、主人公の未入力行動・個別人物像・過去ログとの意味的整合性を確認する。

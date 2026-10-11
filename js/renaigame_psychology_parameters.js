@@ -1550,5 +1550,56 @@
     };
   };
 
+
+  // 宵の間への提案を、身体接触とは分けて判定する。
+  psychology.evaluateYoinomaInvitation = (rawState = {}, characterId = rawState.characterId, context = {}, character = {}) => {
+    const state = psychology.normalizeState(rawState, characterId);
+    const t = state.psychologyTraits;
+    const configured = character.common && character.common.baseRomanticInitiative;
+    const base = Number.isFinite(configured) ? clamp(configured, 1, 10)
+      : Math.round(1 + t.romanticBoldness * 9 / 100);
+    const memory = rawState.yoinomaInvitation || { status: "idle" };
+    const result = (mode, reason, extra = {}) => ({
+      mode, reason, mustInvite: mode === "indirect" || mode === "direct",
+      baseRomanticInitiative: base, nextStatus: memory.status || "idle", ...extra
+    });
+    if (context.explicitRejection === true || context.response === "refused") {
+      return result("none", "明確な拒絶。誘い・説得を続けない。", { nextStatus: "refused" });
+    }
+    if (context.response === "accepted") {
+      if (memory.status !== "pending") return result("none", "返答待ちの誘いがないため、承諾扱いにしない。");
+      return result("accepted", "主人公が実際に承諾した誘いだけを引き継ぐ。", { nextStatus: "accepted" });
+    }
+    if (memory.status === "pending") return result("none", "誘いへの返答待ち。同じ誘いを繰り返さない。");
+    if (memory.status === "accepted") return result("none", "承諾済み。改めて誘わない。");
+    if (memory.status === "refused" && context.reopenedByProtagonist !== true) {
+      return result("none", "断られた誘いを主人公が再開していない。");
+    }
+    const required = ["protagonistAdult", "canSpendPrivateTime", "privatePlaceAvailable", "onDuty", "explicitRejection"];
+    const missing = required.filter(key => typeof context[key] !== "boolean");
+    if (!Number.isFinite(context.atmosphere)) missing.push("atmosphere");
+    if (missing.length) return result("none", "場面情報が不足。推測で埋めない。", { missing });
+    const age = character.common && character.common.age;
+    if (!Number.isFinite(age) || age < 18 || !context.protagonistAdult) return result("none", "成人同士の条件が確認できない。");
+    if (!context.canSpendPrivateTime || !context.privatePlaceAvailable || context.onDuty) {
+      return result("none", "時間・場所・勤務の条件がそろっていない。");
+    }
+    const desire = state.privateTimeWish * 0.30 + state.invitationImpulse * 0.25
+      + state.seekHeroine * 0.20 + state.reluctanceToPart * 0.15 + state.physicalNeed * 0.10;
+    const relationship = state.romanceScore === undefined ? state.trust
+      : (clamp(state.romanceScore) + state.trust + state.comfort + state.perceivedReciprocity) / 4;
+    const inhibition = state.fearOfRejection * 0.30 + state.hesitation * 0.25
+      + t.intimacyCaution * 0.20 + state.selfControl * 0.15 + state.socialRestraint * 0.10;
+    const score = clamp(desire * 0.60 + base * 2 + clamp(context.atmosphere) * 0.10
+      + clamp(relationship) * 0.10 - inhibition * 0.30);
+    const mode = desire < 25 || score < 35 ? "none" : score >= 65 && base >= 5 ? "direct" : "indirect";
+    return result(mode, mode === "none" ? "誘う力がまだ足りない。欲求自体は消さない。"
+      : mode === "indirect" ? "ためらいを残しながら、2人で過ごす具体的な誘いを実際に出す。"
+      : "2人で過ごす場所・過ごし方をはっきり提案する。", {
+        desire: Math.round(desire), inhibition: Math.round(inhibition), score: Math.round(score),
+        nextStatus: mode === "none" ? "idle" : "pending"
+      });
+  };
+
   window.RenaiGamePsychologyParameters = Object.freeze(psychology);
 })();

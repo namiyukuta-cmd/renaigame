@@ -199,6 +199,11 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 5. `simulation/js/simulation_character_005.js`
 6. `simulation/js/simulation_character_005_behavior.js`
 
+### char_006 ニコラス・フェルプス
+
+5. `simulation/js/simulation_character_006.js`
+6. `simulation/js/simulation_character_006_behavior.js`
+
 最後に現在進行中のセーブJSONを読む。
 
 7. `private-game-data/renaigame/simulation/saves/<saveId>.json`
@@ -219,6 +224,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - char_003: `simulation/state/templates/char_003_initial_state.json`
 - char_004: `simulation/state/templates/char_004_initial_state.json`
 - char_005: `simulation/state/templates/char_005_initial_state.json`
+- char_006: `simulation/state/templates/char_006_initial_state.json`
 
 テンプレートは新規周回の初期値専用。
 プレイ中の状態を書き戻さない。

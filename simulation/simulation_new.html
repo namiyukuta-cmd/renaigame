@@ -493,7 +493,7 @@
       width: min(100%, 520px);
       padding-bottom: env(safe-area-inset-bottom);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       background: #faf7f8;
       border-top: 1px solid #cdbfc4;
       z-index: 20;
@@ -507,7 +507,7 @@
       background: transparent;
       color: #65585e;
       font: inherit;
-      font-size: 14px;
+      font-size: clamp(11px, 3.2vw, 14px);
       cursor: pointer;
     }
 
@@ -515,6 +515,59 @@
       color: #2c2528;
       font-weight: 700;
       background: #eee5e8;
+    }
+
+    .writing-field label {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .writing-field textarea {
+      display: block;
+      width: 100%;
+      height: clamp(240px, 42dvh, 430px);
+      padding: 14px;
+      border: 1px solid #bdaeb4;
+      border-radius: 10px;
+      background: #fff;
+      color: #2c2528;
+      font-size: 16px;
+      line-height: 1.7;
+      resize: vertical;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .writing-field textarea:focus {
+      outline: 2px solid #75666c;
+      outline-offset: 1px;
+    }
+
+    .writing-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .writing-actions button {
+      flex: 1;
+      min-height: 48px;
+      padding: 10px;
+      border: 1px solid #bdaeb4;
+      border-radius: 10px;
+      background: #fff;
+      color: #2c2528;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .writing-status {
+      min-height: 24px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #65585e;
     }
   </style>
 </head>
@@ -536,6 +589,7 @@
     <button id="romanceButton" type="button">恋愛相手</button>
     <button id="recordButton" type="button">記録</button>
     <button id="profileButton" type="button">プロフィール</button>
+    <button id="writeButton" type="button">文章を書く</button>
   </nav>
 
   <script src="js/simulation_characters.js"></script>
@@ -550,6 +604,7 @@
     const romanceButton = document.getElementById('romanceButton');
     const recordButton = document.getElementById('recordButton');
     const profileButton = document.getElementById('profileButton');
+    const writeButton = document.getElementById('writeButton');
     const app = document.getElementById('app');
 
     function readProfile() {
@@ -745,6 +800,101 @@
       setActiveNav(profileButton);
     }
 
+    const DRAFT_PREFIX = 'renaigame_simulation_protagonist_draft_v1:';
+
+    function draftKey() {
+      const selected = RenaiGameCharacters.getSelectedId();
+      if (!selected) return null;
+      const session = RenaiGameRecord.exportSession();
+      if (!session || !session.id) return null;
+      return DRAFT_PREFIX + session.id + ':' + selected;
+    }
+
+    function readDraft() {
+      const key = draftKey();
+      return key ? (localStorage.getItem(key) || '') : '';
+    }
+
+    function writeDraft(text) {
+      const key = draftKey();
+      if (!key) throw new Error('先に恋愛相手を選んでください。');
+      localStorage.setItem(key, text);
+    }
+
+    // This is only a local, editable draft. It never writes Chapter records or GitHub saves.
+    window.RenaiGameDraft = Object.freeze({ read: readDraft });
+
+    function showWriting() {
+      const selected = RenaiGameCharacters.getSelected();
+      if (!selected) {
+        app.innerHTML = '<section class="content-panel"><h2>主人公の文章</h2><p>まず「恋愛相手」で相手を選んでください。</p></section>';
+        setActiveNav(writeButton);
+        return;
+      }
+
+      app.innerHTML = `
+        <section class="content-panel" aria-labelledby="writingTitle">
+          <h2 id="writingTitle">主人公の文章</h2>
+          <p class="panel-note">主人公の台詞や行動を自由に書けます。下書きはこの端末内に保存されます。記録やGitHubのセーブには自動保存されません。</p>
+          <div class="writing-field">
+            <label for="protagonistWriting">入力欄</label>
+            <textarea id="protagonistWriting" placeholder="ここに主人公の台詞・行動を書いてください。" spellcheck="false"></textarea>
+          </div>
+          <div class="writing-actions">
+            <button id="writingCopy" type="button">文章をコピー</button>
+            <button id="writingHandoff" type="button">AIに渡す</button>
+          </div>
+          <p class="writing-status" id="writingStatus" role="status" aria-live="polite"></p>
+        </section>
+      `;
+
+      const input = document.getElementById('protagonistWriting');
+      const status = document.getElementById('writingStatus');
+      input.value = readDraft();
+      input.addEventListener('input', () => {
+        try {
+          writeDraft(input.value);
+          status.textContent = '端末内に下書きを保持しました。';
+        } catch (error) {
+          status.textContent = error.message || '下書きを保持できませんでした。';
+        }
+      });
+
+      document.getElementById('writingCopy').addEventListener('click', async () => {
+        if (!input.value.trim()) {
+          status.textContent = '文章を入力してください。';
+          return;
+        }
+        input.focus();
+        input.select();
+        input.setSelectionRange(0, input.value.length);
+        try {
+          if (typeof document.execCommand === 'function' && document.execCommand('copy')) {
+            status.textContent = '主人公の文章をコピーしました。ChatGPTへ貼り付けてください。';
+            return;
+          }
+        } catch (_) {}
+        try {
+          if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('clipboard');
+          await navigator.clipboard.writeText(input.value);
+          status.textContent = '主人公の文章をコピーしました。ChatGPTへ貼り付けてください。';
+        } catch (_) {
+          input.focus();
+          input.select();
+          input.setSelectionRange(0, input.value.length);
+          status.textContent = '文章を選択しました。長押しして「コピー」を選んでください。';
+        }
+      });
+
+      document.getElementById('writingHandoff').addEventListener('click', () => {
+        const button = document.querySelector('.handoff-open');
+        if (button) button.click();
+        else status.textContent = '「AIに渡す」の読み込みが完了していません。';
+      });
+
+      setActiveNav(writeButton);
+    }
+
     homeButton.addEventListener('click', showHome);
     romanceButton.addEventListener('click', showRomanceTargets);
 
@@ -754,10 +904,12 @@
     });
 
     profileButton.addEventListener('click', showProfile);
+    writeButton.addEventListener('click', showWriting);
 
     window.addEventListener('renaigame:handoff-selection', () => {
       if (romanceButton.classList.contains('active')) showRomanceTargets();
       else if (homeButton.classList.contains('active')) showHome();
+      else if (writeButton.classList.contains('active')) showWriting();
     });
 
     saveButton.addEventListener('click', async () => {

@@ -1,0 +1,33 @@
+name: Romance turn engine tests
+
+on:
+  push:
+    paths:
+      - "simulation/js/ai_turn_engine.js"
+      - "simulation/tests/ai_turn_engine.test.cjs"
+      - "simulation/js/simulation_character_003.js"
+      - "simulation/js/simulation_character_003_behavior.js"
+      - "simulation/state/templates/char_003_initial_state.json"
+      - "js/renaigame_psychology_parameters.js"
+      - ".github/workflows/ai-turn-tests.yml"
+  pull_request:
+    paths:
+      - "simulation/js/ai_turn_engine.js"
+      - "simulation/tests/ai_turn_engine.test.cjs"
+      - "simulation/js/simulation_character_003.js"
+      - "simulation/js/simulation_character_003_behavior.js"
+      - "simulation/state/templates/char_003_initial_state.json"
+      - "js/renaigame_psychology_parameters.js"
+      - ".github/workflows/ai-turn-tests.yml"
+
+jobs:
+  verify-turn-engine:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node simulation/tests/ai_turn_engine.test.cjs

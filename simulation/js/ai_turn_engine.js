@@ -84,6 +84,11 @@
     }
     requirePsychology(args.psychology);
     const raw = getCurrentState(args.stateEntry);
+    const critical = ["seekHeroine", "pursuitDrive", "physicalNeed", "passion", "reason", "selfControl", "ethics"];
+    const missing = critical.filter(key => typeof raw[key] !== "number" || !Number.isFinite(raw[key]));
+    if (missing.length) {
+      fail("旧セーブで主要心理項目が不足しています: " + missing.join(", ") + "。0として補完せず、実ログに基づいて移行したstateを渡してください");
+    }
     if (raw.characterId && raw.characterId !== args.characterId) {
       fail("stateのcharacterIdと指定攻略対象が一致しません");
     }
@@ -120,8 +125,9 @@
         transition.to < 1 || transition.to > 7 || transition.to !== from + 1) {
       fail("恋愛段階は現在段階から1段階ずつ進行してください");
     }
-    if (typeof transition.stageName !== "string" || !transition.stageName.trim()) {
-      fail("stageNameが指定されていません");
+    const stageNames = {1: ["警戒"], 2: ["興味"], 3: ["親しさ", "親しみ"], 4: ["意識"], 5: ["欲求"], 6: ["告白前"], 7: ["交際", "交際後"]};
+    if (!stageNames[transition.to].includes(transition.stageName)) {
+      fail("stageとstageNameが一致しません");
     }
     if (typeof transition.evidence !== "string" || !transition.evidence.trim() ||
         !input.includes(transition.evidence)) {
@@ -185,6 +191,10 @@
   function verifyTurn(args, packet) {
     try {
       if (!record(packet) || packet.version !== 1) fail("パケットが不正です");
+      if (!record(args) || args.saveId !== packet.saveId || args.characterId !== packet.characterId ||
+          args.protagonistInput !== packet.protagonistInput) {
+        fail("現在のsaveId・攻略対象・主人公入力とパケットが一致しません");
+      }
       const recomputed = runTurn({
         ...args,
         saveId: packet.saveId,

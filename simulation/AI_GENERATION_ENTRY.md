@@ -33,6 +33,26 @@
 
 ---
 
+## 毎Turnの実行・検証（2026-10-11追加）
+
+`simulation/js/ai_turn_engine.js` が心理JSの実行器です。AIによる「読んだ」「計算した」という申告は実行証明にはなりません。
+
+毎Turn、**本文を書く前に実際のJS実行結果を得る**こと。必要ファイルを取得できない場合は本文を生成しません。
+
+1. 今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
+2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。
+3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと7つの心理関数の実行証跡が含まれる。
+4. `RenaiGameTurnEngine.verifyTurn(args, packet)`で、同じ元データから**再計算**して`ok === true`を確認する。不一致・不足時は停止する。
+5. packetのafterとevaluate結果、人物JS、実ログを固定条件にして本文を書く。心理結果をAIの好みで変更しない。
+6. `RenaiGameTurnEngine.validateStory(args, packet, text)`を呼び、`ok === true`まで出力前に修正する。機械検査の後にも、主人公の未入力行動・個別人物像・過去ログとの意味的整合性を確認する。
+7. 求められたらpacketのfingerprint、実行関数の一覧、verifyTurnとvalidateStoryの結果を提示する。通常の小説本文に計算値は表示しない。
+
+**旧セーブ対策：** 重要な心理値が存在しない旧stateは、自動で0に埋めて計算しません。実行器が停止した場合、過去ログに沿った心理stateの整合・移行が必要です。既存セーブを書き換えるのはユーザーが明示的に保存指示した時だけです。最新セーブの代用・別周回の混入も禁止です。
+
+**適用範囲：** この実行器は、実際に呼び出したときの計算・再計算照合を保証します。外部のChatGPTアプリをGitHubから強制制御する機能ではありません。小説の意味的正しさを完全に自動判定する機能でもありません。実行されていないのに「検証済み」と称してはいけません。
+
+---
+
 ## 最重要：ChatGPTがGitHubのJSを「計算機」として使う
 
 GitHub自体が自律的に判断・生成・保存するものではない。

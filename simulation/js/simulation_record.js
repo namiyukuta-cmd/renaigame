@@ -162,7 +162,7 @@
     const protagonistName = readProtagonistName();
     const characterName = character.name || "恋愛相手";
 
-    [...history].reverse().forEach((entry) => {
+    history.forEach((entry) => {
       const article = document.createElement("article");
       article.className = "record-entry";
 

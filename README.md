@@ -36,6 +36,7 @@
 | エリオット・グレイ | [人物](simulation/js/simulation_character_002.js) | [行動](simulation/js/simulation_character_002_behavior.js) | [初期値](simulation/state/templates/char_002_initial_state.json) |
 | フローリアン・ブレンナー | [人物](simulation/js/simulation_character_003.js) | [行動](simulation/js/simulation_character_003_behavior.js) | [初期値](simulation/state/templates/char_003_initial_state.json) |
 | マテオ・ルッソ | [人物](simulation/js/simulation_character_004.js) | [行動](simulation/js/simulation_character_004_behavior.js) | [初期値](simulation/state/templates/char_004_initial_state.json) |
+| ハーヴェイ・コール | [人物](simulation/js/simulation_character_005.js) | [行動](simulation/js/simulation_character_005_behavior.js) | [初期値](simulation/state/templates/char_005_initial_state.json) |
 
 初期値は新規周回で状態がないときだけ使います。現在の心理・実ログはセーブごとに保持します。`simulation/state/simulation_character_XXX_state.json` と `simulation/record/` は移行前の資料です。
 

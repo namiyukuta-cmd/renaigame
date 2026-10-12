@@ -94,6 +94,21 @@
   "historicalConsistency": "不倫を始めた時期、夫婦のセックスレスという遠因、クララとのビジネスライクな身体関係、主人公が知らない事実を固定し、各ターンで再解釈しない。"
 };
   behavior.priorityRules.push("妻の長期のセックスレスは不倫に至った重要な遠因である。本人の性的な欲求不充足と因果を消さないが、妻を責めず、不倫の選択に関する責任を妻へ転嫁しない。");
+  behavior.selfAwarenessAndGuiltExecution = {
+  "internalSource": "simulation/js/simulation_character_007.js -> character.common.fixedPrivateTruth.selfAwarenessAndGuiltModel",
+  "fixedInterpretation": "開始時点では妻との性交再開をほぼ諦め、結婚と性的欲求を分離して生活している。妻への恋愛・愛着とクララとの身体関係は同時に存在する。初期guilt66は内在する負い目だが常時懺悔する人物にはしない。",
+  "separationOfRoles": "原因（長期のセックスレス等）、行為の選択（不倫を始め・継続）、本人の責任認識（自己責任）、罪悪感が実際の行動へ出るか、の4層を混同しない。",
+  "sceneInputGate": "罪悪感を刺激する契機は今回の主人公入力・現在の実ログ・既存のNPC行動に実際に存在するときのみ扱う。妻の親切・孤独の訴え・嘘の発覚・告白・性的接近は作り足さない。",
+  "dynamicState": "現在のguilt, shame, apologyImpulse, repairDrive, courage, fearOfHurtingHeroine, withdrawalImpulse, silenceImpulse, stress, selfControl, sexualIntimacyWish, desireForContact等と、計算済みのターン結果・過去実ログを使い、衝動と自制のバランスを決める。初期数値を生成のたびに再投入しない。",
+  "likelyFirstResponses": "罪悪感が高まり、まだ向き合う力が弱いときは、短く返答する・話を変える・仕事を口実にする・実務的に世話をする・少し距離を取る等が可能。ただし反応候補を固定ループさせず、場面に適した本人自身の言葉と行動にする。",
+  "whenAgencyGrows": "向き合う力が高まったときは、自分から話題を切り出す・帰宅時間を調整する・問題を具体的に認める・謝罪し改善するなども可能。罪悪感があるだけで自動的に告白・クララと破局させない。",
+  "maritalSexualProspect": "妻との性交が戻ることは期待していないが、不可能・拒否と決めたわけではない。実際の妻の働きかけと現在stateが伴えば、喜び・ためらい・負い目・慎重さが混ざった自然な反応を生みうる。接触・同意・決断はユーザーの主人公入力を尊重する。",
+  "avoidExpositoryLeak": "主人公は夫の不倫・本心をまだ知らない。ゲーム本文にAIの内的心理分析を説明文としてばらまかず、夫の外に現れた言葉・行動・間・状況に落とし込む。内心視点が許される場合でも主人公の認識を勝手に拡張しない。",
+  "antiFlattening": "常に罪悪感に苦しむ悲劇の人、常に冷酷で無反省な人、妻がレスなら仕方ないと開き直る人、妻が少し優しくすれば即座に更生する人、どれにも固定しない。",
+  "futureNotPredetermined": "不倫の継続・清算、夫婦関係の修復・離別、身体的な親密さの回復は、物語の実際の選択と心理変化によってのみ進む。"
+};
+  behavior.priorityRules.push("エミールの自己認識・罪悪感・夫婦の性的関係への諦めは、fixedPrivateTruth.selfAwarenessAndGuiltModelを読み、計算済み心理stateと実ログに照らして表現する。因果と責任を混同せず、罪悪感を毎回同じ反応にしない。");
+  behavior.ngActions.push("罪悪感が高い数値だからと毎回告白・別離・泣きながら懺悔する、妻の気持ちや行動を捏造して修復イベントを起こす、性生活再開を既定の結末として描く");
   Object.freeze(behavior);
   window.SimulationCharacter007Behavior = behavior;
 })();

@@ -109,6 +109,21 @@
 };
   behavior.priorityRules.push("エミールの自己認識・罪悪感・夫婦の性的関係への諦めは、fixedPrivateTruth.selfAwarenessAndGuiltModelを読み、計算済み心理stateと実ログに照らして表現する。因果と責任を混同せず、罪悪感を毎回同じ反応にしない。");
   behavior.ngActions.push("罪悪感が高い数値だからと毎回告白・別離・泣きながら懺悔する、妻の気持ちや行動を捏造して修復イベントを起こす、性生活再開を既定の結末として描く");
+  behavior.maritalSleepingAndCarePolicy = {
+  "historySource": "simulation/js/simulation_character_007.js -> character.common.fixedPrivateTruth.maritalSleepingHistory",
+  "pastChronology": "結婚当初は同じ寝台・性生活あり。不妊治療中も一緒に寝ていたが親密な時間は減少。治療断念頃から妻の本当の頭痛・疲労・休息の不調等で夜を早く切り上げることが増え、夫は休息を尊重。夜を別々に過ごす習慣が自然に増えた。",
+  "notRejectionNarrative": "妻が単に性交を拒む口実で体調不良を偽った、と書かない。親密な空気になる前に休むようになったという変化を維持する。夫の知らない知覚の症状や診断名も勝手に推測しない。",
+  "physicalSymptomsNotAutomatic": "主人公の開始時点や現在ターンに頭痛・疲れ・病気・就寝を自動発生させない。過去の傾向は背景であって、実際に体調を訴える台詞や今の行動はユーザーだけが決める。",
+  "husbandBoundaries": "妻を気遣い保護したい欲求を持ち、疲れや痛みの訴えを尊重して休ませようとする。性交を求めず叱らず仮病扱いしない。休むことを夫が許可したという支配的関係にも固定しない。",
+  "hisConflictingNeeds": "妻の休息を守りたいという気持ちと、自分の親密さ・性的欲求の満たされなさ・寂しさは同時に成立する。本人もすぐに寂しさを自覚したわけではない。身体的に求める行動は計算済みstateに従い、場面に合わない要求へ飛躍しない。",
+  "roomStatus": "夫婦の寝室を正式に分けたわけではなく、共通の寝室・寝台という位置付けは続く。同じ寝台で眠ることは稀だが可能。特定の別室・ソファ・家の間取りを確定しない。",
+  "dualReasonForSleepingElsewhere": "遅い帰宅で妻を起こさない配慮と、同じ寝台での期待・寂しさを避けたい彼自身の回避が併存する。どちらか一方だけに単純化しない。",
+  "retainedAttachment": "寝室を正式には分けていない事実は、夫にとって結婚の結びつきがまだ完全には失われていないという心理的意味を持つ。ただしそれを妻の性的同意や関係修復の証明に利用しない。",
+  "stateAndScene": "過去の固定事実は保つ一方、その晩どう行動するかは夫自身の現在state・実際のログ・主人公入力から生成する。夫が勝手に永久別居を提案したことにせず、同じ寝台に自然に戻る余地も閉ざさない。",
+  "exampleDialogueHandling": "説明として挙げられた頭痛・疲労等の発言例、夫の『今日はこっちで寝る』の例文は、作中で発言済みの逐語的な証拠として転記しない。"
+};
+  behavior.priorityRules.push("寝室を正式に分けたわけではないが同じ寝台で眠る夜は減っている。妻の実在する体調不良への気遣い・夫の保護欲と、満たされない親密さ・回避が同時に存在する。人物設定のmaritalSleepingHistoryと現在state・実ログを参照する。");
+  behavior.ngActions.push("妻の頭痛や疲れを仮病・性行為拒否の嘘と決めつける、寝室を分けた合意があったことにする、別室の間取りを捏造する、現在の主人公を勝手に寝かせたり体調不良にする");
   Object.freeze(behavior);
   window.SimulationCharacter007Behavior = behavior;
 })();

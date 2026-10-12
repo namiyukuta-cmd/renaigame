@@ -162,7 +162,8 @@
     return {
       id: typeof source.id === 'string' && source.id ? source.id : 'run_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       recordsByCharacter: normalizeObjectMap(source.recordsByCharacter),
-      statesByCharacter: normalizeObjectMap(source.statesByCharacter)
+      statesByCharacter: normalizeObjectMap(source.statesByCharacter),
+      ...(source.archive ? { archive: source.archive } : {})
     };
   }
 
@@ -185,6 +186,7 @@
       if(!Array.isArray(list)) return;
       list.forEach(entry => {
         const key = recordKey(entry);
+        if(entry && entry.__chapterRef) return;
         if(seen.has(key)) return;
         seen.add(key);
         merged.push(entry);
@@ -256,6 +258,137 @@
     return CLOUD.savesDir + '/' + safeSaveId(id) + '.json';
   }
 
+
+  // The manifest stays small. A chapter bundle retains original objects verbatim.
+  function isSplit(save){ return !!(save && save.storage && save.storage.format === 'chapter-files-v1'); }
+  function clone(value){ return JSON.parse(JSON.stringify(value)); }
+  function chapterNumber(entry, index){
+    const match = String(entry.scene || '').match(/Chapter\s*(\d+)/i);
+    return match ? Number(match[1]) : (Number(entry.turn) > 0 ? Number(entry.turn) : index + 1);
+  }
+  function splitSave(source){
+    const save = clone(source);
+    const session = save.state.session;
+    delete session.archive;
+    const bundles = [];
+    const characters = {};
+    const ids = new Set([...Object.keys(session.recordsByCharacter || {}), ...Object.keys(session.statesByCharacter || {})]);
+    ids.forEach(id => {
+      if(!/^char_\d{3}$/.test(id)) throw new Error('攻略対象IDが正しくありません。');
+      const groups = new Map();
+      const refs = characters[id] = { records: [], history: [] };
+      function add(kind, entry, index){
+        const chapter = chapterNumber(entry, index);
+        const path = CLOUD.savesDir + '/' + safeSaveId(save.saveId) + '/chapters/' + id + '_' + String(chapter).padStart(4, '0') + '.json';
+        if(!groups.has(path)) groups.set(path, { path, data: { version: 1, saveId: save.saveId, characterId: id, chapter, records: [], stateHistory: [] } });
+        const bundle = groups.get(path);
+        bundle.data[kind].push({ index, entry });
+        const ref = { path, index, chapter };
+        if(kind === 'records'){
+          ref.scene = entry.scene || ''; ref.date = entry.date || '';
+          refs.records.push(ref);
+        }else refs.history.push(ref);
+      }
+      (session.recordsByCharacter[id] || []).forEach((entry, index) => add('records', entry, index));
+      const state = session.statesByCharacter[id];
+      if(state && Array.isArray(state.stateHistory)){
+        state.stateHistory.forEach((entry, index) => add('stateHistory', entry, index));
+        state.stateHistory = [];
+      }
+      session.recordsByCharacter[id] = [];
+      refs.lastSavedChapter = Math.max(0, ...refs.records.map(ref => ref.chapter));
+      bundles.push(...groups.values());
+    });
+    save.storage = { format: 'chapter-files-v1', characters };
+    return { manifest: save, bundles };
+  }
+  function checkRef(save, id, ref){
+    const prefix = CLOUD.savesDir + '/' + safeSaveId(save.saveId) + '/chapters/' + id + '_';
+    if(typeof ref.path !== 'string' || !ref.path.startsWith(prefix) || !/^[A-Za-z0-9_/-]+\.json$/.test(ref.path) || ref.path.includes('..')) throw new Error('章の保存先が正しくありません。');
+  }
+  async function readBundle(token, save, id, ref, cache){
+    checkRef(save, id, ref);
+    if(!cache.has(ref.path)) cache.set(ref.path, fetchCloudFile(token, ref.path).then(file => parseCloudJson(file)));
+    const bundle = await cache.get(ref.path);
+    if(bundle.saveId !== save.saveId || bundle.characterId !== id || bundle.chapter !== ref.chapter) throw new Error('章の識別情報が一致しません。');
+    return bundle;
+  }
+  async function hydrateSave(token, source){
+    if(!isSplit(source)) return source;
+    const save = clone(source), cache = new Map();
+    for(const [id, refs] of Object.entries(save.storage.characters)){
+      const records = [];
+      for(const ref of refs.records){
+        const bundle = await readBundle(token, save, id, ref, cache);
+        const item = bundle.records.find(item => item.index === ref.index);
+        if(!item) throw new Error('章本文が不足しています。');
+        records[ref.index] = item.entry;
+      }
+      save.state.session.recordsByCharacter[id] = records;
+      if(refs.history.length){
+        const history = [];
+        for(const ref of refs.history){
+          const bundle = await readBundle(token, save, id, ref, cache);
+          const item = bundle.stateHistory.find(item => item.index === ref.index);
+          if(!item) throw new Error('心理履歴が不足しています。');
+          history[ref.index] = item.entry;
+        }
+        save.state.session.statesByCharacter[id].stateHistory = history;
+      }
+    }
+    delete save.storage;
+    return save;
+  }
+  function lazySave(source){
+    if(!isSplit(source)) return source;
+    const save = clone(source), session = save.state.session;
+    session.archive = { saveId: save.saveId, storage: save.storage };
+    for(const [id, refs] of Object.entries(save.storage.characters)){
+      session.recordsByCharacter[id] = refs.records.map(ref => ({ scene: ref.scene, date: ref.date, __chapterRef: ref }));
+    }
+    return save;
+  }
+  async function loadRecordPage(characterId, chapters){
+    const session = ensureLocalSession();
+    if(!session.archive) return session.recordsByCharacter[characterId] || [];
+    const source = { saveId: session.archive.saveId, storage: session.archive.storage };
+    const records = session.recordsByCharacter[characterId] || [];
+    const cache = new Map();
+    // Read only the selected page; commit the cache only after all reads succeed.
+    const updates = await Promise.all(records.map(async (entry, index) => {
+      if(!entry.__chapterRef || !chapters.includes(entry.__chapterRef.chapter)) return null;
+      const bundle = await readBundle(getToken(), source, characterId, entry.__chapterRef, cache);
+      const item = bundle.records.find(item => item.index === entry.__chapterRef.index);
+      if(!item) throw new Error('章本文が不足しています。');
+      return { index, entry: item.entry };
+    }));
+    // A load/navigation in another tab must not overwrite a different session.
+    const fresh = ensureLocalSession();
+    if(fresh.id !== session.id || fresh.archive?.saveId !== source.saveId) throw new Error('セーブが切り替わりました。記録を開き直してください。');
+    updates.filter(Boolean).forEach(item => { fresh.recordsByCharacter[characterId][item.index] = item.entry; });
+    localStorage.setItem(SESSION_KEY, JSON.stringify(fresh));
+    return fresh.recordsByCharacter[characterId];
+  }
+  async function githubJson(token, path, method = 'GET', body){
+    const response = await fetch(repoUrl() + '/' + path, {
+      method, headers: Object.assign({ 'Content-Type': 'application/json' }, headers(token)),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) })
+    });
+    if(!response.ok) throw githubError(response.status, method === 'GET' ? 'から読み込み' : 'へ保存');
+    return response.json();
+  }
+  async function commitFiles(token, files, expectedHead){
+    const branch = (await githubJson(token, '')).default_branch;
+    const refPath = 'git/ref/heads/' + encodeURIComponent(branch);
+    const head = (await githubJson(token, refPath)).object.sha;
+    if(expectedHead && head !== expectedHead) throw new Error('別の保存で更新されました。ロードしてから再度保存してください。');
+    const commit = await githubJson(token, 'git/commits/' + head);
+    const tree = await githubJson(token, 'git/trees', 'POST', { base_tree: commit.tree.sha, tree: files.map(file => ({ path: file.path, mode: '100644', type: 'blob', content: JSON.stringify(file.data, null, 2) })) });
+    const next = await githubJson(token, 'git/commits', 'POST', { message: 'Save simulation chapters and current state together', tree: tree.sha, parents: [head] });
+    // Non-forced update rejects a concurrent save instead of overwriting it.
+    await githubJson(token, 'git/refs/heads/' + encodeURIComponent(branch), 'PATCH', { sha: next.sha, force: false });
+    return next.sha;
+  }
   async function loadIndex(token){
     const result = await fetchJsonIfExists(token, CLOUD.indexPath);
     if(!result.exists) return { version: 1, saves: [] };
@@ -324,10 +457,12 @@
 
     const path = id === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(id);
     const file = await fetchCloudFile(token, path);
-    const save = parseCloudJson(file, '恋愛シュミレーションのセーブデータを読み込めません。');
+    let save = parseCloudJson(file, '恋愛シュミレーションのセーブデータを読み込めません。');
     if(!save || typeof save !== 'object' || Array.isArray(save)){
       throw new Error('恋愛シュミレーションのセーブデータを読み込めません。');
     }
+    if(isSplit(save) && save.saveId !== id) throw new Error('セーブIDが一致しません。');
+    save = lazySave(save);
     applyLocalSession(save);
     setCurrentSaveId(id);
     return save;
@@ -355,23 +490,25 @@
     let saveId = getCurrentSaveId();
     if(!saveId) saveId = localSession.id || makeSession().id;
 
+    const branch = (await githubJson(token, '')).default_branch;
+    const expectedHead = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
     const path = saveId === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(saveId);
     const existing = await fetchJsonIfExists(token, path);
+    const remoteSave = existing.exists ? await hydrateSave(token, existing.data) : null;
     const remoteSession = existing.exists && existing.data && existing.data.state
-      ? existing.data.state.session
+      ? remoteSave.state.session
       : null;
 
     const mergedSession = remoteSession
       ? mergeSessions(remoteSession, localSession)
       : normalizeSession(localSession);
 
-    state.session = mergedSession;
-    prepared.state = state;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(mergedSession));
-
+    const preservedState = Object.assign({}, remoteSave && remoteSave.state || {}, state);
+    preservedState.session = mergedSession;
+    prepared.state = preservedState;
     const updatedAt = new Date().toISOString();
     const meta = buildMeta(prepared, saveId, updatedAt);
-    const data = Object.assign({}, prepared, {
+    const data = Object.assign({}, remoteSave || {}, prepared, {
       version: Number(prepared && prepared.version) || 1,
       hasSave: true,
       saveId,
@@ -385,13 +522,19 @@
       return data;
     }
 
-    await putJson(token, savePath(saveId), data, 'Update romance simulation save');
-
     const index = await loadIndex(token);
     const next = index.saves.filter(item => item && item.id !== saveId);
     next.push(meta);
     next.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
-    await writeIndex(token, { version: 1, saves: next });
+    const split = splitSave(data);
+    const oldBundles = remoteSave ? splitSave(remoteSave).bundles : [];
+    const oldMap = new Map(oldBundles.map(file => [file.path, JSON.stringify(file.data)]));
+    const files = split.bundles.filter(file => oldMap.get(file.path) !== JSON.stringify(file.data) || !isSplit(existing.data));
+    files.push({ path: savePath(saveId), data: split.manifest }, { path: CLOUD.indexPath, data: { version: 1, saves: next } });
+    await commitFiles(token, files, expectedHead);
+    const confirmed = parseCloudJson(await fetchCloudFile(token, savePath(saveId)));
+    if(JSON.stringify(confirmed) !== JSON.stringify(split.manifest)) throw new Error('保存の確認ができませんでした。ロードして確認してください。');
+    applyLocalSession(lazySave(split.manifest));
     setCurrentSaveId(saveId);
     return data;
   }
@@ -421,6 +564,11 @@
     loadSaveById,
     loadFromGitHub,
     saveToGitHub,
-    isSafePage
+    isSafePage,
+    loadRecordPage,
+    splitSave,
+    hydrateSave,
+    isSplit
   };
 })();
+

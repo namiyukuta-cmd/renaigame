@@ -21,7 +21,8 @@
     return {
       id: typeof value.id === "string" && value.id ? value.id : makeSession().id,
       recordsByCharacter: normalizeObjectMap(value.recordsByCharacter),
-      statesByCharacter: normalizeObjectMap(value.statesByCharacter)
+      statesByCharacter: normalizeObjectMap(value.statesByCharacter),
+      ...(value.archive ? { archive: value.archive } : {})
     };
   }
 
@@ -196,7 +197,19 @@
     let currentStart = pages.some(page => page.start === remembered) ? remembered : pages[0].start;
     const protagonistName = readProtagonistName();
     const characterName = character.name || "恋愛相手";
-    function showPage(page) {
+    let requestId = 0;
+    async function showPage(page) {
+      const request = ++requestId;
+      list.textContent = "読み込んでいます…";
+      try {
+        const chapters = page.entries.map((entry, index) => entry.__chapterRef?.chapter || Number(String(entry.scene || "").match(/Chapter\s*(\d+)/i)?.[1]) || page.start + index);
+        const loaded = await RenaiGameSave.loadRecordPage(character.id, chapters);
+        if(request !== requestId || !list.isConnected) return;
+        page = buildRecordPages(loaded).find(item => item.start === page.start) || page;
+      } catch(error) {
+        if(request === requestId && list.isConnected) list.textContent = error.message || "記録を読み込めませんでした。目次から再度選んでください。";
+        return;
+      }
       currentStart = page.start;
       selectedPages.set(pageKey, page.start);
       list.replaceChildren();
@@ -245,7 +258,7 @@
       button.addEventListener("click", () => { showPage(page); setTocOpen(false, true); });
       toc.appendChild(button);
     });
-    showPage(pages.find(page => page.start === currentStart));
+    await showPage(pages.find(page => page.start === currentStart));
   }
 
   window.RenaiGameRecord = Object.freeze({
@@ -263,3 +276,4 @@
     render
   });
 })();
+

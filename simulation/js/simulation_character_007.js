@@ -120,7 +120,13 @@
   "chronologyConstraint": "現在の真実と初期値が衝突する場合は現在人物設定と初期心理テンプレートの整合性を明示的に修正する。Chapter中にAIが隠れた真相を後付けで差し替えない。",
   "revealPolicy": "このオブジェクトをゲーム本文や通常のプレイヤー向け人物紹介で直接説明しない。夫の独白・台詞・行動と積み重ねを通じて、主人公に実際に届きうる情報のみ物語へ出す。秘密を永久に隠す命令ではなく、現時点では未発見の事実として扱う。"
 };
-    window.SimulationCharacter007 = Object.freeze(character);
+    function deepFreeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.freeze(value);
+    for (const key of Object.keys(value)) deepFreeze(value[key]);
+    return value;
+  }
+  window.SimulationCharacter007 = deepFreeze(character);
   if (!window.SimulationCharacters) window.SimulationCharacters = {};
   window.SimulationCharacters[character.id] = window.SimulationCharacter007;
 })();

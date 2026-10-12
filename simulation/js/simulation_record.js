@@ -135,55 +135,94 @@
     parent.appendChild(block);
   }
 
+  const selectedPages = new Map();
+
+  function buildRecordPages(history) {
+    const groups = new Map();
+    history.forEach((entry, index) => {
+      const match = String(entry.scene || "").match(/Chapter\s*(\d+)/i);
+      const chapter = match ? Number(match[1]) : index + 1;
+      const start = Math.floor((Math.max(1, chapter) - 1) / 10) * 10 + 1;
+      if (!groups.has(start)) groups.set(start, []);
+      groups.get(start).push({ entry, chapter, index });
+    });
+    return [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([start, items]) => ({
+      start, end: start + 9,
+      entries: items.sort((a, b) => a.chapter - b.chapter || a.index - b.index).map(item => item.entry),
+      lastChapter: Math.max(...items.map(item => item.chapter))
+    }));
+  }
+
   async function render(app) {
-    app.innerHTML = `
-      <section class="content-panel" aria-labelledby="recordTitle">
-        <h2 id="recordTitle">記録</h2>
-        <div id="recordList" class="record-list"></div>
-      </section>
-    `;
-
+    app.innerHTML = '<section class="content-panel record-panel" aria-labelledby="recordTitle">' +
+      '<h2 id="recordTitle">記録</h2><div class="record-reader">' +
+      '<div class="record-scroll" id="recordScroll" tabindex="0" aria-label="Chapter本文"><div id="recordList" class="record-list"></div></div>' +
+      '<nav class="record-toc" aria-label="記録の目次"><h3>目次</h3><div id="recordPages" class="record-pages"></div></nav></div></section>';
     const list = document.getElementById("recordList");
+    const scroll = document.getElementById("recordScroll");
+    const toc = document.getElementById("recordPages");
     const character = window.RenaiGameCharacters && typeof RenaiGameCharacters.getSelected === "function"
-      ? RenaiGameCharacters.getSelected()
-      : null;
-
-    if (!character) {
-      list.textContent = "まだ記録はありません。";
-      return;
-    }
-
+      ? RenaiGameCharacters.getSelected() : null;
+    if (!character) { list.textContent = "まだ記録はありません。"; return; }
     const history = getRecords(character.id);
-    if (!history.length) {
-      list.textContent = "まだ記録はありません。";
-      return;
-    }
-
+    if (!history.length) { list.textContent = "まだ記録はありません。"; return; }
+    const pages = buildRecordPages(history);
+    const latest = pages[pages.length - 1];
+    const pageKey = ensureSession().id + ":" + character.id;
+    const remembered = selectedPages.get(pageKey);
+    let currentStart = pages.some(page => page.start === remembered) ? remembered : pages[0].start;
     const protagonistName = readProtagonistName();
     const characterName = character.name || "恋愛相手";
-
-    history.forEach((entry) => {
-      const article = document.createElement("article");
-      article.className = "record-entry";
-
-      const title = document.createElement("h3");
-      title.textContent = entry.scene || "記録";
-      article.appendChild(title);
-
-      if (entry.date) {
-        const date = document.createElement("div");
-        date.className = "record-date";
-        date.textContent = entry.date;
-        article.appendChild(date);
+    function showPage(page) {
+      currentStart = page.start;
+      selectedPages.set(pageKey, page.start);
+      list.replaceChildren();
+      page.entries.forEach((entry) => {
+        const article = document.createElement("article");
+        article.className = "record-entry";
+        const title = document.createElement("h3");
+        title.textContent = entry.scene || "記録";
+        article.appendChild(title);
+        if (entry.date) {
+          const date = document.createElement("div");
+          date.className = "record-date";
+          date.textContent = entry.date;
+          article.appendChild(date);
+        }
+        appendTextBlock(article, "record-block", protagonistName, entry.protagonist);
+        appendTextBlock(article, "record-block", characterName, entry.partner || entry.alexander);
+        appendTextBlock(article, "record-block", "ログ", entry.transcript);
+        appendTextBlock(article, "record-block record-summary", "要約", entry.summary);
+        list.appendChild(article);
+      });
+      scroll.scrollTop = 0;
+      toc.querySelectorAll("button").forEach(button => {
+        const active = Number(button.dataset.start) === currentStart;
+        button.classList.toggle("selected", active);
+        if (active) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+    }
+    pages.forEach((page) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "record-page-button";
+      button.dataset.start = String(page.start);
+      const range = document.createElement("span");
+      range.className = "record-page-range";
+      range.textContent = page === latest && page.lastChapter < page.end ? page.start + "〜" : page.start + "〜" + page.end;
+      button.appendChild(range);
+      button.setAttribute("aria-label", "Chapter " + page.start + "〜" + Math.min(page.end, page.lastChapter) + (page === latest ? "、最新ページ" : ""));
+      if (page === latest) {
+        const badge = document.createElement("span");
+        badge.className = "record-new";
+        badge.textContent = "new";
+        button.appendChild(badge);
       }
-
-      appendTextBlock(article, "record-block", protagonistName, entry.protagonist);
-      appendTextBlock(article, "record-block", characterName, entry.partner || entry.alexander);
-      appendTextBlock(article, "record-block", "ログ", entry.transcript);
-      appendTextBlock(article, "record-block record-summary", "要約", entry.summary);
-
-      list.appendChild(article);
+      button.addEventListener("click", () => showPage(page));
+      toc.appendChild(button);
     });
+    showPage(pages.find(page => page.start === currentStart));
   }
 
   window.RenaiGameRecord = Object.freeze({

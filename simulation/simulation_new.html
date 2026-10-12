@@ -569,6 +569,30 @@
       line-height: 1.6;
       color: #65585e;
     }
+
+    .record-panel {
+      position: fixed; z-index: 10;
+      top: max(10px, env(safe-area-inset-top));
+      bottom: calc(70px + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%);
+      width: min(calc(100% - 16px), 504px); height: auto;
+      padding: 16px 10px 10px; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .record-panel h2 { margin: 0 0 12px; font-size: 24px; }
+    .record-reader { display: grid; grid-template-columns: minmax(0, 1fr) 68px; gap: 8px; flex: 1; min-height: 0; }
+    .record-scroll { min-width: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .record-panel .record-entry { padding: 12px 10px; }
+    .record-panel .record-entry h3 { font-size: 21px; }
+    .record-panel .record-text { overflow-wrap: anywhere; }
+    .record-toc { min-height: 0; overflow-y: auto; border-left: 1px solid #ded3d8; padding-left: 6px; overscroll-behavior: contain; }
+    .record-toc h3 { margin: 0 0 8px; font-size: 13px; text-align: center; }
+    .record-pages { display: grid; gap: 8px; }
+    .record-page-button { min-height: 48px; width: 100%; padding: 8px 2px; border: 1px solid #d8cdd1; border-radius: 8px; background: #fff; color: #65585e; cursor: pointer; }
+    .record-page-range { display: block; font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .record-page-button.selected { border-color: #8b777f; background: #eee5e8; color: #2c2528; font-weight: 700; }
+    .record-page-button:focus-visible { outline: 2px solid #75666c; outline-offset: -2px; }
+    .record-new { display: block; margin-top: 4px; color: #8b4966; font-size: 10px; font-weight: 700; }
+
   </style>
 </head>
 <body>
@@ -594,7 +618,7 @@
 
   <script src="js/simulation_characters.js"></script>
   <script src="js/simulation_save.js"></script>
-  <script src="js/simulation_record.js?v=20261012-chronological"></script>
+  <script src="js/simulation_record.js?v=20261012-pages-10"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
 

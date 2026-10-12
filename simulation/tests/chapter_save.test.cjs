@@ -52,6 +52,7 @@ const json = value => JSON.stringify(value);
 async function main(){
   api.setToken('test');
   const split = api.splitSave(original);
+  split.manifest.storage.legacyBackup = prefix + 'run_test/legacy-backup.json';
   assert.equal(split.bundles.length, 22);
   split.bundles.forEach(file => files.set(file.path, file.data));
   files.set(prefix + 'run_test.json', split.manifest);
@@ -76,6 +77,7 @@ async function main(){
   await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: { profile: original.state.profile, selectedCharacterId: 'char_006' } });
   let tree = mutations.find(item => item.route === 'git/trees').body.tree;
   assert.equal(tree.filter(file => file.path.includes('/chapters/')).length, 0, 'unchanged chapters are not sent');
+  assert.equal(files.get(prefix + 'run_test.json').storage.legacyBackup, prefix + 'run_test/legacy-backup.json', 'backup reference is retained');
   assert.equal(json((await api.hydrateSave('test', files.get(prefix + 'run_test.json'))).state.session), json(original.state.session));
   let session = JSON.parse(local.get(api.SESSION_KEY));
   session.recordsByCharacter.char_006.push({ scene: 'Chapter 22', protagonist: '新しい原文', partner: '新しい本文' });

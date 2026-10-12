@@ -527,6 +527,7 @@
     next.push(meta);
     next.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
     const split = splitSave(data);
+    split.manifest.storage = Object.assign({}, existing.data && existing.data.storage || {}, split.manifest.storage);
     const oldBundles = remoteSave ? splitSave(remoteSave).bundles : [];
     const oldMap = new Map(oldBundles.map(file => [file.path, JSON.stringify(file.data)]));
     const files = split.bundles.filter(file => oldMap.get(file.path) !== JSON.stringify(file.data) || !isSplit(existing.data));

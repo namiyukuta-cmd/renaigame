@@ -579,12 +579,30 @@
       padding: 16px 10px 10px; display: flex; flex-direction: column; overflow: hidden;
     }
     .record-panel h2 { margin: 0 0 12px; font-size: 24px; }
-    .record-reader { display: grid; grid-template-columns: minmax(0, 1fr) 68px; gap: 8px; flex: 1; min-height: 0; }
-    .record-scroll { min-width: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .record-reader { position: relative; display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    .record-scroll { width: 100%; min-width: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     .record-panel .record-entry { padding: 12px 10px; }
     .record-panel .record-entry h3 { font-size: 21px; }
     .record-panel .record-text { overflow-wrap: anywhere; }
-    .record-toc { min-height: 0; overflow-y: auto; border-left: 1px solid #ded3d8; padding-left: 6px; overscroll-behavior: contain; }
+    .record-toc {
+      position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; width: 116px;
+      min-height: 0; overflow-y: auto; border-left: 1px solid #ded3d8; padding: 12px 8px;
+      background: #faf7f8; box-shadow: -4px 0 12px #2c25281f; overscroll-behavior: contain;
+      transform: translateX(100%); visibility: hidden; pointer-events: none;
+      transition: transform 180ms ease, visibility 180ms;
+    }
+    .record-toc-toggle {
+      position: absolute; z-index: 3; top: 12px; right: 0; width: 28px; min-height: 48px;
+      padding: 0; border: 1px solid #bdaeb4; border-right: 0; border-radius: 9px 0 0 9px;
+      background: #faf7f8; color: #65585e; font-size: 14px; cursor: pointer;
+      transition: right 180ms ease;
+    }
+    .record-toc-toggle:focus-visible { outline: 2px solid #75666c; outline-offset: -3px; }
+    .record-reader.toc-open .record-toc { transform: translateX(0); visibility: visible; pointer-events: auto; }
+    .record-reader.toc-open .record-toc-toggle { right: 116px; }
+    @media (prefers-reduced-motion: reduce) {
+      .record-toc, .record-toc-toggle { transition: none; }
+    }
     .record-toc h3 { margin: 0 0 8px; font-size: 13px; text-align: center; }
     .record-pages { display: grid; gap: 8px; }
     .record-page-button { min-height: 48px; width: 100%; padding: 8px 2px; border: 1px solid #d8cdd1; border-radius: 8px; background: #fff; color: #65585e; cursor: pointer; }
@@ -618,7 +636,7 @@
 
   <script src="js/simulation_characters.js"></script>
   <script src="js/simulation_save.js"></script>
-  <script src="js/simulation_record.js?v=20261012-pages-10"></script>
+  <script src="js/simulation_record.js?v=20261012-toc-drawer"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
 

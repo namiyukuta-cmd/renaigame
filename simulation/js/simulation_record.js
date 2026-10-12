@@ -155,12 +155,35 @@
 
   async function render(app) {
     app.innerHTML = '<section class="content-panel record-panel" aria-labelledby="recordTitle">' +
-      '<h2 id="recordTitle">記録</h2><div class="record-reader">' +
+      '<h2 id="recordTitle">記録</h2><div class="record-reader" id="recordReader">' +
       '<div class="record-scroll" id="recordScroll" tabindex="0" aria-label="Chapter本文"><div id="recordList" class="record-list"></div></div>' +
-      '<nav class="record-toc" aria-label="記録の目次"><h3>目次</h3><div id="recordPages" class="record-pages"></div></nav></div></section>';
+      '<button type="button" id="recordTocToggle" class="record-toc-toggle" aria-controls="recordToc" aria-expanded="false" aria-label="目次を開く">◀</button><nav id="recordToc" class="record-toc" aria-label="記録の目次" aria-hidden="true" inert><h3>目次</h3><div id="recordPages" class="record-pages"></div></nav></div></section>';
     const list = document.getElementById("recordList");
     const scroll = document.getElementById("recordScroll");
     const toc = document.getElementById("recordPages");
+    const reader = document.getElementById("recordReader");
+    const drawer = document.getElementById("recordToc");
+    const toggle = document.getElementById("recordTocToggle");
+    let tocOpen = false;
+    function setTocOpen(open, returnFocus = false) {
+      tocOpen = open;
+      reader.classList.toggle("toc-open", open);
+      drawer.inert = !open;
+      drawer.setAttribute("aria-hidden", String(!open));
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "目次を閉じる" : "目次を開く");
+      toggle.textContent = open ? "▶" : "◀";
+      if (returnFocus) toggle.focus({ preventScroll: true });
+    }
+    toggle.addEventListener("click", () => setTocOpen(!tocOpen));
+    reader.addEventListener("keydown", event => {
+      if (event.key === "Escape" && tocOpen) {
+        setTocOpen(false, true);
+        event.stopPropagation();
+      }
+    });
+    scroll.addEventListener("click", () => { if (tocOpen) setTocOpen(false); });
+
     const character = window.RenaiGameCharacters && typeof RenaiGameCharacters.getSelected === "function"
       ? RenaiGameCharacters.getSelected() : null;
     if (!character) { list.textContent = "まだ記録はありません。"; return; }
@@ -219,7 +242,7 @@
         badge.textContent = "new";
         button.appendChild(badge);
       }
-      button.addEventListener("click", () => showPage(page));
+      button.addEventListener("click", () => { showPage(page); setTocOpen(false, true); });
       toc.appendChild(button);
     });
     showPage(pages.find(page => page.start === currentStart));

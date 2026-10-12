@@ -17,7 +17,7 @@
   "desireForContact": 25,
   "vulnerability": 33,
   "futureThinking": 34,
-  "unresolvedEmotion": "同じ職場で出会い恋愛結婚したが、帰国と異国暮らしの十年、子どもを望み報われなかった不妊治療、長く続く沈黙、仕事を口実にした不在が夫婦を遠ざけた。妻への親しみ・責任と疎遠・罪悪感が併存する。妻の知覚の異変は知らない。",
+  "unresolvedEmotion": "同じ職場で恋愛結婚した妻とは、異国への移住と十年の生活、不妊治療の断念、減っていった会話や帰宅によって隔たりがある。妻への弱い恋愛的愛情・愛着と罪悪感は残る。一方、不妊治療を諦めた頃からクララ・ヴィーク（パートナーのいる自立した女性弁護士）との不倫が今も続いている。互いに恋愛や離別を求めず身体の関係に限る約束で、エミールは自ら継続を選んでいる。妻は不倫を知らず、夫は妻の知覚の異変を知らない。この非対称の秘密を解消済みにしない。",
   "lastChangeReason": "",
   "lastProgress": "",
   "lastSceneSummary": "",
@@ -38,7 +38,16 @@
     "heroine_may_miss_spoken_words_as_background_sound",
     "heroine_undiagnosed_and_has_told_no_one",
     "husband_does_not_know_about_perception_change",
-    "protagonist_agency_user_only"
+    "protagonist_agency_user_only",
+    "emil_ongoing_extramarital_sexual_relationship",
+    "affair_began_around_end_of_infertility_treatment",
+    "affair_partner_klara_vik_lawyer",
+    "affair_partner_has_own_partner",
+    "affair_mutually_physical_businesslike_not_romantic",
+    "affair_partner_will_not_break_her_partnership",
+    "emil_and_lawyer_not_planning_to_leave_primary_partners",
+    "heroine_knows_nothing_about_affair",
+    "emil_is_personally_responsible_for_infidelity"
   ],
   "history": [],
   "updatePolicy": {

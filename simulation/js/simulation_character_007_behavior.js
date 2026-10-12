@@ -43,6 +43,15 @@
     "心理判定を無視して夫を絶対に動かさない"
   ]
 };
-  Object.freeze(behavior);
+  behavior.fixedTruthExecutionPolicy = {
+  "canonicalTruthSource": "simulation/js/simulation_character_007.js -> character.common.fixedPrivateTruth",
+  "initialization": "物語開始時点の夫の愛情・動機・意識・秘密の有無を、固定されたfixedPrivateTruthと心理初期値から読んで確定する。初期設定を読まずに『恋愛感情があるともないとも』と曖昧化しない。",
+  "noSpoiler": "固定された内心・秘密は本人が行動・台詞・独白などで示したときに限り作中へ表現する。人物紹介・開始案内・数値説明では秘密を直接ばらさない。",
+  "futureDynamics": "事後の愛情・行動は現在state/そのターンの心理変化/過去実ログに沿って変わる。開始時点の事実を遡って変更してはいけない。",
+  "knowledgeBarrier": "本人に未知の妻の知覚変化は、キャラクターの内心・認識・行動の根拠に使わない。本文中の夫の解釈は誤解も含む人物自身のものとして描く。",
+  "consistencyCheck": "人物JSのfixedPrivateTruth、state初期値、当前saveIdの現在state、重要実ログを分けて照合し、本人の真実と主人公の推測の差を維持する。",
+  "mandatoryAction": "本人の感情が存在するからと言って毎回愛の告白にするのでも、妻の反応待ちで永久に黙らせるのでもない。性格とJS判定に従って夫自身の行動を生じさせる。"
+};
+    Object.freeze(behavior);
   window.SimulationCharacter007Behavior = behavior;
 })();

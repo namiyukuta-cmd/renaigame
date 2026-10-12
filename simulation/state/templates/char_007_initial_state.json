@@ -17,7 +17,7 @@
   "desireForContact": 25,
   "vulnerability": 33,
   "futureThinking": 34,
-  "unresolvedEmotion": "同じ職場で恋愛結婚した妻とは、異国への移住と十年の生活、不妊治療の断念、減っていった会話や帰宅によって隔たりがある。妻への弱い恋愛的愛情・愛着と罪悪感は残るが、日常は意識的に分けて生活している。妻との性的な関係は戻らないものとほぼ諦めているが、二度と望まないと決めたわけではない。夫婦の性的な関係は心理的な事情により途絶えているが、長期のセックスレスは不倫に至る重要な遠因だが、エミールは妻を責めたり強要したりしない。不倫を選んで継続している責任は自分にあると認識する。一方、不妊治療を諦めた頃からクララ・ヴィーク（パートナーのいる自立した女性弁護士）との不倫が今も続いている。互いに恋愛や離別を求めず身体の関係に限り、どちらからでも清算できる。エミールは妻を蔑ろにしたいわけではないが、秘密の不倫は自ら継続を選んでいる。妻は不倫を知らず、夫は妻の顔や声の知覚の異変を知らない。非対称の秘密を解消済みにしない。",
+  "unresolvedEmotion": "同じ職場で出会い恋愛結婚し、妻はエミールの転職・帰国に伴いスウェーデンへ移り十年。結婚当初は同じ寝室・寝台で眠り性生活もあった。不妊治療中も寝台を共にしていたが親密な時間が徐々に減り、治療を諦めた頃からは妻の実際の頭痛・疲労・眠れなさ・身体の不調によって、親密な雰囲気になる前に夜を切り上げることが増えた。これは仮病や性的誘いを断るための嘘ではない。エミールは妻を休ませたい・守りたいと思い無理強いせず、同時に自覚しきれない寂しさと性的な満たされなさが積もった。遅い帰宅で妻を起こさない配慮と自分の回避から別の場所で眠る夜が増えたが、寝室を正式に分けた合意や決別はなく、共通の寝室・寝台という意味は残っている。実際には一緒に眠る夜が少ない。エミールは夫婦の性生活再開をほぼ諦めたが、妻への弱い恋愛感情・愛着と保護欲は残る。長年のセックスレスは婚外の関係へ至る重要な遠因だが、妻を責めず、不倫という選択の責任は自分にあると認識している。不妊治療を諦めた頃から、恋愛・離別を求めない女性弁護士クララ・ヴィークとの身体の関係を今も続けており、双方いつでも条件なく終えられる。エミールは罪悪感を持ちつつ日常では結婚と不倫を頭の中で切り分ける。妻は不倫を知らず、夫も妻が人の顔や言葉を認識しづらく食事中の口の形だけ見えるという知覚の異変を知らない。主人公の現在の症状・言動・就寝場所と家の具体的な間取りは勝手に補完しない。",
   "lastChangeReason": "",
   "lastProgress": "",
   "lastSceneSummary": "",
@@ -61,7 +61,17 @@
     "emil_has_largely_given_up_on_resuming_marital_sexual_intimacy_but_not_refused",
     "emil_compartmentalizes_marriage_and_extramarital_intimacy",
     "emil_understands_affair_is_his_continuing_choice",
-    "emil_guilt_latent_and_scene_triggered_not_constant_self_punishment"
+    "emil_guilt_latent_and_scene_triggered_not_constant_self_punishment",
+    "marriage_shared_bed_and_sexual_intimacy_at_first",
+    "infertility_treatment_period_still_shared_bed_gradual_intimacy_decline",
+    "wife_genuine_chronic_headache_fatigue_sleep_difficulty_not_excuses",
+    "wife_often_resting_before_intimate_moment_emerged",
+    "emil_respected_rest_and_never_pressured_for_sex",
+    "emil_protective_care_and_unmet_closeness_both_exist",
+    "husband_late_return_and_avoidance_led_to_informal_separate_sleeps",
+    "bedroom_not_formally_separated_or_exclusively_assigned",
+    "shared_marital_bed_still_symbolically_retained",
+    "today_sleep_and_illness_must_not_be_generated_for_heroine"
   ],
   "history": [],
   "updatePolicy": {

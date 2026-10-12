@@ -85,7 +85,10 @@
       '<textarea class="handoff-text" hidden readonly aria-label="AIに渡す文章"></textarea>' +
       '<p class="handoff-status" role="status" aria-live="polite"></p>' +
       '<div class="handoff-actions"><button type="button" class="handoff-copy" hidden disabled>コピー</button><button type="button" class="handoff-close">閉じる</button></div>';
-    document.body.append(openButton, dialog);
+    const bottomNav = document.querySelector(".bottom-nav");
+    if (bottomNav) bottomNav.appendChild(openButton);
+    else document.body.appendChild(openButton);
+    document.body.appendChild(dialog);
     const characterSelect = dialog.querySelector('.handoff-character');
     const context = dialog.querySelector('.handoff-context');
     const instructions = dialog.querySelector('.handoff-instructions');

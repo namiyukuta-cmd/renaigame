@@ -14,3 +14,5 @@
 .handoff-actions button:disabled{opacity:.5}
 .handoff-open:focus-visible,.handoff-character:focus-visible,.handoff-actions button:focus-visible{outline:2px solid #75666c;outline-offset:3px}
 
+
+.bottom-nav .handoff-open{position:static;right:auto;bottom:auto;z-index:auto;border:0;border-radius:0;box-shadow:none;background:transparent;font-weight:400}

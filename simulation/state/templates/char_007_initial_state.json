@@ -17,7 +17,7 @@
   "desireForContact": 25,
   "vulnerability": 33,
   "futureThinking": 34,
-  "unresolvedEmotion": "同じ職場で恋愛結婚した妻とは、異国への移住と十年の生活、不妊治療の断念、減っていった会話や帰宅によって隔たりがある。妻への弱い恋愛的愛情・愛着と罪悪感は残る。夫婦の性的な関係は心理的な事情により途絶えているが、エミールは妻を責めたり強要したりしない。一方、不妊治療を諦めた頃からクララ・ヴィーク（パートナーのいる自立した女性弁護士）との不倫が今も続いている。互いに恋愛や離別を求めず身体の関係に限り、どちらからでも清算できる。エミールは妻を蔑ろにしたいわけではないが、秘密の不倫は自ら継続を選んでいる。妻は不倫を知らず、夫は妻の顔や声の知覚の異変を知らない。非対称の秘密を解消済みにしない。",
+  "unresolvedEmotion": "同じ職場で恋愛結婚した妻とは、異国への移住と十年の生活、不妊治療の断念、減っていった会話や帰宅によって隔たりがある。妻への弱い恋愛的愛情・愛着と罪悪感は残るが、日常は意識的に分けて生活している。妻との性的な関係は戻らないものとほぼ諦めているが、二度と望まないと決めたわけではない。夫婦の性的な関係は心理的な事情により途絶えているが、長期のセックスレスは不倫に至る重要な遠因だが、エミールは妻を責めたり強要したりしない。不倫を選んで継続している責任は自分にあると認識する。一方、不妊治療を諦めた頃からクララ・ヴィーク（パートナーのいる自立した女性弁護士）との不倫が今も続いている。互いに恋愛や離別を求めず身体の関係に限り、どちらからでも清算できる。エミールは妻を蔑ろにしたいわけではないが、秘密の不倫は自ら継続を選んでいる。妻は不倫を知らず、夫は妻の顔や声の知覚の異変を知らない。非対称の秘密を解消済みにしない。",
   "lastChangeReason": "",
   "lastProgress": "",
   "lastSceneSummary": "",
@@ -56,7 +56,12 @@
     "affair_can_be_ended_unilaterally_without_conditions",
     "lover_no_interest_in_disrupting_primary_partner",
     "protagonist_unaware_of_affair",
-    "husband_may_firmly_correct_real_danger_or_irresponsibility_distinct_from_sexless_marriage"
+    "husband_may_firmly_correct_real_danger_or_irresponsibility_distinct_from_sexless_marriage",
+    "marital_sexlessness_is_significant_contributing_cause_not_wife_blame",
+    "emil_has_largely_given_up_on_resuming_marital_sexual_intimacy_but_not_refused",
+    "emil_compartmentalizes_marriage_and_extramarital_intimacy",
+    "emil_understands_affair_is_his_continuing_choice",
+    "emil_guilt_latent_and_scene_triggered_not_constant_self_punishment"
   ],
   "history": [],
   "updatePolicy": {

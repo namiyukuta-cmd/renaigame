@@ -11,7 +11,8 @@
     "simulation_character_003.js",
     "simulation_character_004.js",
     "simulation_character_005.js",
-    "simulation_character_006.js"
+    "simulation_character_006.js",
+    "simulation_character_007.js"
   ];
 
   let loadPromise = null;

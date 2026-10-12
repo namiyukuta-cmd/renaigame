@@ -1556,8 +1556,10 @@
     const state = psychology.normalizeState(rawState, characterId);
     const t = state.psychologyTraits;
     const configured = character.common && character.common.baseRomanticInitiative;
-    const base = Number.isFinite(configured) ? clamp(configured, 1, 10)
-      : Math.round(1 + t.romanticBoldness * 9 / 100);
+    if (!Number.isInteger(configured) || configured < 1 || configured > 10) {
+      throw new Error("人物設定のbaseRomanticInitiativeは1〜10の整数で必須です。推測・換算で代用しません。");
+    }
+    const base = configured;
     const memory = rawState.yoinomaInvitation || { status: "idle" };
     const result = (mode, reason, extra = {}) => ({
       mode, reason, mustInvite: mode === "indirect" || mode === "direct",

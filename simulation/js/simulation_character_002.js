@@ -18,6 +18,8 @@
     },
 
     common: {
+      baseRomanticInitiative: 3,
+      baseRomanticInitiativeReason: "恋愛には不器用で羞恥が強い。欲求が強くても恋愛経験の多さや大胆さとは一致しない。",
       age: 35,
       heightCm: 178,
       weightKg: 74,

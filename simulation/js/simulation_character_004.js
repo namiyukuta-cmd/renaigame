@@ -16,6 +16,8 @@
     assets: { default: null },
 
     common: {
+      baseRomanticInitiative: 7,
+      baseRomanticInitiativeReason: "元来は明るく情熱的。現在のミリアへの好意の低さ・疲弊とは別の固定性格値であり、愛情を復活させる値ではない。",
       age: 33,
       nationality: "イタリア",
       setting: "南イタリアの港町。都市名は未設定。",

@@ -16,6 +16,8 @@
     assets: { default: null },
 
     common: {
+      baseRomanticInitiative: 4,
+      baseRomanticInitiativeReason: "疑い深く慎重で感情を表に出しにくいが、勤務外の私人として短く具体的に誘える。",
       age: 35,
       nationality: "ドイツ",
       birthplace: "バンベルク近郊。オーバーフランケン育ち。",

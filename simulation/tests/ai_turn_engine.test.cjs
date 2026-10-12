@@ -125,6 +125,29 @@ function test() {
     evidence: {...scene.evidence, onDuty: {source: "input", quote: "根拠のない文章"}}}}), /根拠/);
   assert.equal(engine.verifyTurn({...invitationArgs, yoinomaContext: {...scene, atmosphere: 0}}, shy).ok, false);
 
+
+  // 全登録キャラが固定積極度を持ち、算出値ではなく人物JSの値を使用する。
+  const registrySource = fs.readFileSync(path.join(rootDir, "simulation/js/simulation_characters.js"), "utf8");
+  const characterFiles = Array.from(registrySource.matchAll(/"(simulation_character_\d{3}\.js)"/g), match => match[1]);
+  assert.ok(characterFiles.length >= 6);
+  const allCharacters = {};
+  for (const file of characterFiles) {
+    loadBrowserScript("simulation/js/" + file, allCharacters);
+  }
+  for (const c of Object.values(allCharacters.SimulationCharacters)) {
+    const value = c.common.baseRomanticInitiative;
+    assert.ok(Number.isInteger(value) && value >= 1 && value <= 10, c.id);
+    assert.ok(typeof c.common.baseRomanticInitiativeReason === "string" && c.common.baseRomanticInitiativeReason.trim(), c.id);
+    const decision = window.RenaiGamePsychologyParameters.evaluateYoinomaInvitation(strong, c.id, scene, c);
+    assert.equal(decision.baseRomanticInitiative, value, c.id);
+  }
+  for (const invalid of [undefined, null, "3", 0, 11, 2.5, NaN]) {
+    const character = {...window.SimulationCharacter003,
+      common: {...window.SimulationCharacter003.common, baseRomanticInitiative: invalid}};
+    assert.throws(() => engine.runTurn(options({character})), /baseRomanticInitiative/);
+    assert.throws(() => window.RenaiGamePsychologyParameters.evaluateYoinomaInvitation(initial, character.id, {}, character), /baseRomanticInitiative/);
+  }
+
   console.log("PASS: actual psychology JS evaluation, replay integrity, save isolation, legacy guard, story validation");
 }
 test();

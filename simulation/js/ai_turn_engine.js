@@ -76,6 +76,10 @@
     if (!record(args.character) || args.character.id !== args.characterId) {
       fail("人物JSとcharacterIdが一致しません");
     }
+    const initiative = args.character.common && args.character.common.baseRomanticInitiative;
+    if (!Number.isInteger(initiative) || initiative < 1 || initiative > 10) {
+      fail("人物設定のbaseRomanticInitiativeは1〜10の整数で必須です");
+    }
     if (!record(args.behavior) || args.behavior.characterId !== args.characterId) {
       fail("行動JSとcharacterIdが一致しません");
     }

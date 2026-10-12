@@ -16,6 +16,8 @@
     assets: { default: null },
 
     common: {
+      baseRomanticInitiative: 8,
+      baseRomanticInitiativeReason: "人懐こく自分から話しかけ、再会・私的な約束・誘いを取りに行く。真剣な感情を冗談で隠す弱さもある。",
       age: 40,
       nationality: "イギリス",
       birthplace: "イングランド南西部、ブリストル。",

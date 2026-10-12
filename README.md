@@ -28,6 +28,10 @@
 | 現在のセーブ | `namiyukuta-cmd/private-game-data` の `renaigame/simulation/saves/<saveId>.json` |
 | 旧形式のセーブ | 同リポジトリの `renaigame/simulation/save.json` |
 
+## キャラクターを作成・追加する
+
+[キャラクター作成ルール](simulation/CHARACTER_CREATION_RULES.md)に従い、固定恋愛積極度1〜10と設定理由を必ず人物JSへ設定します。
+
 ## 相手ごとの設定
 
 | 相手 | 人物設定 | 行動設定 | 新規周回の初期値 |
@@ -36,6 +40,7 @@
 | エリオット・グレイ | [人物](simulation/js/simulation_character_002.js) | [行動](simulation/js/simulation_character_002_behavior.js) | [初期値](simulation/state/templates/char_002_initial_state.json) |
 | フローリアン・ブレンナー | [人物](simulation/js/simulation_character_003.js) | [行動](simulation/js/simulation_character_003_behavior.js) | [初期値](simulation/state/templates/char_003_initial_state.json) |
 | マテオ・ルッソ | [人物](simulation/js/simulation_character_004.js) | [行動](simulation/js/simulation_character_004_behavior.js) | [初期値](simulation/state/templates/char_004_initial_state.json) |
+| ニコラス・フェルプス | [人物](simulation/js/simulation_character_006.js) | [行動](simulation/js/simulation_character_006_behavior.js) | [初期値](simulation/state/templates/char_006_initial_state.json) |
 | ハーヴェイ・コール | [人物](simulation/js/simulation_character_005.js) | [行動](simulation/js/simulation_character_005_behavior.js) | [初期値](simulation/state/templates/char_005_initial_state.json) |
 
 初期値は新規周回で状態がないときだけ使います。現在の心理・実ログはセーブごとに保持します。`simulation/state/simulation_character_XXX_state.json` と `simulation/record/` は移行前の資料です。

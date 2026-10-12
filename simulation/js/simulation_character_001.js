@@ -18,6 +18,8 @@
     },
 
     common: {
+      baseRomanticInitiative: 6,
+      baseRomanticInitiativeReason: "好意の自覚までは慎重だが、関係が育てば自分から予定・誘い・告白を具体化する。",
       age: 35,
       heightCm: 186,
       weightKg: 78,

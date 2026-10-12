@@ -17,6 +17,7 @@
 
     common: {
       baseRomanticInitiative: 1,
+      baseRomanticInitiativeReason: "気弱で口下手、拒絶への不安が強く自分から誘うことが苦手。欲求が十分なら不器用な誘いは成立しうる。",
       age: 31,
       nationality: "カナダ",
       heightCm: 176,

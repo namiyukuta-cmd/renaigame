@@ -17,6 +17,7 @@ const original = {
 };
 const files = new Map(), local = new Map();
 let head = 'h0', counter = 0, failRef = false, reads = [], mutations = [];
+let largeFile = '';
 const pendingTrees = new Map(), commits = new Map();
 const response = (data, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => data });
 const sandbox = {
@@ -35,8 +36,10 @@ const sandbox = {
     if(route.startsWith('contents/')){
       const path = decodeURIComponent(route.slice(9)); reads.push(path);
       if(!files.has(path)) return response({}, 404);
+      if(path === largeFile) return response({ sha: 'large-blob', type: 'file', encoding: 'none', content: '' });
       return response({ sha: 'sha', content: Buffer.from(JSON.stringify(files.get(path))).toString('base64') });
     }
+    if(route === 'git/blobs/large-blob') return response({ encoding: 'base64', content: Buffer.from(JSON.stringify(files.get(largeFile))).toString('base64') });
     if(route === 'git/ref/heads/main') return response({ object: { sha: head } });
     if(route.startsWith('git/commits/') && method === 'GET') return response({ tree: { sha: 'base' } });
     if(route === 'git/trees') { const sha = 'tree' + ++counter; pendingTrees.set(sha, body.tree); return response({ sha }); }
@@ -64,23 +67,24 @@ async function main(){
   assert.equal(json(restored), json(original), 'all original fields and history survive');
   reads = [];
   const loaded = await api.loadSaveById('run_test');
-  assert.equal(reads.filter(path => path.includes('/chapters/')).length, 0, 'load reads manifest only');
+  assert.equal(reads.filter(path => path.includes('/chapters/')).length, 22, 'old split saves are fully hydrated on load');
   assert.equal(loaded.state.session.statesByCharacter.char_006.currentState.romanceScore, 13);
+  reads = [];
   const records = await api.loadRecordPage('char_006', [11,12,13,14,15,16,17,18,19,20]);
-  assert.equal(reads.filter(path => path.includes('/chapters/')).length, 10, 'page reads just ten chapter files');
+  assert.equal(reads.filter(path => path.includes('/chapters/')).length, 0, 'record pages use the complete loaded slot');
   assert.equal(records[10].partner, '本文10');
-  assert.ok(records[0].__chapterRef);
+  assert.equal(records[0].partner, '本文0');
   const beforeCache = local.get(api.SESSION_KEY);
   const missing = prefix + 'run_test/chapters/char_006_0021.json';
   const chapter21 = files.get(missing); files.delete(missing);
-  await assert.rejects(api.loadRecordPage('char_006', [21]));
+  assert.equal((await api.loadRecordPage('char_006', [21]))[20].partner, '本文20', 'full local log does not depend on old chapter files');
   assert.equal(local.get(api.SESSION_KEY), beforeCache, 'failed read does not alter local data');
   files.set(missing, chapter21);
   mutations = [];
   await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: { profile: original.state.profile, selectedCharacterId: 'char_006' } });
   let tree = mutations.find(item => item.route === 'git/trees').body.tree;
   assert.equal(tree.filter(file => file.path.includes('/chapters/')).length, 0, 'unchanged chapters are not sent');
-  assert.equal(files.get(prefix + 'run_test.json').storage.legacyBackup, prefix + 'run_test/legacy-backup.json', 'backup reference is retained');
+  assert.ok(!files.get(prefix + 'run_test.json').storage, 'normal saving writes one complete JSON');
   assert.equal(json((await api.hydrateSave('test', files.get(prefix + 'run_test.json'))).state.session), json(original.state.session));
   let session = JSON.parse(local.get(api.SESSION_KEY));
   session.recordsByCharacter.char_006.push({ scene: 'Chapter 22', protagonist: '新しい原文', partner: '新しい本文' });
@@ -88,7 +92,7 @@ async function main(){
   mutations = [];
   await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: { profile: original.state.profile, selectedCharacterId: 'char_006' } });
   tree = mutations.find(item => item.route === 'git/trees').body.tree;
-  assert.equal(tree.filter(file => file.path.includes('/chapters/')).length, 1, 'only new chapter is sent');
+  assert.equal(tree.filter(file => file.path.includes('/chapters/')).length, 0, 'new chapters are appended inside the slot JSON');
   assert.ok(files.get(prefix + 'index.json').saves.some(item => item.id === 'other'));
   const before = json([...files]);
   session = JSON.parse(local.get(api.SESSION_KEY)); session.recordsByCharacter.char_006.push({ scene: 'Chapter 23', partner: '追加' }); local.set(api.SESSION_KEY, json(session));
@@ -123,10 +127,14 @@ async function main(){
   files.set(prefix + 'legacy_test.json', { ...original, saveId: 'legacy_test' });
   api.setCurrentSaveId('legacy_test'); local.set(api.SESSION_KEY, json({ ...original.state.session, id: 'legacy_test' }));
   await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: original.state });
-  assert.ok(api.isSplit(files.get(prefix + 'legacy_test.json')), 'old saves migrate on their next save');
-  console.log('PASS: lossless migration, lazy ten-chapter reads, unchanged/new chapter writes, missing data, atomic failure, legacy compatibility');
+  assert.ok(!api.isSplit(files.get(prefix + 'legacy_test.json')), 'normal saves remain single-file');
+  largeFile = prefix + 'legacy_test.json';
+  const large = await api.loadSaveById('legacy_test');
+  assert.equal(large.state.session.recordsByCharacter.char_006.length,21,'large slot JSON reads via its exact Git blob');
+  console.log('PASS: lossless split compatibility, full slot loading, single-file writes, atomic failure, large-file reads and slot isolation');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
+
 
 
 

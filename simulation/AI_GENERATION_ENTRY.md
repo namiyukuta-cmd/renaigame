@@ -12,7 +12,7 @@
 既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 
 
-**分割セーブの必読仕様：`simulation/CHAPTER_SAVE_FORMAT.md`。`storage.format === "chapter-files-v1"`なら本文と心理履歴は参照先の章ファイルが正本です。この仕様を読み、以下の旧形式の物理保存手順より優先してください。現在stateは従来のcurrentStateを使い、空のstateHistoryを履歴なしと扱わないでください。**
+**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
 
 キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。
 
@@ -399,6 +399,7 @@ Chapter実ログ：
 ## 一言での原則
 
 **キャラ設定は renaigame、プレイした出来事・Chapter全文・恋愛進行は saveId ごとの private-game-data。生成時は両方読む。保存時は現在saveIdだけを書き換える。**
+
 
 
 

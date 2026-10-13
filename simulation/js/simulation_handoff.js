@@ -24,7 +24,7 @@
         '保存先リポジトリ: namiyukuta-cmd/private-game-data',
         '現在saveId: ' + saveId,
         '読むセーブ: ' + path,
-        'このセーブがstorage.format=chapter-files-v1なら、現在値はセーブ内のcurrentState、本文と心理履歴はstorage.characters[攻略対象ID]のrecords/historyが指す章ファイルを読んでください。直前章と関連する過去章を必ず取得し、未取得の章を読んだ扱いにしないでください。別のセーブや旧共有stateを現在値に使わないでください。'
+        'このセーブ内の実ログ・currentState・stateHistoryを正本として確認してください。1スロット＝1つの完全JSONです。旧分割形式だった場合だけ参照先の章を復元して読んでください。別のセーブや旧共有stateを現在値に使わないでください。'
       );
     } else {
       const source = session || {};
@@ -219,6 +219,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
 
 
 

@@ -52,14 +52,14 @@ async function main(){
   const other=copy(bundle);other.characterId='char_006';await assert.rejects(api.prepareChapterImport(other));
   failPublish=true;await assert.rejects(api.commitChapterImport(preview));assert.equal(JSON.stringify([...files]),before,'failed commit never publishes partial state');failPublish=false;
   const saved=await api.commitChapterImport(preview);
-  assert.equal(verificationReads.length,3,'each published file is checked at its exact commit');
+  assert.equal(verificationReads.length,2,'each published file is checked at its exact commit');
   assert.ok(verificationReads.every(ref=>ref===head));
   // The old local screen can be recovered by loading the saved slot, even
   // when a previous attempt failed after GitHub accepted the commit.
   local.set(api.SESSION_KEY,JSON.stringify(current.state.session));
   await api.loadSaveById(id);
-  assert.equal(JSON.parse(local.get(api.SESSION_KEY)).archive.storage.characters.char_007.lastSavedChapter,1);
-  assert.equal(saved.storage.characters.char_007.lastSavedChapter,1);
+  assert.equal(JSON.parse(local.get(api.SESSION_KEY)).recordsByCharacter.char_007.length,1);
+  assert.equal(saved.state.session.recordsByCharacter.char_007.length,1);
   assert.equal(JSON.stringify(saved.state.session.statesByCharacter.char_007.currentState),JSON.stringify(packet.after));
   assert.equal(files.get(prefix+'index.json').saves[1].updatedAt,'unchanged');
   const duplicate=await api.prepareChapterImport(bundle);assert.equal(duplicate.alreadySaved,true);
@@ -68,3 +68,4 @@ async function main(){
   console.log('PASS: real JS replay, preview, wrong slot, tampering, atomic failure, full packet, duplicate and conflict protection');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
+

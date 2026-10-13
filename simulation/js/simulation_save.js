@@ -101,7 +101,13 @@
     const url = cloudUrl(path) + (ref ? '?ref=' + encodeURIComponent(ref) : '');
     const response = await fetch(url, { headers: headers(token), cache: 'no-store' });
     if(!response.ok) throw githubError(response.status, 'から読み込み');
-    return response.json();
+    const file = await response.json();
+    // Contents API omits content for large JSON files. Read the exact blob.
+    if(!file.content && file.sha && file.type !== 'dir'){
+      const blob = await githubJson(token, 'git/blobs/' + file.sha);
+      return Object.assign({}, file, { content: blob.content, encoding: blob.encoding });
+    }
+    return file;
   }
 
   async function checkToken(token){
@@ -504,7 +510,8 @@
       throw new Error('恋愛シュミレーションのセーブデータを読み込めません。');
     }
     if(isSplit(save) && save.saveId !== id) throw new Error('セーブIDが一致しません。');
-    save = lazySave(save);
+    save = await hydrateSave(token, save);
+    delete save.state.session.archive;
     applyLocalSession(save);
     setCurrentSaveId(id);
     return save;
@@ -589,16 +596,15 @@
       : Math.max(0, ...next.filter(item => pairKey(item) === pairKey(meta)).map(item => item.slotNumber)) + 1;
     next.push(meta);
     next.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
-    const split = splitSave(data);
-    if(!differentSlot) split.manifest.storage = Object.assign({}, existing.data && existing.data.storage || {}, split.manifest.storage);
-    const oldBundles = remoteSave ? splitSave(remoteSave).bundles : [];
-    const oldMap = new Map(oldBundles.map(file => [file.path, JSON.stringify(file.data)]));
-    const files = split.bundles.filter(file => oldMap.get(file.path) !== JSON.stringify(file.data) || !isSplit(existing.data));
-    files.push({ path: savePath(saveId), data: split.manifest }, { path: CLOUD.indexPath, data: { version: 1, saves: next } });
+    delete data.storage;
+    delete data.state.session.archive;
+    const files = [{ path: savePath(saveId), data }, { path: CLOUD.indexPath, data: { version: 1, saves: next } }];
     const publishedCommit = await commitFiles(token, files, expectedHead);
-    const confirmed = parseCloudJson(await fetchCloudFile(token, savePath(saveId), publishedCommit));
-    if(JSON.stringify(confirmed) !== JSON.stringify(split.manifest)) throw new Error('保存の確認ができませんでした。ロードして確認してください。');
-    applyLocalSession(lazySave(split.manifest));
+    for(const file of files){
+      const confirmed = parseCloudJson(await fetchCloudFile(token, file.path, publishedCommit));
+      if(!equal(confirmed,file.data)) throw new Error('保存したコミットの確認に失敗しました。ロードして確認してください。');
+    }
+    applyLocalSession(data);
     setCurrentSaveId(saveId);
     return data;
   }
@@ -637,21 +643,24 @@
     const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
     const found = await fetchJsonIfExists(token, savePath(bundle.saveId));
     if(!found.exists) importError('指定されたセーブ枠がありません。先にゲームでセーブ枠を作ってください。');
-    const save = found.data;
-    if(!isSplit(save) || save.saveId !== bundle.saveId || save.state.selectedCharacterId !== bundle.characterId) importError('保存先の恋愛相手またはセーブ形式が一致しません。');
-    const id = bundle.characterId, refs = save.storage.characters[id] || { records: [], history: [], lastSavedChapter: 0 };
-    const existingRefs = refs.records.filter(ref => ref.chapter === bundle.chapter);
-    const path = CLOUD.savesDir + '/' + bundle.saveId + '/chapters/' + id + '_' + String(bundle.chapter).padStart(4,'0') + '.json';
+    const save = await hydrateSave(token, found.data);
+    if(save.saveId !== bundle.saveId || save.state.selectedCharacterId !== bundle.characterId) importError('保存先の恋愛相手またはセーブ形式が一致しません。');
+    const id = bundle.characterId;
+    const savedRecords = save.state.session.recordsByCharacter[id] || [];
+    const savedState = save.state.session.statesByCharacter[id];
+    const savedHistory = savedState?.stateHistory || [];
+    const lastChapter = Math.max(0, ...savedRecords.map((entry,index) => chapterNumber(entry,index)));
+    const existingRecords = savedRecords.filter((entry,index) => chapterNumber(entry,index) === bundle.chapter);
+    const existingHistory = savedHistory.filter((entry,index) => chapterNumber(entry,index) === bundle.chapter);
     const index = await loadIndex(token), meta = index.saves.find(item => item.id === bundle.saveId);
     if(!meta || meta.selectedCharacterId !== id || meta.protagonistName !== buildMeta(save, bundle.saveId).protagonistName) importError('セーブ一覧の組と保存先が一致しません。');
     const preview = Object.freeze({ saveId: bundle.saveId, protagonistName: meta.protagonistName, partnerName: meta.partnerName, slotNumber: numberSlots(index.saves).find(item => item.id === bundle.saveId).slotNumber, chapter: bundle.chapter, fingerprint: packet.fingerprint, protagonist: record.protagonist, partner: record.partner, alreadySaved: false });
-    if(existingRefs.length){
-      const old = await readBundle(token, save, id, existingRefs[0], new Map());
-      if(!equal(old.records.map(x=>x.entry), [record]) || !equal(old.stateHistory.map(x=>x.entry), [history])) importError('同じChapterに異なる記録があります。上書きはしません。');
+    if(existingRecords.length){
+      if(!equal(existingRecords, [record]) || !equal(existingHistory, [history])) importError('同じChapterに異なる記録があります。上書きはしません。');
       return Object.freeze({ ...preview, alreadySaved: true });
     }
-    if(bundle.chapter !== refs.lastSavedChapter + 1) importError('次に保存できるのはChapter ' + (refs.lastSavedChapter + 1) + 'です。');
-    const full = await hydrateSave(token, save);
+    if(bundle.chapter !== lastChapter + 1) importError('次に保存できるのはChapter ' + (lastChapter + 1) + 'です。');
+    const full = save;
     let stateEntry = full.state.session.statesByCharacter[id];
     if(!stateEntry){
       const response = await fetch('state/templates/' + id + '_initial_state.json');
@@ -675,27 +684,27 @@
     const validation = engine.validateStory(args, packet, record.partner, context.storyActions || {});
     if(!validation.ok) importError('本文の再検証に失敗しました：' + validation.errors.join('／'));
     for(const key of ['before','changes','evidence','after','evaluations','execution']) if(!equal(history[key],packet[key])) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
-    bundle.records[0].index = refs.records.length;
-    bundle.stateHistory[0].index = refs.history.length;
-    refs.records.push({path,index:bundle.records[0].index,chapter:bundle.chapter,scene:record.scene,date:record.date||''});
-    refs.history.push({path,index:bundle.stateHistory[0].index,chapter:bundle.chapter}); refs.lastSavedChapter = bundle.chapter;
-    save.storage.characters[id] = refs; save.state.session.recordsByCharacter[id] = [];
-    save.state.session.statesByCharacter[id] = { ...(save.state.session.statesByCharacter[id] || {}), currentState: clone(packet.after), stateHistory: [] };
-    importPlans.set(preview, { head, bundle, save, index, path });
+    save.state.session.recordsByCharacter[id] = [...savedRecords, clone(record)];
+    save.state.session.statesByCharacter[id] = { ...(savedState || {}), currentState: clone(packet.after), stateHistory: [...savedHistory, clone(history)] };
+    if(!save.chapterImportMetadataByCharacter) save.chapterImportMetadataByCharacter = {};
+    if(!save.chapterImportMetadataByCharacter[id]) save.chapterImportMetadataByCharacter[id] = {};
+    save.chapterImportMetadataByCharacter[id][bundle.chapter] = Object.fromEntries(Object.entries(bundle).filter(([key]) => key !== 'records' && key !== 'stateHistory'));
+    delete save.storage; delete save.state.session.archive;
+    importPlans.set(preview, { head, save, index });
     return preview;
   }
   async function commitChapterImport(preview){
     const plan = importPlans.get(preview); if(!plan) importError('ファイルを選び直してください。');
     const token = getToken(); if(!token) importError('GitHubトークンがありません。');
-    const { save, index, bundle, path, head } = clone(plan);
+    const { save, index, head } = clone(plan);
     const now = new Date().toISOString(); save.updatedAt = now; save.meta.updatedAt = now;
     const meta = index.saves.find(item => item.id === save.saveId); meta.updatedAt = now;
     meta.slotNumber = preview.slotNumber; save.meta.slotNumber = preview.slotNumber;
-    const files = [{path,data:bundle},{path:savePath(save.saveId),data:save},{path:CLOUD.indexPath,data:index}];
+    const files = [{path:savePath(save.saveId),data:save},{path:CLOUD.indexPath,data:index}];
     const publishedCommit = await commitFiles(token, files, head);
     // Verify every published file. Do not report completion from a tool response alone.
     for(const file of files){ const confirmed = (await fetchJsonIfExists(token,file.path,publishedCommit)).data; if(!equal(confirmed,file.data)) importError('保存したコミットの確認に失敗しました。ロードして確認してください。'); }
-    importPlans.delete(preview); applyLocalSession(lazySave(save)); setCurrentSaveId(save.saveId);
+    importPlans.delete(preview); applyLocalSession(save); setCurrentSaveId(save.saveId);
     return save;
   }
 
@@ -725,6 +734,7 @@
     prepareChapterImport, commitChapterImport
   };
 })();
+
 
 
 

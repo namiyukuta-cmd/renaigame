@@ -1,6 +1,6 @@
 # 恋愛シミュレーション AI生成・記録・状態更新 運用仕様
 
-**分割セーブの必読仕様：`simulation/CHAPTER_SAVE_FORMAT.md`。`storage.format === "chapter-files-v1"`なら本文と心理履歴は参照先の章ファイルが正本です。この仕様を読み、以下の旧形式の物理保存手順より優先してください。現在stateは従来のcurrentStateを使い、空のstateHistoryを履歴なしと扱わないでください。**
+**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
 
 このファイルは、別スレッドを含むChatGPTが恋愛シミュレーションを継続するときの共通運用仕様。
 
@@ -633,5 +633,6 @@ currentStateの更新対象例：
 ## 14. 一言での原則
 
 **キャラ設定と心理計算基盤は renaigame で固定。プレイした出来事と心理変化は saveId ごとの private-game-data に蓄積する。毎Turn「今回入力 → change → after → evaluate → 会話生成」、保存時は currentState更新＋stateHistory追記＋実ログ追記。**
+
 
 

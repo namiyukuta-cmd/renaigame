@@ -52,3 +52,8 @@ replayContext.recordsにはrunTurn/verifyTurnに実際に渡した過去実ロ�
 
 記録の10章ごとのページと開閉目次は表示上の区切り。保存は分割しない。大きなセーブはContents APIのcontentが省略される場合も、指定されたGit blobから全文を取得する。
 
+
+
+### 大きなセーブのAIからの取得
+
+fetch_file/Contents APIが空のcontentとshaを返した場合、セーブが空・消失したとは扱わない。返されたshaを使って `https://api.github.com/repos/namiyukuta-cmd/private-game-data/git/blobs/<sha>` を取得し、全文を読む。GitHubツールがblobをデコード済みのJSONとして返す場合はその内容を正本とする。本文・心理履歴・currentStateを取得できないまま初期値へ戻さない。

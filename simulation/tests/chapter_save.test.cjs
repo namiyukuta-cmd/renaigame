@@ -25,6 +25,9 @@ const sandbox = {
   atob: value => Buffer.from(value, 'base64').toString('binary'),
   localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => local.set(key, value), removeItem: key => local.delete(key) },
   fetch: async (url, options = {}) => {
+    // GitHub OPTIONS on the repository URL with a trailing slash returns 404,
+    // causing Safari's authenticated cross-origin fetch to report Load failed.
+    if(url === 'https://api.github.com/repos/namiyukuta-cmd/private-game-data/') throw new TypeError('Load failed');
     const route = url.replace('https://api.github.com/repos/namiyukuta-cmd/private-game-data', '').replace(/^\//, '');
     const body = options.body && JSON.parse(options.body), method = options.method || 'GET';
     if(method !== 'GET') mutations.push({ route, body });
@@ -100,3 +103,4 @@ async function main(){
   console.log('PASS: lossless migration, lazy ten-chapter reads, unchanged/new chapter writes, missing data, atomic failure, legacy compatibility');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
+

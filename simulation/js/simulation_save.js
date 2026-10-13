@@ -370,8 +370,9 @@
     return fresh.recordsByCharacter[characterId];
   }
   async function githubJson(token, path, method = 'GET', body){
-    const response = await fetch(repoUrl() + '/' + path, {
-      method, headers: Object.assign({ 'Content-Type': 'application/json' }, headers(token)),
+    const url = path ? repoUrl() + '/' + path : repoUrl();
+    const response = await fetch(url, {
+      method, headers: body === undefined ? headers(token) : Object.assign({ 'Content-Type': 'application/json' }, headers(token)),
       ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
     if(!response.ok) throw githubError(response.status, method === 'GET' ? 'から読み込み' : 'へ保存');
@@ -572,4 +573,5 @@
     isSplit
   };
 })();
+
 

@@ -65,6 +65,26 @@ async function main(){
   const duplicate=await api.prepareChapterImport(bundle);assert.equal(duplicate.alreadySaved,true);
   await assert.rejects(api.commitChapterImport(duplicate));
   const conflict=copy(bundle);conflict.records[0].entry.partner+='違う本文';await assert.rejects(api.prepareChapterImport(conflict),/異なる記録/);
+  for(const chapter of [2,3]){
+    const slot=files.get(prefix+id+'.json');
+    const logs=slot.state.session.recordsByCharacter.char_007;
+    // Chapter 3 deliberately replays a subset; use exactly the same selection.
+    const indices=chapter===2?[0]:[1];
+    const turnArgs={...args,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
+    const turnPacket=engine.runTurn(turnArgs);
+    const turnStory=story.replace('Chapter 1','Chapter '+chapter);
+    const next={version:1,saveId:id,characterId,chapter,records:[{index:chapter-1,entry:{scene:'Chapter '+chapter,date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:chapter-1,entry:{turn:chapter,scene:'Chapter '+chapter,...turnPacket,verification:engine.verifyTurn(turnArgs,turnPacket),validation:engine.validateStory(turnArgs,turnPacket,turnStory),packet:turnPacket}}],replayContext:chapter===2?{records:copy(turnArgs.records),storyActions:{}}:{recordIndices:indices,storyActions:{}}};
+    const wrong=copy(next);wrong.replayContext={recordIndices:[999]};await assert.rejects(api.prepareChapterImport(wrong),/参照番号/);
+    const mismatch=copy(next);mismatch.replayContext={recordIndices:chapter===2?[]:[0]};await assert.rejects(api.prepareChapterImport(mismatch),/指紋/);
+    const result=await api.commitChapterImport(await api.prepareChapterImport(next));
+    const metadata=result.chapterImportMetadataByCharacter.char_007[chapter];
+    assert.equal(metadata.replayContext.records,undefined,'past story bodies are not saved twice');
+    assert.equal(JSON.stringify(metadata.replayContext.recordIndices),JSON.stringify(indices));
+    assert.equal(metadata.replayContext.recordsFingerprint,turnPacket.sources.records);
+    assert.equal(JSON.stringify(result.state.session.statesByCharacter.char_007.stateHistory.at(-1)),JSON.stringify(next.stateHistory[0].entry),'full original packet and verification survive');
+    assert.equal(result.state.session.recordsByCharacter.char_007.length,chapter);
+    assert.equal((await api.prepareChapterImport(next)).alreadySaved,true);
+  }
   console.log('PASS: real JS replay, preview, wrong slot, tampering, atomic failure, full packet, duplicate and conflict protection');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

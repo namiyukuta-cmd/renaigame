@@ -8,7 +8,7 @@
 - `state.session.statesByCharacter[characterId].currentState`：最新の心理状態。
 - `state.session.statesByCharacter[characterId].stateHistory`：各Turnのbefore・changes・evidence・after・evaluations・execution・verification・validation・packet全文。
 - `state.profile`：主人公プロフィール。
-- `chapterImportMetadataByCharacter[characterId][chapter]`：取り込み用JSONの補助情報。replayContext等を省略せず保持する。
+- `chapterImportMetadataByCharacter[characterId][chapter]`：取り込み用JSONの補助情報。過去ログはreplayContext.recordIndices（0始まりの配列添字、使用順）とrecordsFingerprintで参照し、本文を重複保存しない。storyActionsと未知の補助項目は保持する。
 
 同じ攻略対象でも別主人公・別スロットの内容を混ぜない。既存の未知のフィールドを削除しない。主要心理値が不足する旧stateを勝手に0で補完しない。
 
@@ -26,13 +26,13 @@
   "chapter": 2,
   "records": [{"index": 1, "entry": {"scene": "Chapter 2", "date": "", "protagonist": "主人公入力の全文", "partner": "本文全文"}}],
   "stateHistory": [{"index": 1, "entry": {"turn": 2, "scene": "Chapter 2", "before": {}, "changes": {}, "evidence": {}, "after": {}, "evaluations": {}, "execution": {}, "sources": {}, "fingerprint": "", "verification": {}, "validation": {}, "packet": {}}}],
-  "replayContext": {"records": [], "storyActions": {}}
+  "replayContext": {"recordIndices": [0], "storyActions": {}}
 }
 ```
 
 これは構造例。空の心理項目を本物のデータとして使わない。history.entryには実際のpacketの全フィールドを保持し、verificationとvalidationの成功結果、packet自体も元のまま含める。主人公入力・本文を要約に置き換えない。
 
-replayContext.recordsにはrunTurn/verifyTurnに実際に渡した過去実ログを、storyActionsにはvalidateStoryへ実際に渡した行動宣言を含める。生成時の計算結果と検証記録を保持し、ファイル出力のために文章・心理変化を作り直さない。
+replayContext.recordIndicesにはrunTurn/verifyTurnに実際に渡した過去実ログの、保存済みrecordsByCharacter[characterId]における0始まりの添字を使用順に入れる。全ログを使った場合もその添字一覧を出す。Chapter 1は空配列。storyActionsにはvalidateStoryへ実際に渡した行動宣言を含める。過去ログ全文のreplayContext.recordsは今後の出力には不要。ゲームが同じスロットから実ログを取得し、packet.sources.recordsの指紋一致と実際のJS再検証を必須にする。旧JSONのreplayContext.recordsも受け入れ、保存時には参照番号へ変換する。生成時の計算結果と検証記録を保持し、ファイル出力のために文章・心理変化を作り直さない。
 
 ## ゲームでの保存
 

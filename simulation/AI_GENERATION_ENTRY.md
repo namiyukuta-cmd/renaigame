@@ -7,7 +7,7 @@
 
 ファイルはCHAPTER_SAVE_FORMAT.mdの章ファイル構造に従う。version=1、saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。record.entryにscene/date/protagonist/partnerの原文全文を保持する。history.entryにturn/scene、packetの全項目、verification、validation、packet自体を原形で保持する。before・changes・evidence・after・evaluations・execution・sources・fingerprintを省略しない。
 
-追加のreplayContext.recordsには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの配列を変更せず入れる。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
+追加のreplayContext.recordIndicesには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの保存済み配列における0始まりの添字を使用順に入れる（Chapter 1は空配列）。過去本文をreplayContext.recordsへ重複収録しない。ゲームが正本から取得し指紋一致とJS再検証を行う。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
 
 既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 

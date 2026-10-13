@@ -672,8 +672,14 @@
     if(!equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
     const actualRecords = full.state.session.recordsByCharacter[id] || [];
     const context = bundle.replayContext || {};
-    const records = context.records || actualRecords;
+    if(context.records !== undefined && context.recordIndices !== undefined) importError('過去ログ本文と参照番号を同時に指定しないでください。');
+    let records;
+    if(context.recordIndices !== undefined){
+      if(!Array.isArray(context.recordIndices) || context.recordIndices.some(index => !Number.isInteger(index) || index < 0 || index >= actualRecords.length)) importError('再検証用の過去ログ参照番号が不正です。');
+      records = context.recordIndices.map(index => actualRecords[index]);
+    } else records = context.records === undefined ? actualRecords : context.records;
     if(!Array.isArray(records) || records.some(entry => !actualRecords.some(original => equal(entry,original)))) importError('再検証用の過去ログが現在のセーブと一致しません。');
+    if(engine.fingerprint(records) !== packet.sources.records) importError('再検証用の過去ログの指紋が一致しません。');
     let profile = save.state.profile;
     if(engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
     const character = window.RenaiGameCharacters?.getById(id) || window.SimulationCharacters?.[id];
@@ -689,6 +695,19 @@
     if(!save.chapterImportMetadataByCharacter) save.chapterImportMetadataByCharacter = {};
     if(!save.chapterImportMetadataByCharacter[id]) save.chapterImportMetadataByCharacter[id] = {};
     save.chapterImportMetadataByCharacter[id][bundle.chapter] = Object.fromEntries(Object.entries(bundle).filter(([key]) => key !== 'records' && key !== 'stateHistory'));
+    // Replay bodies already exist in the slot. Preserve their exact order via
+    // references, including legacy imports, without deleting unknown metadata.
+    for(const metadata of Object.values(save.chapterImportMetadataByCharacter[id])){
+      const replay = metadata.replayContext;
+      if(!replay) continue;
+      const bodies = metadata === save.chapterImportMetadataByCharacter[id][bundle.chapter] ? records : replay.records;
+      if(!Array.isArray(bodies)) continue;
+      const indices = bodies.map(entry => savedRecords.findIndex(original => equal(entry,original)));
+      if(indices.some(index => index < 0)) continue;
+      replay.recordIndices = indices;
+      replay.recordsFingerprint = engine.fingerprint(bodies);
+      delete replay.records;
+    }
     delete save.storage; delete save.state.session.archive;
     importPlans.set(preview, { head, save, index });
     return preview;

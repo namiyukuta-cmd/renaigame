@@ -96,6 +96,20 @@ async function main(){
   await assert.rejects(api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: {} }));
   assert.equal(json([...files]), before, 'failed commit does not publish partial chapters or state');
   failRef = false;
+  const sourcePath = prefix + 'run_test.json';
+  const sourceSnapshot = json(files.get(sourcePath));
+  const copied = await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: { profile: original.state.profile, selectedCharacterId: 'char_006' } }, { newSlot: true });
+  assert.notEqual(copied.saveId, 'run_test');
+  assert.equal(copied.state.session.recordsByCharacter.char_006.length, 23, 'new slot copies full remote history and local additions');
+  assert.equal(copied.state.session.statesByCharacter.char_006.stateHistory.length, 21, 'psychology is preserved when copying');
+  assert.equal(json(files.get(sourcePath)), sourceSnapshot, 'saving a copy leaves original slot intact');
+  files.set(prefix + 'foreign.json', { ...original, saveId: 'foreign', state: { ...original.state, session: { id: 'foreign', recordsByCharacter: { char_001: [{ scene: 'Chapter 1', partner: 'FOREIGN STORY' }] }, statesByCharacter: { char_001: { romanceScore: 999 } } } } });
+  const replaced = await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: { profile: original.state.profile, selectedCharacterId: 'char_006' } }, { targetId: 'foreign' });
+  assert.equal(replaced.saveId, 'foreign');
+  assert.equal(replaced.state.session.id, 'foreign');
+  assert.equal(replaced.state.session.recordsByCharacter.char_006.length, 23);
+  assert.ok(!json(replaced).includes('FOREIGN STORY'), 'target story is never merged into current run');
+  assert.equal(replaced.state.session.statesByCharacter.char_001.romanceScore, 1);
   files.set(prefix + 'legacy_test.json', { ...original, saveId: 'legacy_test' });
   api.setCurrentSaveId('legacy_test'); local.set(api.SESSION_KEY, json({ ...original.state.session, id: 'legacy_test' }));
   await api.saveToGitHub({ game: 'simulation', page: 'simulation_new.html', state: original.state });
@@ -103,4 +117,5 @@ async function main(){
   console.log('PASS: lossless migration, lazy ten-chapter reads, unchanged/new chapter writes, missing data, atomic failure, legacy compatibility');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
+
 

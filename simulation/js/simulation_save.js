@@ -479,7 +479,7 @@
     return loadSaveById(saves[0].id);
   }
 
-  async function saveToGitHub(save){
+  async function saveToGitHub(save, options = {}){
     const token = getToken();
     if(!token) throw new Error('GitHubトークンが設定されていません。');
     await checkToken(token);
@@ -488,28 +488,41 @@
     const state = Object.assign({}, prepared.state || {});
     const localSession = ensureLocalSession();
 
-    let saveId = getCurrentSaveId();
+    const sourceId = getCurrentSaveId();
+    let saveId = options.newSlot ? makeSession().id : (options.targetId || sourceId);
     if(!saveId) saveId = localSession.id || makeSession().id;
+    if(saveId !== LEGACY_SAVE_ID && !/^[A-Za-z0-9_-]{1,120}$/.test(saveId)) throw new Error('セーブ先が正しくありません。');
+    const differentSlot = saveId !== sourceId && (options.newSlot || !!options.targetId);
 
     const branch = (await githubJson(token, '')).default_branch;
     const expectedHead = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
     const path = saveId === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(saveId);
     const existing = await fetchJsonIfExists(token, path);
     const remoteSave = existing.exists ? await hydrateSave(token, existing.data) : null;
-    const remoteSession = existing.exists && existing.data && existing.data.state
-      ? remoteSave.state.session
-      : null;
+    // Saving into another slot copies the current run, never the target's story.
+    let baseline = remoteSave;
+    if(differentSlot){
+      baseline = null;
+      if(sourceId){
+        const sourcePath = sourceId === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(sourceId);
+        const source = await fetchJsonIfExists(token, sourcePath);
+        if(!source.exists) throw new Error('現在のセーブを取得できません。コピーを停止しました。');
+        baseline = await hydrateSave(token, source.data);
+      }
+    }
+    const remoteSession = baseline && baseline.state ? baseline.state.session : null;
 
     const mergedSession = remoteSession
       ? mergeSessions(remoteSession, localSession)
       : normalizeSession(localSession);
+    if(differentSlot) mergedSession.id = saveId;
 
-    const preservedState = Object.assign({}, remoteSave && remoteSave.state || {}, state);
+    const preservedState = Object.assign({}, baseline && baseline.state || {}, state);
     preservedState.session = mergedSession;
     prepared.state = preservedState;
     const updatedAt = new Date().toISOString();
     const meta = buildMeta(prepared, saveId, updatedAt);
-    const data = Object.assign({}, remoteSave || {}, prepared, {
+    const data = Object.assign({}, baseline || {}, prepared, {
       version: Number(prepared && prepared.version) || 1,
       hasSave: true,
       saveId,
@@ -528,7 +541,7 @@
     next.push(meta);
     next.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
     const split = splitSave(data);
-    split.manifest.storage = Object.assign({}, existing.data && existing.data.storage || {}, split.manifest.storage);
+    if(!differentSlot) split.manifest.storage = Object.assign({}, existing.data && existing.data.storage || {}, split.manifest.storage);
     const oldBundles = remoteSave ? splitSave(remoteSave).bundles : [];
     const oldMap = new Map(oldBundles.map(file => [file.path, JSON.stringify(file.data)]));
     const files = split.bundles.filter(file => oldMap.get(file.path) !== JSON.stringify(file.data) || !isSplit(existing.data));
@@ -573,5 +586,6 @@
     isSplit
   };
 })();
+
 
 

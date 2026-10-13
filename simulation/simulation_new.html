@@ -611,6 +611,19 @@
     .record-page-button:focus-visible { outline: 2px solid #75666c; outline-offset: -2px; }
     .record-new { display: block; margin-top: 4px; color: #8b4966; font-size: 10px; font-weight: 700; }
 
+    .simulation-slot-dialog { width: min(92vw, 440px); max-height: 82dvh; box-sizing: border-box; overflow-y: auto; border: 1px solid #cbbdc4; border-radius: 16px; padding: 20px; background: #faf7f8; color: #30282c; }
+    .simulation-slot-dialog::backdrop { background: #0006; }
+    .simulation-slot-dialog h2 { margin: 0 0 12px; font-size: 22px; }
+    .simulation-slot-dialog p { font-size: 14px; line-height: 1.6; }
+    .simulation-slot-dialog [data-error] { color: #982e46; }
+    .simulation-slot-list { display: grid; gap: 10px; }
+    .simulation-slot-card, .simulation-slot-close { width: 100%; min-height: 48px; padding: 14px; border: 1px solid #cbbdc4; border-radius: 10px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
+    .simulation-slot-card strong, .simulation-slot-card span { display: block; overflow-wrap: anywhere; }
+    .simulation-slot-card strong { font-size: 16px; }
+    .simulation-slot-card span { margin-top: 6px; font-size: 12px; }
+    .simulation-slot-card.current { background: #eee5e8; border-color: #8b777f; }
+    .simulation-slot-close { margin-top: 16px; text-align: center; font-weight: bold; }
+    .simulation-slot-card:disabled { opacity: .6; cursor: wait; }
   </style>
 </head>
 <body>
@@ -635,7 +648,8 @@
   </nav>
 
   <script src="js/simulation_characters.js"></script>
-  <script src="js/simulation_save.js?v=20261013-save-url-fix"></script>
+  <script src="js/simulation_save.js?v=20261013-slots"></script>
+  <script src="js/simulation_slots.js?v=20261013-slots"></script>
   <script src="js/simulation_record.js?v=20261013-chapter-files"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
@@ -954,62 +968,22 @@
       else if (writeButton.classList.contains('active')) showWriting();
     });
 
-    saveButton.addEventListener('click', async () => {
-      if (!RenaiGameSave.getToken()) {
-        alert('タイトル画面の「設定」からGitHubトークンを設定してください。');
-        return;
-      }
-
-      saveButton.disabled = true;
-      try {
-        await RenaiGameSave.saveToGitHub({
-          version: 2,
-          game: 'simulation',
-          page: 'simulation_new.html',
-          state: {
-            profile: readProfile(),
-            selectedCharacterId: RenaiGameCharacters.getSelectedId()
-          }
-        });
-        alert('セーブしました。');
-      } catch (error) {
-        alert(error.message || 'セーブできませんでした。');
-      } finally {
-        saveButton.disabled = false;
-      }
-    });
-
-    loadButton.addEventListener('click', async () => {
-      if (!RenaiGameSave.getToken()) {
-        alert('タイトル画面の「設定」からGitHubトークンを設定してください。');
-        return;
-      }
-
-      loadButton.disabled = true;
-      try {
-        const save = await RenaiGameSave.loadFromGitHub();
-        if (!save.hasSave || !save.page) {
-          alert('セーブデータはまだありません。');
-          return;
+    function slotOptions() {
+      return {
+        readState: () => ({
+          version: 2, game: 'simulation', page: 'simulation_new.html',
+          state: { profile: readProfile(), selectedCharacterId: RenaiGameCharacters.getSelectedId() }
+        }),
+        onLoaded: save => {
+          if (save.state && save.state.profile) writeProfile(save.state.profile);
+          if (save.state && save.state.selectedCharacterId) RenaiGameCharacters.setSelectedId(save.state.selectedCharacterId);
+          else RenaiGameCharacters.clearSelected();
+          location.href = save.page;
         }
-        if (!RenaiGameSave.isSafePage(save.page)) {
-          throw new Error('セーブデータの移動先が正しくありません。');
-        }
-        if (save.state && save.state.profile) {
-          writeProfile(save.state.profile);
-        }
-        if (save.state && save.state.selectedCharacterId) {
-          RenaiGameCharacters.setSelectedId(save.state.selectedCharacterId);
-        } else {
-          RenaiGameCharacters.clearSelected();
-        }
-        location.href = save.page;
-      } catch (error) {
-        alert(error.message || 'ロードできませんでした。');
-      } finally {
-        loadButton.disabled = false;
-      }
-    });
+      };
+    }
+    saveButton.addEventListener('click', () => RenaiGameSlots.open('save', slotOptions()));
+    loadButton.addEventListener('click', () => RenaiGameSlots.open('load', slotOptions()));
 
     async function init() {
       try {
@@ -1030,6 +1004,7 @@
   <script src="js/simulation_handoff.js?v=20261013-chapter-files"></script>
 </body>
 </html>
+
 
 
 

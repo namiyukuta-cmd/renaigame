@@ -430,6 +430,43 @@
     };
   }
 
+  function pairKey(meta){
+    return JSON.stringify([String(meta.protagonistName || '主人公').trim() || '主人公', meta.selectedCharacterId || '']);
+  }
+
+  function numberSlots(saves){
+    const result = saves.map(item => Object.assign({}, item));
+    const groups = new Map();
+    result.forEach(item => {
+      const key = pairKey(item);
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    });
+    groups.forEach(items => {
+      const used = new Set();
+      items.sort((a,b) => String(a.updatedAt || '').localeCompare(String(b.updatedAt || '')) || a.id.localeCompare(b.id)).forEach(item => {
+        if(Number.isInteger(item.slotNumber) && item.slotNumber > 0 && !used.has(item.slotNumber)) used.add(item.slotNumber);
+        else delete item.slotNumber;
+      });
+      items.forEach(item => {
+        if(item.slotNumber) return;
+        let n = 1; while(used.has(n)) n++;
+        item.slotNumber = n; used.add(n);
+      });
+    });
+    return result;
+  }
+
+  function groupSlots(saves){
+    const groups = new Map();
+    numberSlots(saves).forEach(item => {
+      const key = pairKey(item);
+      if(!groups.has(key)) groups.set(key, { key, protagonistName: item.protagonistName || '主人公', partnerName: item.partnerName || '未選択', slots: [] });
+      groups.get(key).slots.push(item);
+    });
+    return [...groups.values()].map(group => ({ ...group, slots: group.slots.sort((a,b) => a.slotNumber - b.slotNumber) }));
+  }
+
   async function listSaves(){
     const token = getToken();
     if(!token) throw new Error('GitHubトークンが設定されていません。');
@@ -448,7 +485,7 @@
     }
 
     result.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
-    return result;
+    return numberSlots(result);
   }
 
   async function loadSaveById(id){
@@ -499,6 +536,9 @@
     const path = saveId === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(saveId);
     const existing = await fetchJsonIfExists(token, path);
     const remoteSave = existing.exists ? await hydrateSave(token, existing.data) : null;
+    if(options.targetId && differentSlot && remoteSave && pairKey(buildMeta(remoteSave, saveId)) !== pairKey(buildMeta(prepared, saveId))) {
+      throw new Error('別の主人公・恋愛相手の組には上書きできません。現在の組のスロットを選んでください。');
+    }
     // Saving into another slot copies the current run, never the target's story.
     let baseline = remoteSave;
     if(differentSlot){
@@ -537,7 +577,12 @@
     }
 
     const index = await loadIndex(token);
-    const next = index.saves.filter(item => item && item.id !== saveId);
+    const numbered = numberSlots(index.saves.filter(item => item && item.id));
+    const previousMeta = numbered.find(item => item.id === saveId);
+    const next = numbered.filter(item => item.id !== saveId);
+    meta.slotNumber = previousMeta && pairKey(previousMeta) === pairKey(meta)
+      ? previousMeta.slotNumber
+      : Math.max(0, ...next.filter(item => pairKey(item) === pairKey(meta)).map(item => item.slotNumber)) + 1;
     next.push(meta);
     next.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
     const split = splitSave(data);
@@ -583,9 +628,11 @@
     loadRecordPage,
     splitSave,
     hydrateSave,
-    isSplit
+    isSplit,
+    pairKey, groupSlots, numberSlots, getPartnerName
   };
 })();
+
 
 
 

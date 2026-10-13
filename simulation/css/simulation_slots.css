@@ -1,0 +1,13 @@
+    .simulation-slot-dialog { width: min(92vw, 440px); max-height: 82dvh; box-sizing: border-box; overflow-y: auto; border: 1px solid #cbbdc4; border-radius: 16px; padding: 20px; background: #faf7f8; color: #30282c; }
+    .simulation-slot-dialog::backdrop { background: #0006; }
+    .simulation-slot-dialog h2 { margin: 0 0 12px; font-size: 22px; }
+    .simulation-slot-dialog p { font-size: 14px; line-height: 1.6; }
+    .simulation-slot-dialog [data-error] { color: #982e46; }
+    .simulation-slot-list { display: grid; gap: 10px; }
+    .simulation-slot-card, .simulation-slot-close { width: 100%; min-height: 48px; padding: 14px; border: 1px solid #cbbdc4; border-radius: 10px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
+    .simulation-slot-card strong, .simulation-slot-card span { display: block; overflow-wrap: anywhere; }
+    .simulation-slot-card strong { font-size: 16px; }
+    .simulation-slot-card span { margin-top: 6px; font-size: 12px; }
+    .simulation-slot-card.current { background: #eee5e8; border-color: #8b777f; }
+    .simulation-slot-close { margin-top: 16px; text-align: center; font-weight: bold; }
+    .simulation-slot-card:disabled { opacity: .6; cursor: wait; }

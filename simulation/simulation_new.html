@@ -611,20 +611,8 @@
     .record-page-button:focus-visible { outline: 2px solid #75666c; outline-offset: -2px; }
     .record-new { display: block; margin-top: 4px; color: #8b4966; font-size: 10px; font-weight: 700; }
 
-    .simulation-slot-dialog { width: min(92vw, 440px); max-height: 82dvh; box-sizing: border-box; overflow-y: auto; border: 1px solid #cbbdc4; border-radius: 16px; padding: 20px; background: #faf7f8; color: #30282c; }
-    .simulation-slot-dialog::backdrop { background: #0006; }
-    .simulation-slot-dialog h2 { margin: 0 0 12px; font-size: 22px; }
-    .simulation-slot-dialog p { font-size: 14px; line-height: 1.6; }
-    .simulation-slot-dialog [data-error] { color: #982e46; }
-    .simulation-slot-list { display: grid; gap: 10px; }
-    .simulation-slot-card, .simulation-slot-close { width: 100%; min-height: 48px; padding: 14px; border: 1px solid #cbbdc4; border-radius: 10px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
-    .simulation-slot-card strong, .simulation-slot-card span { display: block; overflow-wrap: anywhere; }
-    .simulation-slot-card strong { font-size: 16px; }
-    .simulation-slot-card span { margin-top: 6px; font-size: 12px; }
-    .simulation-slot-card.current { background: #eee5e8; border-color: #8b777f; }
-    .simulation-slot-close { margin-top: 16px; text-align: center; font-weight: bold; }
-    .simulation-slot-card:disabled { opacity: .6; cursor: wait; }
   </style>
+  <link rel="stylesheet" href="css/simulation_slots.css?v=20261013-pair-slots">
 </head>
 <body>
   <main class="page">
@@ -648,8 +636,8 @@
   </nav>
 
   <script src="js/simulation_characters.js"></script>
-  <script src="js/simulation_save.js?v=20261013-slots"></script>
-  <script src="js/simulation_slots.js?v=20261013-slots"></script>
+  <script src="js/simulation_save.js?v=20261013-pair-slots"></script>
+  <script src="js/simulation_slots.js?v=20261013-pair-slots"></script>
   <script src="js/simulation_record.js?v=20261013-chapter-files"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
@@ -1004,6 +992,7 @@
   <script src="js/simulation_handoff.js?v=20261013-chapter-files"></script>
 </body>
 </html>
+
 
 
 

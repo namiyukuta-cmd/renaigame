@@ -171,21 +171,9 @@
       openSettings('「続きから」を使うにはGitHubトークンを設定してください。');
       return;
     }
-
-    const button = $('continueButton');
-    button.disabled = true;
-    setStatus('セーブデータを読み込んでいます…', 'loading');
-
-    try{
-      const saves = await RenaiGameSave.listSaves();
-      renderSaveList(saves);
-      setStatus('', '');
-      openLoadDialog();
-    }catch(error){
-      setStatus(error.message || 'セーブデータを読み込めませんでした。', 'error');
-    }finally{
-      button.disabled = false;
-    }
+    await RenaiGameSlots.open('load', {
+      onLoaded: save => { applyLoadedState(save); location.href = save.page; }
+    });
   }
 
   function saveToken(){
@@ -247,3 +235,4 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+

@@ -76,3 +76,15 @@
 
 別の主人公・恋愛相手の組には上書きしない。新しいスロットへのコピーでは現在の周回の実ログと心理履歴をコピーし、保存先にあった別周回の実ログを混ぜない。
 
+
+
+## ゲーム画面で保存する標準運用（章JSON取り込み）
+
+ユーザーが「保存して」と指示したら、標準では本文生成時に確定した本文・心理パケット・検証記録から1章分のJSONファイルを出力する。ゲームの「セーブ → 章データを取り込んで保存」でユーザー自身が最後の保存操作を行う。明示的にChatGPTからGitHubへ直接保存するよう指定された場合だけ、従来の直接保存手順を使う。ファイルを出しただけではGitHub保存済みと報告しない。
+
+ファイルはCHAPTER_SAVE_FORMAT.mdの章ファイル構造に従う。version=1、saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。record.entryにscene/date/protagonist/partnerの原文全文を保持する。history.entryにturn/scene、packetの全項目、verification、validation、packet自体を原形で保持する。before・changes・evidence・after・evaluations・execution・sources・fingerprintを省略しない。
+
+追加のreplayContext.recordsには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの配列を変更せず入れる。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
+
+既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
+

@@ -1,5 +1,17 @@
 # 恋愛シミュレーション AI生成入口
 
+
+## ゲーム画面で保存する標準運用（章JSON取り込み）
+
+ユーザーが「保存して」と指示したら、標準では本文生成時に確定した本文・心理パケット・検証記録から1章分のJSONファイルを出力する。ゲームの「セーブ → 章データを取り込んで保存」でユーザー自身が最後の保存操作を行う。明示的にChatGPTからGitHubへ直接保存するよう指定された場合だけ、従来の直接保存手順を使う。ファイルを出しただけではGitHub保存済みと報告しない。
+
+ファイルはCHAPTER_SAVE_FORMAT.mdの章ファイル構造に従う。version=1、saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。record.entryにscene/date/protagonist/partnerの原文全文を保持する。history.entryにturn/scene、packetの全項目、verification、validation、packet自体を原形で保持する。before・changes・evidence・after・evaluations・execution・sources・fingerprintを省略しない。
+
+追加のreplayContext.recordsには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの配列を変更せず入れる。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
+
+既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
+
+
 **分割セーブの必読仕様：`simulation/CHAPTER_SAVE_FORMAT.md`。`storage.format === "chapter-files-v1"`なら本文と心理履歴は参照先の章ファイルが正本です。この仕様を読み、以下の旧形式の物理保存手順より優先してください。現在stateは従来のcurrentStateを使い、空のstateHistoryを履歴なしと扱わないでください。**
 
 キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。
@@ -387,5 +399,6 @@ Chapter実ログ：
 ## 一言での原則
 
 **キャラ設定は renaigame、プレイした出来事・Chapter全文・恋愛進行は saveId ごとの private-game-data。生成時は両方読む。保存時は現在saveIdだけを書き換える。**
+
 
 

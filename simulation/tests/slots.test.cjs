@@ -4,6 +4,7 @@ const vm = require('node:vm');
 class Node {
   constructor(tag){ this.tag = tag; this.children = []; this.events = {}; this.classList = { add: value => { this.current = value; } }; }
   append(...children){ this.children.push(...children); }
+  insertBefore(child, reference){ this.children.splice(this.children.indexOf(reference),0,child); }
   appendChild(child){ this.children.push(child); }
   replaceChildren(){ this.children = []; }
   setAttribute(){}
@@ -29,22 +30,22 @@ const options = { readState: () => ({ state: { profile: { name: 'マリー' }, s
 const latest = () => document.body.children.at(-1);
 async function main(){
   await sandbox.window.RenaiGameSlots.open('load', options);
-  let dialog = latest(), cards = dialog.children[2].children;
+  let dialog = latest(), cards = dialog.children.find(child => child.className === "simulation-slot-list").children;
   assert.equal(cards.length, 2);
   assert.equal(calls.length, 0, 'opening slots does not load anything');
   await cards[1].events.click();
-  cards = dialog.children[2].children;
+  cards = dialog.children.find(child => child.className === "simulation-slot-list").children;
   assert.equal(cards.length, 2, 'selected pair shows only its slot and back button');
   await cards[1].events.click();
   assert.deepEqual(calls[0], ['load', 'b'], 'explicitly selected slot is loaded');
   assert.ok(dialog.removed);
   calls.length = 0;
   await sandbox.window.RenaiGameSlots.open('save', options);
-  dialog = latest(); cards = dialog.children[2].children;
+  dialog = latest(); cards = dialog.children.find(child => child.className === "simulation-slot-list").children;
   assert.equal(cards.length, 2, 'pair selection comes before slots');
   assert.equal(cards[1].disabled, true, 'other pair is disabled for save');
   await cards[0].events.click();
-  cards = dialog.children[2].children;
+  cards = dialog.children.find(child => child.className === "simulation-slot-list").children;
   assert.equal(cards.length, 4, 'back button, new slot, two slots of this pair');
   await cards[3].events.click();
   assert.equal(calls.length, 0, 'cancel overwrite does not write');

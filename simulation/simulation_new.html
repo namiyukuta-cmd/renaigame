@@ -611,8 +611,13 @@
     .record-page-button:focus-visible { outline: 2px solid #75666c; outline-offset: -2px; }
     .record-new { display: block; margin-top: 4px; color: #8b4966; font-size: 10px; font-weight: 700; }
 
+    .import-save { width:100%; margin-top:16px; min-height:48px; padding:12px; border:1px solid #8b777f; border-radius:10px; background:#eee5e8; color:#30282c; font-weight:bold; }
+    .import-save:disabled { opacity:.5; }
+    .import-preview p, .import-preview pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .import-preview pre { font:inherit; font-size:14px; }
+    .simulation-slot-dialog input[type=file] { width:100%; min-height:44px; }
   </style>
-  <link rel="stylesheet" href="css/simulation_slots.css?v=20261013-pair-slots">
+  <link rel="stylesheet" href="css/simulation_slots.css?v=20261013-chapter-import">
 </head>
 <body>
   <main class="page">
@@ -636,8 +641,9 @@
   </nav>
 
   <script src="js/simulation_characters.js"></script>
-  <script src="js/simulation_save.js?v=20261013-pair-slots"></script>
-  <script src="js/simulation_slots.js?v=20261013-pair-slots"></script>
+  <script src="js/simulation_save.js?v=20261013-chapter-import"></script>
+  <script src="js/simulation_import.js?v=20261013-chapter-import"></script>
+  <script src="js/simulation_slots.js?v=20261013-chapter-import"></script>
   <script src="js/simulation_record.js?v=20261013-chapter-files"></script>
   <script>
     const PROFILE_KEY = 'renaigame_simulation_profile_v1';
@@ -970,6 +976,7 @@
         }
       };
     }
+    window.addEventListener('renaigame:import-chapter', () => RenaiGameImport.open());
     saveButton.addEventListener('click', () => RenaiGameSlots.open('save', slotOptions()));
     loadButton.addEventListener('click', () => RenaiGameSlots.open('load', slotOptions()));
 
@@ -989,9 +996,10 @@
 
     init();
   </script>
-  <script src="js/simulation_handoff.js?v=20261013-chapter-files"></script>
+  <script src="js/simulation_handoff.js?v=20261013-chapter-import"></script>
 </body>
 </html>
+
 
 
 

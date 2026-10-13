@@ -21,6 +21,11 @@
     close.addEventListener('click', dismiss);
     dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
     dialog.addEventListener('click', event => { if(event.target === dialog) dismiss(); });
+    if(mode === 'save'){
+      const importButton = document.createElement('button'); importButton.type = 'button'; importButton.className = 'simulation-slot-card'; importButton.textContent = '章データを取り込んで保存';
+      dialog.insertBefore(importButton, status);
+      importButton.addEventListener('click', () => { if(busy) return; dismiss(); window.dispatchEvent(new Event('renaigame:import-chapter')); });
+    }
     dialog.showModal();
     function setBusy(value){ busy = value; close.disabled = value; list.querySelectorAll('button').forEach(button => { button.disabled = value; }); }
     async function select(slot, newSlot = false){
@@ -95,4 +100,5 @@
   }
   window.RenaiGameSlots = Object.freeze({ open });
 })();
+
 

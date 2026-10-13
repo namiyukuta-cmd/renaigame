@@ -607,6 +607,94 @@
     return /^[A-Za-z0-9_./-]+\.html(?:[?#].*)?$/.test(page);
   }
 
+  const importPlans = new WeakMap();
+  function importError(message){ throw new Error('章データ：' + message); }
+  function equal(a,b){
+    function sorted(value){
+      if(Array.isArray(value)) return value.map(sorted);
+      if(value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])]));
+      return value;
+    }
+    return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
+  }
+  async function prepareChapterImport(value){
+    const bundle = clone(value);
+    if(bundle.version !== 1 || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
+    if(bundle.records?.length !== 1 || bundle.stateHistory?.length !== 1) importError('1章分の本文と心理履歴を入れてください。');
+    const record = bundle.records[0].entry, history = bundle.stateHistory[0].entry, packet = history?.packet;
+    if(!record || typeof record.protagonist !== 'string' || !record.protagonist.trim() || typeof record.partner !== 'string' || !record.partner.trim() || !packet) importError('本文または心理パケット全文がありません。');
+    for(const key of ['before','changes','evidence','after','evaluations','execution','sources','fingerprint']) if(packet[key] === undefined) importError('心理パケットの' + key + 'がありません。');
+    if(packet.saveId !== bundle.saveId || packet.characterId !== bundle.characterId || packet.protagonistInput !== record.protagonist || chapterNumber(record, 0) !== bundle.chapter || history.turn !== bundle.chapter) importError('本文・心理パケットの識別情報が一致しません。');
+    if(history.verification?.ok !== true || (history.validation || history.storyValidation)?.ok !== true) importError('心理計算または本文の検証成功記録がありません。');
+    if(history.fingerprint !== packet.fingerprint || (history.verification.replayFingerprint && history.verification.replayFingerprint !== packet.fingerprint)) importError('検証記録の指紋が一致しません。');
+    if(!window.RenaiGameTurnEngine || !window.RenaiGamePsychologyParameters) importError('検証用JSを読み込めません。再読み込みしてください。');
+    const token = getToken(); if(!token) importError('タイトル画面でGitHubトークンを設定してください。');
+    const branch = (await githubJson(token, '')).default_branch;
+    const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
+    const found = await fetchJsonIfExists(token, savePath(bundle.saveId));
+    if(!found.exists) importError('指定されたセーブ枠がありません。先にゲームでセーブ枠を作ってください。');
+    const save = found.data;
+    if(!isSplit(save) || save.saveId !== bundle.saveId || save.state.selectedCharacterId !== bundle.characterId) importError('保存先の恋愛相手またはセーブ形式が一致しません。');
+    const id = bundle.characterId, refs = save.storage.characters[id] || { records: [], history: [], lastSavedChapter: 0 };
+    const existingRefs = refs.records.filter(ref => ref.chapter === bundle.chapter);
+    const path = CLOUD.savesDir + '/' + bundle.saveId + '/chapters/' + id + '_' + String(bundle.chapter).padStart(4,'0') + '.json';
+    const index = await loadIndex(token), meta = index.saves.find(item => item.id === bundle.saveId);
+    if(!meta || meta.selectedCharacterId !== id || meta.protagonistName !== buildMeta(save, bundle.saveId).protagonistName) importError('セーブ一覧の組と保存先が一致しません。');
+    const preview = Object.freeze({ saveId: bundle.saveId, protagonistName: meta.protagonistName, partnerName: meta.partnerName, slotNumber: numberSlots(index.saves).find(item => item.id === bundle.saveId).slotNumber, chapter: bundle.chapter, fingerprint: packet.fingerprint, protagonist: record.protagonist, partner: record.partner, alreadySaved: false });
+    if(existingRefs.length){
+      const old = await readBundle(token, save, id, existingRefs[0], new Map());
+      if(!equal(old.records.map(x=>x.entry), [record]) || !equal(old.stateHistory.map(x=>x.entry), [history])) importError('同じChapterに異なる記録があります。上書きはしません。');
+      return Object.freeze({ ...preview, alreadySaved: true });
+    }
+    if(bundle.chapter !== refs.lastSavedChapter + 1) importError('次に保存できるのはChapter ' + (refs.lastSavedChapter + 1) + 'です。');
+    const full = await hydrateSave(token, save);
+    let stateEntry = full.state.session.statesByCharacter[id];
+    if(!stateEntry){
+      const response = await fetch('state/templates/' + id + '_initial_state.json');
+      if(!response.ok) importError('初期心理状態を読み込めません。');
+      stateEntry = await response.json();
+    }
+    const engine = window.RenaiGameTurnEngine, psychology = window.RenaiGamePsychologyParameters;
+    const before = stateEntry.currentState || stateEntry;
+    if(!equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
+    const actualRecords = full.state.session.recordsByCharacter[id] || [];
+    const context = bundle.replayContext || {};
+    const records = context.records || actualRecords;
+    if(!Array.isArray(records) || records.some(entry => !actualRecords.some(original => equal(entry,original)))) importError('再検証用の過去ログが現在のセーブと一致しません。');
+    let profile = save.state.profile;
+    if(engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
+    const character = window.RenaiGameCharacters?.getById(id) || window.SimulationCharacters?.[id];
+    const behavior = window['SimulationCharacter' + id.slice(5) + 'Behavior'];
+    const args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, stateEntry, records, protagonistProfile: profile, protagonistInput: packet.protagonistInput, changes: packet.changes, evidence: packet.evidence, stageTransition: packet.stageTransition, yoinomaContext: packet.yoinomaContext };
+    const verification = engine.verifyTurn(args, packet);
+    if(!verification.ok) importError('心理JSの再検証に失敗しました：' + verification.errors.join('／'));
+    const validation = engine.validateStory(args, packet, record.partner, context.storyActions || {});
+    if(!validation.ok) importError('本文の再検証に失敗しました：' + validation.errors.join('／'));
+    for(const key of ['before','changes','evidence','after','evaluations','execution']) if(!equal(history[key],packet[key])) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
+    bundle.records[0].index = refs.records.length;
+    bundle.stateHistory[0].index = refs.history.length;
+    refs.records.push({path,index:bundle.records[0].index,chapter:bundle.chapter,scene:record.scene,date:record.date||''});
+    refs.history.push({path,index:bundle.stateHistory[0].index,chapter:bundle.chapter}); refs.lastSavedChapter = bundle.chapter;
+    save.storage.characters[id] = refs; save.state.session.recordsByCharacter[id] = [];
+    save.state.session.statesByCharacter[id] = { ...(save.state.session.statesByCharacter[id] || {}), currentState: clone(packet.after), stateHistory: [] };
+    importPlans.set(preview, { head, bundle, save, index, path });
+    return preview;
+  }
+  async function commitChapterImport(preview){
+    const plan = importPlans.get(preview); if(!plan) importError('ファイルを選び直してください。');
+    const token = getToken(); if(!token) importError('GitHubトークンがありません。');
+    const { save, index, bundle, path, head } = clone(plan);
+    const now = new Date().toISOString(); save.updatedAt = now; save.meta.updatedAt = now;
+    const meta = index.saves.find(item => item.id === save.saveId); meta.updatedAt = now;
+    meta.slotNumber = preview.slotNumber; save.meta.slotNumber = preview.slotNumber;
+    const files = [{path,data:bundle},{path:savePath(save.saveId),data:save},{path:CLOUD.indexPath,data:index}];
+    await commitFiles(token, files, head);
+    // Verify every published file. Do not report completion from a tool response alone.
+    for(const file of files){ const confirmed = (await fetchJsonIfExists(token,file.path)).data; if(!equal(confirmed,file.data)) importError('保存後の確認に失敗しました。ロードして確認してください。'); }
+    importPlans.delete(preview); applyLocalSession(lazySave(save)); setCurrentSaveId(save.saveId);
+    return save;
+  }
+
   window.RenaiGameSave = {
     TOKEN_KEY,
     SESSION_KEY,
@@ -629,9 +717,11 @@
     splitSave,
     hydrateSave,
     isSplit,
-    pairKey, groupSlots, numberSlots, getPartnerName
+    pairKey, groupSlots, numberSlots, getPartnerName,
+    prepareChapterImport, commitChapterImport
   };
 })();
+
 
 
 

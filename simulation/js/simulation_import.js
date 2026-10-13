@@ -36,15 +36,16 @@
         const body = document.createElement('details'), heading = document.createElement('summary'), text = document.createElement('pre');
         heading.textContent = '保存する本文を確認'; text.textContent = result.protagonist + '\n\n' + result.partner;
         body.append(heading,text); details.append(summary,body);
-        status.textContent = result.alreadySaved ? 'この章は同じ内容で保存済みです。二重追加はしません。' : '心理計算と本文検証に合格しました。保存先をご確認ください。';
-        save.disabled = result.alreadySaved;
+        status.textContent = result.alreadySaved ? 'この章は同じ内容でGitHubに保存済みです。下のボタンでゲーム画面にも反映できます。' : '心理計算と本文検証に合格しました。保存先をご確認ください。';
+        save.textContent = result.alreadySaved ? '保存済みデータをゲームに反映' : 'この章をGitHubへ保存';
+        save.disabled = false;
       } catch(error){ if(current === request && active === dialog) status.textContent = error.message || 'JSONを読み込めません。'; }
     };
     save.onclick = async () => {
       if(!preview || busy) return; busy = true; input.disabled = true; close.disabled = true; save.disabled = true;
       status.textContent = 'GitHubへ保存しています…';
       try {
-        savedResult = await RenaiGameSave.commitChapterImport(preview);
+        savedResult = preview.alreadySaved ? await RenaiGameSave.loadSaveById(preview.saveId) : await RenaiGameSave.commitChapterImport(preview);
         localStorage.setItem('renaigame_simulation_profile_v1', JSON.stringify(savedResult.state.profile || {}));
         window.RenaiGameCharacters.setSelectedId(savedResult.state.selectedCharacterId);
         status.textContent = '本文・心理履歴・現在状態を保存し、再取得して確認しました。閉じるとこのセーブを表示します。'; preview = null;
@@ -55,3 +56,4 @@
   }
   window.RenaiGameImport = Object.freeze({ open });
 })();
+

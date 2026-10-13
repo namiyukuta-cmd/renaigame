@@ -2,16 +2,25 @@ const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:a
 const root = path.resolve(__dirname, '../..');
 const files = new Map(), local = new Map(), pending = new Map(), commits = new Map();
 let head = 'original', sequence = 0, failPublish = false;
+let verificationReads = [];
 const response = (data,status=200) => ({ ok: status < 400, status, json: async()=>data });
 const sandbox = { window: {}, TextEncoder, TextDecoder, Date,
   btoa: x=>Buffer.from(x,'binary').toString('base64'), atob: x=>Buffer.from(x,'base64').toString('binary'),
   localStorage: { getItem:k=>local.get(k)||null,setItem:(k,v)=>local.set(k,v),removeItem:k=>local.delete(k) },
   fetch: async(url,options={}) => {
     if(url.startsWith('state/templates/')) return response(JSON.parse(fs.readFileSync(root+'/simulation/'+url)));
-    const route = url.replace('https://api.github.com/repos/namiyukuta-cmd/private-game-data','').replace(/^\//,'');
+    const route = url.split('?')[0].replace('https://api.github.com/repos/namiyukuta-cmd/private-game-data','').replace(/^\//,'');
     const body = options.body && JSON.parse(options.body);
     if(!route) return response({default_branch:'main'});
-    if(route.startsWith('contents/')) { const key=decodeURIComponent(route.slice(9)); return files.has(key)?response({content:Buffer.from(JSON.stringify(files.get(key))).toString('base64')}):response({},404); }
+    if(route.startsWith('contents/')) {
+      const key=decodeURIComponent(route.slice(9));
+      const ref = new URL(url).searchParams.get('ref');
+      if(ref) verificationReads.push(ref);
+      // Model an old contents response after a successful publish. Only the
+      // explicit commit can reliably identify the bytes just written.
+      if(head !== 'original' && !ref && key.includes('/chapters/') && verificationReads.length === 0) return response({},404);
+      return files.has(key)?response({content:Buffer.from(JSON.stringify(files.get(key))).toString('base64')}):response({},404);
+    }
     if(route==='git/ref/heads/main') return response({object:{sha:head}});
     if(route.startsWith('git/commits/') && !body) return response({tree:{sha:'base'}});
     if(route==='git/trees') {const sha='tree'+ ++sequence;pending.set(sha,body.tree);return response({sha});}
@@ -43,6 +52,13 @@ async function main(){
   const other=copy(bundle);other.characterId='char_006';await assert.rejects(api.prepareChapterImport(other));
   failPublish=true;await assert.rejects(api.commitChapterImport(preview));assert.equal(JSON.stringify([...files]),before,'failed commit never publishes partial state');failPublish=false;
   const saved=await api.commitChapterImport(preview);
+  assert.equal(verificationReads.length,3,'each published file is checked at its exact commit');
+  assert.ok(verificationReads.every(ref=>ref===head));
+  // The old local screen can be recovered by loading the saved slot, even
+  // when a previous attempt failed after GitHub accepted the commit.
+  local.set(api.SESSION_KEY,JSON.stringify(current.state.session));
+  await api.loadSaveById(id);
+  assert.equal(JSON.parse(local.get(api.SESSION_KEY)).archive.storage.characters.char_007.lastSavedChapter,1);
   assert.equal(saved.storage.characters.char_007.lastSavedChapter,1);
   assert.equal(JSON.stringify(saved.state.session.statesByCharacter.char_007.currentState),JSON.stringify(packet.after));
   assert.equal(files.get(prefix+'index.json').saves[1].updatedAt,'unchanged');

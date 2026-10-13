@@ -97,8 +97,9 @@
     return error;
   }
 
-  async function fetchCloudFile(token, path){
-    const response = await fetch(cloudUrl(path), { headers: headers(token) });
+  async function fetchCloudFile(token, path, ref){
+    const url = cloudUrl(path) + (ref ? '?ref=' + encodeURIComponent(ref) : '');
+    const response = await fetch(url, { headers: headers(token), cache: 'no-store' });
     if(!response.ok) throw githubError(response.status, 'から読み込み');
     return response.json();
   }
@@ -119,9 +120,9 @@
     }
   }
 
-  async function fetchJsonIfExists(token, path){
+  async function fetchJsonIfExists(token, path, ref){
     try{
-      const file = await fetchCloudFile(token, path);
+      const file = await fetchCloudFile(token, path, ref);
       return { exists: true, file, data: parseCloudJson(file) };
     }catch(error){
       if(error.status === 404) return { exists: false, file: null, data: null };
@@ -372,6 +373,7 @@
   async function githubJson(token, path, method = 'GET', body){
     const url = path ? repoUrl() + '/' + path : repoUrl();
     const response = await fetch(url, {
+      cache: 'no-store',
       method, headers: body === undefined ? headers(token) : Object.assign({ 'Content-Type': 'application/json' }, headers(token)),
       ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
@@ -494,7 +496,9 @@
     await checkToken(token);
 
     const path = id === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(id);
-    const file = await fetchCloudFile(token, path);
+    const branch = (await githubJson(token, '')).default_branch;
+    const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
+    const file = await fetchCloudFile(token, path, head);
     let save = parseCloudJson(file, '恋愛シュミレーションのセーブデータを読み込めません。');
     if(!save || typeof save !== 'object' || Array.isArray(save)){
       throw new Error('恋愛シュミレーションのセーブデータを読み込めません。');
@@ -591,8 +595,8 @@
     const oldMap = new Map(oldBundles.map(file => [file.path, JSON.stringify(file.data)]));
     const files = split.bundles.filter(file => oldMap.get(file.path) !== JSON.stringify(file.data) || !isSplit(existing.data));
     files.push({ path: savePath(saveId), data: split.manifest }, { path: CLOUD.indexPath, data: { version: 1, saves: next } });
-    await commitFiles(token, files, expectedHead);
-    const confirmed = parseCloudJson(await fetchCloudFile(token, savePath(saveId)));
+    const publishedCommit = await commitFiles(token, files, expectedHead);
+    const confirmed = parseCloudJson(await fetchCloudFile(token, savePath(saveId), publishedCommit));
     if(JSON.stringify(confirmed) !== JSON.stringify(split.manifest)) throw new Error('保存の確認ができませんでした。ロードして確認してください。');
     applyLocalSession(lazySave(split.manifest));
     setCurrentSaveId(saveId);
@@ -688,9 +692,9 @@
     const meta = index.saves.find(item => item.id === save.saveId); meta.updatedAt = now;
     meta.slotNumber = preview.slotNumber; save.meta.slotNumber = preview.slotNumber;
     const files = [{path,data:bundle},{path:savePath(save.saveId),data:save},{path:CLOUD.indexPath,data:index}];
-    await commitFiles(token, files, head);
+    const publishedCommit = await commitFiles(token, files, head);
     // Verify every published file. Do not report completion from a tool response alone.
-    for(const file of files){ const confirmed = (await fetchJsonIfExists(token,file.path)).data; if(!equal(confirmed,file.data)) importError('保存後の確認に失敗しました。ロードして確認してください。'); }
+    for(const file of files){ const confirmed = (await fetchJsonIfExists(token,file.path,publishedCommit)).data; if(!equal(confirmed,file.data)) importError('保存したコミットの確認に失敗しました。ロードして確認してください。'); }
     importPlans.delete(preview); applyLocalSession(lazySave(save)); setCurrentSaveId(save.saveId);
     return save;
   }
@@ -721,6 +725,7 @@
     prepareChapterImport, commitChapterImport
   };
 })();
+
 
 
 

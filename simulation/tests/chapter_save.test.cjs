@@ -28,7 +28,7 @@ const sandbox = {
     // GitHub OPTIONS on the repository URL with a trailing slash returns 404,
     // causing Safari's authenticated cross-origin fetch to report Load failed.
     if(url === 'https://api.github.com/repos/namiyukuta-cmd/private-game-data/') throw new TypeError('Load failed');
-    const route = url.replace('https://api.github.com/repos/namiyukuta-cmd/private-game-data', '').replace(/^\//, '');
+    const route = url.split('?')[0].replace('https://api.github.com/repos/namiyukuta-cmd/private-game-data', '').replace(/^\//, '');
     const body = options.body && JSON.parse(options.body), method = options.method || 'GET';
     if(method !== 'GET') mutations.push({ route, body });
     if(!route) return response({ default_branch: 'main' });

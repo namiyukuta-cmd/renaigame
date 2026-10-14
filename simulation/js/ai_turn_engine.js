@@ -87,6 +87,8 @@
     if (typeof args.protagonistInput !== "string" || !args.protagonistInput.trim()) {
       fail("今回の主人公入力がありません");
     }
+    const continuity = continuityInput(args.protagonistInput);
+    if (!continuity.ok) fail(continuity.errors.join("／"));
     requirePsychology(args.psychology);
     const raw = getCurrentState(args.stateEntry);
     const critical = ["seekHeroine", "pursuitDrive", "physicalNeed", "passion", "reason", "selfControl", "ethics"];
@@ -265,7 +267,7 @@
   function continuityInput(input) {
     if (typeof input !== "string") return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
     const unresolved = /(?:死んだ|死亡した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/.test(input);
-    return { ok: !unresolved, requiresClarification: unresolved, errors: unresolved ? ["主人公を残す継続方針と衝突する入力です。死亡・消滅・存在否定・過去の嫌悪を確定する前に、生成への抗議か、設定変更の明示指示か確認してください。"] : [] };
+    return { ok: !unresolved, requiresClarification: false, preservesProtagonist: true, inputConflictsWithContinuity: unresolved, errors: unresolved ? ["主人公を残す継続方針と衝突する入力です。死亡・消滅・存在否定・過去の嫌悪を確定せず、最後の継続可能な場面と相手役・NPCの対応を確認してください。確認への返答を死亡展開の許可として扱わないでください。"] : [] };
   }
 
   // Conservative phrase checks, not a substitute for semantic review.

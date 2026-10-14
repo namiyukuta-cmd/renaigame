@@ -17,17 +17,29 @@
     const close = document.createElement('button'); close.type = 'button'; close.textContent = '閉じる'; close.className = 'simulation-slot-close';
     dialog.append(title, status, list, close); document.body.appendChild(dialog); active = dialog;
     let busy = false;
+    let directSaveButton = null;
     function dismiss(){ if(busy) return; dialog.close(); dialog.remove(); active = null; }
     close.addEventListener('click', dismiss);
     dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
     dialog.addEventListener('click', event => { if(event.target === dialog) dismiss(); });
     if(mode === 'save'){
+      directSaveButton = document.createElement('button');
+      directSaveButton.type = 'button'; directSaveButton.className = 'simulation-slot-card';
+      directSaveButton.textContent = RenaiGameSave.getCurrentSaveId() ? '現在のスロットに保存' : '新しいスロットに保存';
+      dialog.insertBefore(directSaveButton, status);
+      directSaveButton.addEventListener('click', () => {
+        const id = RenaiGameSave.getCurrentSaveId();
+        select(id ? { id } : null, !id);
+      });
+      const note = document.createElement('p');
+      note.textContent = '始めたばかりでも保存できます。章データのJSONは不要です。';
+      dialog.insertBefore(note, status);
       const importButton = document.createElement('button'); importButton.type = 'button'; importButton.className = 'simulation-slot-card'; importButton.textContent = '章データを取り込んで保存';
       dialog.insertBefore(importButton, status);
       importButton.addEventListener('click', () => { if(busy) return; dismiss(); window.dispatchEvent(new Event('renaigame:import-chapter')); });
     }
     dialog.showModal();
-    function setBusy(value){ busy = value; close.disabled = value; list.querySelectorAll('button').forEach(button => { button.disabled = value; }); }
+    function setBusy(value){ busy = value; close.disabled = value; if(directSaveButton) directSaveButton.disabled = value; list.querySelectorAll('button').forEach(button => { button.disabled = value; }); }
     async function select(slot, newSlot = false){
       if(busy) return;
       if(mode === 'save' && slot && slot.id !== RenaiGameSave.getCurrentSaveId()) {
@@ -53,7 +65,7 @@
     }
     try {
       const saves = await RenaiGameSave.listSaves();
-      if(active !== dialog) return;
+      if(active !== dialog || busy) return;
       const groups = RenaiGameSave.groupSlots(saves);
       const currentState = mode === 'save' ? readState().state || {} : null;
       const currentMeta = currentState ? {

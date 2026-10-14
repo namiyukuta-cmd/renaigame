@@ -567,6 +567,20 @@
       ? mergeSessions(remoteSession, localSession)
       : normalizeSession(localSession);
     if(differentSlot) mergedSession.id = saveId;
+    // A new game has no chapter JSON. Persist its real initial state directly.
+    const characterId = state.selectedCharacterId;
+    if(characterId && !mergedSession.statesByCharacter[characterId]){
+      if(!/^char_\d{3}$/.test(characterId)) throw new Error('恋愛相手のIDが正しくありません。');
+      const response = await fetch('state/templates/' + characterId + '_initial_state.json', { cache: 'no-store' });
+      if(!response.ok) throw new Error('初期心理状態を取得できません。保存は行っていません。');
+      const initialState = await response.json();
+      if(!initialState || typeof initialState !== 'object' || Array.isArray(initialState)) throw new Error('初期心理状態が正しくありません。');
+      mergedSession.statesByCharacter[characterId] = initialState.currentState
+        ? clone(initialState)
+        : { currentState: clone(initialState), stateHistory: [] };
+    }
+    if(characterId && !mergedSession.recordsByCharacter[characterId]) mergedSession.recordsByCharacter[characterId] = [];
+
 
     const preservedState = Object.assign({}, baseline && baseline.state || {}, state);
     preservedState.session = mergedSession;

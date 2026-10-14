@@ -1,5 +1,10 @@
 # 恋愛シミュレーション AI生成入口
 
+## 主人公の継続・支援・入力の解釈（全キャラ共通）
+
+本文生成前に毎Turn、[主人公の継続と具体的応答](PROTAGONIST_CONTINUITY_RULES.md)の最新版を読む。継続的な保護方針と衝突する死亡入力を即座に本文化しない。助けを求める場面では、攻略対象・NPCが知り得ることと可能な具体的対応を同じTurnで扱う。保存障害を物語内の拒絶・排除へ変換しない。主人公の未入力行動・承諾・心理は補完しない。JS検証成功は本文の意味の保証ではない。
+
+
 
 ## ゲーム画面で保存する標準運用（章JSON取り込み）
 
@@ -380,7 +385,7 @@ Chapter実ログ：
 
 矛盾がある場合：
 
-1. ユーザーの現在の明示指示
+1. ユーザーの明示指示。継続的な保護方針と衝突する短い入力は PROTAGONIST_CONTINUITY_RULES.md に沿って確認し、機械的に方針を取り消さない。
 2. 現在セーブの実ログ `state.session.recordsByCharacter[characterId]`
 3. `simulation/AI_GENERATION_ENTRY.md`
 4. `simulation/AI_SAVE_WORKFLOW.md`

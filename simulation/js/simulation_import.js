@@ -26,8 +26,8 @@
       try {
         if(file.size > 10 * 1024 * 1024) throw new Error('ファイルが大きすぎます。1章分のJSONを選んでください。');
         const data = JSON.parse(await file.text());
-        if(!/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
-        await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/ai_turn_engine.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js')]);
+        if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
+        if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/ai_turn_engine.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js')]);
         if(!window.RenaiGameCharacters?.getById(data.characterId)) await window.RenaiGameCharacters?.loadAll();
         const result = await RenaiGameSave.prepareChapterImport(data);
         if(current !== request || active !== dialog) return;
@@ -36,7 +36,7 @@
         const body = document.createElement('details'), heading = document.createElement('summary'), text = document.createElement('pre');
         heading.textContent = '保存する本文を確認'; text.textContent = result.protagonist + '\n\n' + result.partner;
         body.append(heading,text); details.append(summary,body);
-        status.textContent = result.alreadySaved ? 'この章は同じ内容でGitHubに保存済みです。下のボタンでゲーム画面にも反映できます。' : '心理計算と本文検証に合格しました。保存先をご確認ください。';
+        status.textContent = result.unverifiedDraft ? (result.alreadySaved ? 'この本文は保存済みです。心理計算は行っていません。' : '恋愛相手未選択の本文を保存します。心理計算・本文検証は行っていません。') : result.alreadySaved ? 'この章は同じ内容でGitHubに保存済みです。下のボタンでゲーム画面にも反映できます。' : '心理計算と本文検証に合格しました。保存先をご確認ください。';
         save.textContent = result.alreadySaved ? '保存済みデータをゲームに反映' : 'この章をGitHubへ保存';
         save.disabled = false;
       } catch(error){ if(current === request && active === dialog) status.textContent = error.message || 'JSONを読み込めません。'; }
@@ -47,8 +47,9 @@
       try {
         savedResult = preview.alreadySaved ? await RenaiGameSave.loadSaveById(preview.saveId) : await RenaiGameSave.commitChapterImport(preview);
         localStorage.setItem('renaigame_simulation_profile_v1', JSON.stringify(savedResult.state.profile || {}));
-        window.RenaiGameCharacters.setSelectedId(savedResult.state.selectedCharacterId);
-        status.textContent = '本文・心理履歴・現在状態を保存し、再取得して確認しました。閉じるとこのセーブを表示します。'; preview = null;
+        if(savedResult.state.selectedCharacterId) window.RenaiGameCharacters.setSelectedId(savedResult.state.selectedCharacterId);
+        else window.RenaiGameCharacters.clearSelected();
+        status.textContent = preview.unverifiedDraft ? '本文を保存し、再取得して確認しました。心理状態は未作成です。閉じると記録に表示します。' : '本文・心理履歴・現在状態を保存し、再取得して確認しました。閉じるとこのセーブを表示します。'; preview = null;
       }
       catch(error){ status.textContent = error.message || '保存できませんでした。'; preview = null; status.textContent += ' JSONはそのまま残ります。ファイルを選び直して再確認してください。'; }
       finally { busy = false; input.disabled = false; input.value = ''; close.disabled = false; }

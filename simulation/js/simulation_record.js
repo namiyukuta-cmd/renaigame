@@ -187,23 +187,23 @@
 
     const character = window.RenaiGameCharacters && typeof RenaiGameCharacters.getSelected === "function"
       ? RenaiGameCharacters.getSelected() : null;
-    if (!character) { list.textContent = "まだ記録はありません。"; return; }
-    const history = getRecords(character.id);
+    const recordId = character ? character.id : "__unassigned__";
+    const history = getRecords(recordId);
     if (!history.length) { list.textContent = "まだ記録はありません。"; return; }
     const pages = buildRecordPages(history);
     const latest = pages[pages.length - 1];
-    const pageKey = ensureSession().id + ":" + character.id;
+    const pageKey = ensureSession().id + ":" + recordId;
     const remembered = selectedPages.get(pageKey);
     let currentStart = pages.some(page => page.start === remembered) ? remembered : pages[0].start;
     const protagonistName = readProtagonistName();
-    const characterName = character.name || "恋愛相手";
+    const characterName = character ? character.name || "恋愛相手" : "本文（恋愛相手未選択・心理未計算）";
     let requestId = 0;
     async function showPage(page) {
       const request = ++requestId;
       list.textContent = "読み込んでいます…";
       try {
         const chapters = page.entries.map((entry, index) => entry.__chapterRef?.chapter || Number(String(entry.scene || "").match(/Chapter\s*(\d+)/i)?.[1]) || page.start + index);
-        const loaded = await RenaiGameSave.loadRecordPage(character.id, chapters);
+        const loaded = await RenaiGameSave.loadRecordPage(recordId, chapters);
         if(request !== requestId || !list.isConnected) return;
         page = buildRecordPages(loaded).find(item => item.start === page.start) || page;
       } catch(error) {

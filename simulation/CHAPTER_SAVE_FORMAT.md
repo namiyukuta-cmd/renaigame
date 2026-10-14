@@ -57,3 +57,15 @@ replayContext.recordIndicesにはrunTurn/verifyTurnに実際に渡した過去�
 ### 大きなセーブのAIからの取得
 
 fetch_file/Contents APIが空のcontentとshaを返した場合、セーブが空・消失したとは扱わない。返されたshaを使って `https://api.github.com/repos/namiyukuta-cmd/private-game-data/git/blobs/<sha>` を取得し、全文を読む。GitHubツールがblobをデコード済みのJSONとして返す場合はその内容を正本とする。本文・心理履歴・currentStateを取得できないまま初期値へ戻さない。
+
+
+## 恋愛相手未選択の本文保存
+
+恋愛相手を選ぶ前の章も、同じ主人公の未選択スロットへ本文として保存できます。
+この形式は心理計算済みの章と区別します。心理状態・心理履歴を捏造して補完しません。
+
+通常の章構造に `characterId: null`、`stateHistory: []`、`draftMetadata.status: "unverified_draft"`、`draftMetadata.psychologyJsExecuted: false` を指定します。
+`saveId` はゲームで作成済みの未選択スロットのID、`records` は原文と本文を含む1章分とします。
+本文は `recordsByCharacter.__unassigned__` に追記し、元の取り込みJSONも保持します。記録画面では恋愛相手未選択の本文として表示します。
+恋愛相手のいるスロットへの取り込み・異なる本文での上書き・章の飛ばし保存は拒否します。
+心理計算・本文検証の成功と案内してはいけません。後から恋愛相手を選んだ場合の心理状態への移行は、この本文保存では実施しません。

@@ -641,7 +641,43 @@
     }
     return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
   }
+
+  // Unassigned story records have no partner psychology to calculate.
+  // Retain the original bundle and explicitly keep it unverified.
+  async function prepareUnassignedImport(value){
+    const bundle = clone(value);
+    if(bundle.version !== 1 || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || bundle.characterId != null || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('未選択の章データの識別情報が不正です。');
+    if(bundle.records?.length !== 1 || !Array.isArray(bundle.stateHistory) || bundle.stateHistory.length || bundle.draftMetadata?.status !== 'unverified_draft' || bundle.draftMetadata.psychologyJsExecuted !== false) importError('恋愛相手未選択の本文下書きではありません。');
+    const record = bundle.records[0].entry;
+    if(!record || typeof record.protagonist !== 'string' || typeof record.partner !== 'string' || !record.protagonist.trim() || !record.partner.trim() || chapterNumber(record,0) !== bundle.chapter) importError('Chapter番号または本文が不正です。');
+    const token = getToken(); if(!token) importError('タイトル画面でGitHubトークンを設定してください。');
+    const branch = (await githubJson(token, '')).default_branch;
+    const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
+    const found = await fetchJsonIfExists(token, savePath(bundle.saveId), head);
+    if(!found.exists) importError('指定されたセーブ枠がありません。先に通常のセーブで枠を作ってください。');
+    const save = await hydrateSave(token, found.data);
+    if(save.saveId !== bundle.saveId || save.state?.selectedCharacterId) importError('恋愛相手未選択のスロットにだけ取り込めます。別の組へは保存しません。');
+    const index = await loadIndex(token), meta = index.saves.find(item => item.id === bundle.saveId);
+    if(!meta || meta.selectedCharacterId || meta.protagonistName !== buildMeta(save,bundle.saveId).protagonistName) importError('セーブ一覧と保存先が一致しません。');
+    const session = save.state.session;
+    const records = session.recordsByCharacter.__unassigned__ || [];
+    const existing = records.filter((entry,i) => chapterNumber(entry,i) === bundle.chapter);
+    const preview = Object.freeze({saveId:bundle.saveId,protagonistName:meta.protagonistName,partnerName:'恋愛相手未選択',slotNumber:numberSlots(index.saves).find(item=>item.id===bundle.saveId).slotNumber,chapter:bundle.chapter,protagonist:record.protagonist,partner:record.partner,unverifiedDraft:true,alreadySaved:existing.length > 0});
+    if(existing.length){
+      if(!equal(existing,[record])) importError('同じChapterに異なる本文があります。上書きはしません。');
+      return preview;
+    }
+    const last = Math.max(0,...records.map((entry,i)=>chapterNumber(entry,i)));
+    if(bundle.chapter !== last + 1 || bundle.records[0].index !== records.length) importError('次に保存できるのはChapter ' + (last+1) + 'です。');
+    session.recordsByCharacter.__unassigned__ = [...records,clone(record)];
+    if(!save.unassignedChapterImports) save.unassignedChapterImports = {};
+    save.unassignedChapterImports[bundle.chapter] = bundle;
+    importPlans.set(preview,{head,save,index});
+    return preview;
+  }
+
   async function prepareChapterImport(value){
+    if(value && value.characterId == null) return prepareUnassignedImport(value);
     const bundle = clone(value);
     if(bundle.version !== 1 || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
     if(bundle.records?.length !== 1 || bundle.stateHistory?.length !== 1) importError('1章分の本文と心理履歴を入れてください。');

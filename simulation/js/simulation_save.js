@@ -392,7 +392,7 @@
     const head = (await githubJson(token, refPath)).object.sha;
     if(expectedHead && head !== expectedHead) throw new Error('別の保存で更新されました。ロードしてから再度保存してください。');
     const commit = await githubJson(token, 'git/commits/' + head);
-    const tree = await githubJson(token, 'git/trees', 'POST', { base_tree: commit.tree.sha, tree: files.map(file => ({ path: file.path, mode: '100644', type: 'blob', content: JSON.stringify(file.data, null, 2) })) });
+    const tree = await githubJson(token, 'git/trees', 'POST', { base_tree: commit.tree.sha, tree: files.map(file => ({ path: file.path, mode: '100644', type: 'blob', ...(file.delete ? { sha: null } : { content: JSON.stringify(file.data, null, 2) }) })) });
     const next = await githubJson(token, 'git/commits', 'POST', { message: 'Save simulation chapters and current state together', tree: tree.sha, parents: [head] });
     // Non-forced update rejects a concurrent save instead of overwriting it.
     await githubJson(token, 'git/refs/heads/' + encodeURIComponent(branch), 'PATCH', { sha: next.sha, force: false });
@@ -623,6 +623,42 @@
     return data;
   }
 
+
+  async function deleteSaveById(id, expected = {}){
+    if(id !== LEGACY_SAVE_ID && !/^[A-Za-z0-9_-]{1,120}$/.test(id || '')) throw new Error('削除するスロットが正しくありません。');
+    if(typeof expected.pairKey !== 'string' || typeof expected.updatedAt !== 'string') throw new Error('削除する組とスロットを選び直してください。');
+    const token = getToken();
+    if(!token) throw new Error('GitHubトークンが設定されていません。');
+    const branch = (await githubJson(token, '')).default_branch;
+    const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;
+    const path = id === LEGACY_SAVE_ID ? CLOUD.legacyPath : savePath(id);
+    const found = await fetchJsonIfExists(token, path, head);
+    if(!found.exists) throw new Error('このスロットは既に削除されています。一覧を開き直してください。');
+    const indexResult = await fetchJsonIfExists(token, CLOUD.indexPath, head);
+    const index = indexResult.exists ? indexResult.data : {version:1,saves:[]};
+    if(!index || !Array.isArray(index.saves)) throw new Error('セーブ一覧が正しくありません。削除は行っていません。');
+    const meta = id === LEGACY_SAVE_ID ? buildMeta(found.data,id,found.data.updatedAt || '') : index.saves.find(item => item.id === id);
+    if(!meta || pairKey(meta) !== expected.pairKey || pairKey(buildMeta(found.data,id)) !== expected.pairKey || String(meta.updatedAt || '') !== expected.updatedAt || String(found.data.updatedAt || '') !== expected.updatedAt){
+      throw new Error('選んだスロットが更新されています。一覧を開き直して確認してください。削除は行っていません。');
+    }
+    const nextIndex = {...index,saves:index.saves.filter(item => item.id !== id)};
+    const files = [{path,delete:true},{path:CLOUD.indexPath,data:nextIndex}];
+    const published = await commitFiles(token,files,head);
+    const deleted = await fetchJsonIfExists(token,path,published);
+    const confirmed = await fetchJsonIfExists(token,CLOUD.indexPath,published);
+    if(deleted.exists || !confirmed.exists || !equal(confirmed.data,nextIndex)){
+      throw new Error('削除後の確認に失敗しました。一覧を開き直してください。');
+    }
+    const clearedCurrent = getCurrentSaveId() === id;
+    if(clearedCurrent){
+      clearCurrentSaveId();
+      localStorage.setItem(SESSION_KEY,JSON.stringify(makeSession()));
+      localStorage.removeItem('renaigame_simulation_profile_v1');
+      localStorage.removeItem('renaigame_simulation_selected_character_v1');
+    }
+    return {deleted:true,saveId:id,clearedCurrent};
+  }
+
   function isSafePage(page){
     if(typeof page !== 'string' || !page) return false;
     if(page.includes('..')) return false;
@@ -800,6 +836,7 @@
     loadSaveById,
     loadFromGitHub,
     saveToGitHub,
+    deleteSaveById,
     isSafePage,
     loadRecordPage,
     splitSave,

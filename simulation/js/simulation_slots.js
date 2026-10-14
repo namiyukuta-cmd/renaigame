@@ -9,7 +9,7 @@
     dialog.setAttribute('aria-labelledby', 'simulationSlotTitle');
     const title = document.createElement('h2');
     title.id = 'simulationSlotTitle';
-    title.textContent = mode === 'save' ? 'セーブ先を選ぶ' : 'ロードするスロットを選ぶ';
+    title.textContent = mode === 'save' ? 'セーブ先を選ぶ' : 'ロード・セーブの管理';
     const status = document.createElement('p');
     status.setAttribute('role', 'status');
     status.textContent = 'スロットを読み込んでいます…';
@@ -39,7 +39,14 @@
       importButton.addEventListener('click', () => { if(busy) return; dismiss(); window.dispatchEvent(new Event('renaigame:import-chapter')); });
     }
     dialog.showModal();
-    function setBusy(value){ busy = value; close.disabled = value; if(directSaveButton) directSaveButton.disabled = value; list.querySelectorAll('button').forEach(button => { button.disabled = value; }); }
+    const disabledBeforeBusy = new WeakMap();
+    function setBusy(value){
+      busy = value;
+      dialog.querySelectorAll('button').forEach(button => {
+        if(value){ disabledBeforeBusy.set(button,button.disabled); button.disabled = true; }
+        else button.disabled = disabledBeforeBusy.get(button) || false;
+      });
+    }
     async function select(slot, newSlot = false){
       if(busy) return;
       if(mode === 'save' && slot && slot.id !== RenaiGameSave.getCurrentSaveId()) {
@@ -91,6 +98,23 @@
           if(mode === 'save' && group.key !== currentPair){ button.disabled = true; button.children[1].textContent += '（別の組）'; }
         });
       }
+      async function removeSlot(slot, group){
+        if(busy) return;
+        const label = group.protagonistName + ' ＋ ' + group.partnerName + '\nスロット ' + slot.slotNumber;
+        if(!confirm(label + '\n\nこのスロットの本文・心理記録・プロフィールを削除しますか？')) return;
+        setBusy(true); status.dataset.error = ''; status.textContent = '選んだスロットを削除しています…';
+        try{
+          const result = await RenaiGameSave.deleteSaveById(slot.id,{pairKey:group.key,updatedAt:String(slot.updatedAt || '')});
+          if(result.clearedCurrent){
+            busy = false; dismiss(); alert('選んだスロットを削除しました。'); location.href = 'simulation.html'; return;
+          }
+          group.slots = group.slots.filter(item => item.id !== slot.id);
+          setBusy(false); showSlots(group);
+          status.textContent = label + '\n削除し、GitHubから再取得して確認しました。';
+        }catch(error){
+          setBusy(false); status.dataset.error = 'true'; status.textContent = error.message || '削除できませんでした。';
+        }
+      }
       function showSlots(group){
         list.replaceChildren();
         status.textContent = group.protagonistName + ' ＋ ' + group.partnerName;
@@ -103,6 +127,13 @@
           if(current) detail = '現在のスロット　' + detail;
           const button = card('スロット ' + slot.slotNumber, detail, () => select(slot, false));
           if(current) button.classList.add('current');
+          const row = document.createElement('div'); row.className = 'simulation-slot-row';
+          list.replaceChild(row,button); row.appendChild(button);
+          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'simulation-slot-delete';
+          remove.textContent = '削除';
+          remove.setAttribute('aria-label',group.protagonistName + ' ＋ ' + group.partnerName + 'のスロット ' + slot.slotNumber + 'を削除');
+          remove.addEventListener('click',() => removeSlot(slot,group));
+          row.appendChild(remove);
         });
       }
       showGroups();

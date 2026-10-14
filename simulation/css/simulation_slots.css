@@ -11,3 +11,8 @@
     .simulation-slot-card.current { background: #eee5e8; border-color: #8b777f; }
     .simulation-slot-close { margin-top: 16px; text-align: center; font-weight: bold; }
     .simulation-slot-card:disabled { opacity: .6; cursor: wait; }
+
+    .simulation-slot-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; align-items: stretch; }
+    .simulation-slot-delete { min-height: 48px; padding: 10px 8px; border: 1px solid #cbbdc4; border-radius: 10px; background: #fff; color: #982e46; font: inherit; font-size: 14px; cursor: pointer; }
+    .simulation-slot-delete:disabled { opacity: .6; cursor: wait; }
+    .simulation-slot-delete:focus-visible { outline: 2px solid #982e46; outline-offset: 2px; }

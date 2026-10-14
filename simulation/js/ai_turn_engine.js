@@ -282,6 +282,9 @@
     const sentences = story.split(/[。\n]/).map(value => value.trim()).filter(Boolean);
     for (const sentence of sentences) {
       const denied = /(?:死んでいない|死んではいない|死亡していない|消滅していない|消えていない|消されない|消されていない|死なせない|退場させない|という(?:事実|記録|決定)はない|(?:死亡|消滅)[^。]{0,20}記録はない)/.test(sentence);
+      const exclusion = /(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/.test(sentence);
+      const exclusionDenied = /(?:見(?:捨|放)て(?:ない|られていない)|見放されていない|居場所がないわけではない|居場所はないわけではない|いない方がいいとは(?:言え|思ってい)ない|助けないわけではない|という(?:事実|記録)はない)/.test(sentence);
+      if (namesIn(sentence) && exclusion && !exclusionDenied) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
       if (namesIn(sentence) && !denied && /(?:死んだ|死亡した|亡くなった|消滅した|消された|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/.test(sentence)) {
         errors.push("主人公の死亡・消滅・存在否定を確定する文章があります。保護方針に沿って本文を修正してください。");
       }
@@ -289,13 +292,7 @@
         errors.push("主人公の死を喜ぶ表現があります。数値検証の成功で正当化できません。");
       }
       if (/(?:最初から|以前から|ずっと|Chapter\s*1[^。]{0,15}(?:から|時点))[^。]{0,45}(?:嫌い|憎ん|嫌悪|殺した|死んでほし)|(?:大嫌い|嫌い)だった/i.test(sentence) && !/(?:という(?:事実|記録)はない|とは(?:言え|判断でき)ない)/.test(sentence)) {
-        const claims = storyActions.continuity && storyActions.continuity.relationshipClaims;
-        const backed = Array.isArray(claims) && claims.some(cite => {
-          if (!record(cite) || cite.type !== "pastHatred" || typeof cite.quote !== "string" || !cite.quote.trim() || !sentence.includes(cite.quote) || !Number.isInteger(cite.recordIndex)) return false;
-          const entry = args && Array.isArray(args.records) && args.records[cite.recordIndex];
-          return entry && ["partner","transcript"].includes(cite.field) && typeof entry[cite.field] === "string" && entry[cite.field].includes(cite.quote);
-        });
-        if (!backed) errors.push("過去からの嫌悪を新たに確定しています。今回入力や心理数値を過去の証拠にせず、既存の実ログの根拠を指定してください。");
+        errors.push("過去の嫌悪を確定する描写です。過去の問題出力を引用して再生成せず、主人公を守る継続方針に沿って本文を修正してください。");
       }
     }
     return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, requiresSemanticReview: true };

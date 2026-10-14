@@ -27,7 +27,8 @@
         if(file.size > 10 * 1024 * 1024) throw new Error('ファイルが大きすぎます。1章分のJSONを選んでください。');
         const data = JSON.parse(await file.text());
         if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
-        if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/ai_turn_engine.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js')]);
+        await loadScript('js/ai_turn_engine.js?v=20261014-continuity-audit');
+        if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js')]);
         if(!window.RenaiGameCharacters?.getById(data.characterId)) await window.RenaiGameCharacters?.loadAll();
         const result = await RenaiGameSave.prepareChapterImport(data);
         if(current !== request || active !== dialog) return;

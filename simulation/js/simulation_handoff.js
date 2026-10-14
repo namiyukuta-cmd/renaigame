@@ -46,6 +46,7 @@
     }
     lines.push(
       '毎Turn、simulation/PROTAGONIST_CONTINUITY_RULES.md の最新版を読み適用してください。主人公を残すという継続方針と衝突する死亡入力を即座に展開にせず、意図を短く確認してください。苦痛や助けの求めには、相手役・NPCが可能な具体的対応を行い、先延ばしを反復しないでください。保存障害を物語の拒絶や死亡に変換しないでください。',
+      '毎Turnの本文生成前に最新版のai_turn_engine.jsからcontinuityInputを実行してください。requiresClarification=trueなら死亡・消滅・過去の嫌悪を本文化せず、保護方針を維持して抗議か設定変更か一度だけ確認してください。恋愛相手未選択の章も、生成後にvalidateContinuityを実行しok=trueを確認してください。心理JSのok=trueだけで本文の意味を正当化しないでください。',
       '主人公の新しい台詞・行動・心理・反応・未設定プロフィールを補完しないでください。',
       '主人公の今回入力を受け取ってから、心理変化→更新後state→JS計算→攻略対象・NPC・環境の返答の順に進めてください。',
       '毎ターン必須：simulation/js/ai_turn_engine.js を取得し、js/renaigame_psychology_parameters.js の本物のJS関数を実行してください。読むだけ・計算したと宣言するだけは禁止です。',

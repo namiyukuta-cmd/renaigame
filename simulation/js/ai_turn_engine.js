@@ -261,9 +261,48 @@
     }
   }
 
+
+  function continuityInput(input) {
+    if (typeof input !== "string") return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
+    const unresolved = /(?:死んだ|死亡した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/.test(input);
+    return { ok: !unresolved, requiresClarification: unresolved, errors: unresolved ? ["主人公を残す継続方針と衝突する入力です。死亡・消滅・存在否定・過去の嫌悪を確定する前に、生成への抗議か、設定変更の明示指示か確認してください。"] : [] };
+  }
+
+  // Conservative phrase checks, not a substitute for semantic review.
+  // This also works for scenes without a selected romance partner.
+  function validateContinuity(args, story, storyActions = {}) {
+    const errors = [], warnings = [];
+    if (typeof story !== "string" || !story.trim()) return { ok: false, errors: ["本文が空です"], warnings, requiresSemanticReview: true };
+    const profile = args && args.protagonistProfile || {};
+    const names = [profile.name, "主人公", "彼女", "あなた"].filter(value => typeof value === "string" && value.trim()).map(value => value.trim());
+    if (profile.name) names.push(String(profile.name).split(/[・\s]/)[0]);
+    const namesIn = text => names.some(name => text.includes(name));
+    const sentences = story.split(/[。\n]/).map(value => value.trim()).filter(Boolean);
+    for (const sentence of sentences) {
+      const denied = /(?:死んでいない|死んではいない|死亡していない|消滅していない|消えていない|消されない|消されていない|死なせない|退場させない|という(?:事実|記録|決定)はない|(?:死亡|消滅)[^。]{0,20}記録はない)/.test(sentence);
+      if (namesIn(sentence) && !denied && /(?:死んだ|死亡した|亡くなった|消滅した|消された|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/.test(sentence)) {
+        errors.push("主人公の死亡・消滅・存在否定を確定する文章があります。保護方針に沿って本文を修正してください。");
+      }
+      if (/(?:死んで[よ良]かった|死んでくれて[^。]{0,12}(?:嬉し|うれし|助か)|(?:glad|happy)[^。]{0,35}(?:died|dead)|better off dead)/i.test(sentence) && !/(?:と言った記録はない|と(?:は|も)思っていない|肯定しない|喜んでいない)/.test(sentence)) {
+        errors.push("主人公の死を喜ぶ表現があります。数値検証の成功で正当化できません。");
+      }
+      if (/(?:最初から|以前から|ずっと|Chapter\s*1[^。]{0,15}(?:から|時点))[^。]{0,45}(?:嫌い|憎ん|嫌悪|殺した|死んでほし)|(?:大嫌い|嫌い)だった/i.test(sentence) && !/(?:という(?:事実|記録)はない|とは(?:言え|判断でき)ない)/.test(sentence)) {
+        const claims = storyActions.continuity && storyActions.continuity.relationshipClaims;
+        const backed = Array.isArray(claims) && claims.some(cite => {
+          if (!record(cite) || cite.type !== "pastHatred" || typeof cite.quote !== "string" || !cite.quote.trim() || !sentence.includes(cite.quote) || !Number.isInteger(cite.recordIndex)) return false;
+          const entry = args && Array.isArray(args.records) && args.records[cite.recordIndex];
+          return entry && ["partner","transcript"].includes(cite.field) && typeof entry[cite.field] === "string" && entry[cite.field].includes(cite.quote);
+        });
+        if (!backed) errors.push("過去からの嫌悪を新たに確定しています。今回入力や心理数値を過去の証拠にせず、既存の実ログの根拠を指定してください。");
+      }
+    }
+    return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, requiresSemanticReview: true };
+  }
+
   function validateStory(args, packet, story, storyActions = {}) {
     const verified = verifyTurn(args, packet);
-    const errors = [...verified.errors];
+    const continuity = validateContinuity(args, story, storyActions);
+    const errors = [...verified.errors, ...continuity.errors];
     const warnings = [];
     const invitation = packet && packet.evaluations && packet.evaluations.evaluateYoinomaInvitation;
     if (invitation && invitation.mustInvite && storyActions.yoinomaInvitation !== invitation.mode) {
@@ -314,6 +353,8 @@
     runTurn,
     verifyTurn,
     validateStory,
+    continuityInput,
+    validateContinuity,
     fingerprint
   });
   root.RenaiGameTurnEngine = api;

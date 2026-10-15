@@ -303,6 +303,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - char_006: `simulation/state/templates/char_006_initial_state.json`
 - char_007: `simulation/state/templates/char_007_initial_state.json`
 - char_008: `simulation/state/templates/char_008_initial_state.json`
+- char_010: `simulation/state/templates/char_010_initial_state.json`
 
 テンプレートは新規周回の初期値専用。
 プレイ中の状態を書き戻さない。

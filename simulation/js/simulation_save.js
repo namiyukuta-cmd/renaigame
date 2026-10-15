@@ -721,14 +721,27 @@
   async function prepareChapterImport(value){
     if(value && value.characterId == null) return prepareUnassignedImport(value);
     const bundle = clone(value);
-    if(bundle.version !== 1 || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
+    if(![1,2].includes(bundle.version) || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
     if(bundle.records?.length !== 1 || bundle.stateHistory?.length !== 1) importError('1章分の本文と心理履歴を入れてください。');
-    const record = bundle.records[0].entry, history = bundle.stateHistory[0].entry, packet = history?.packet;
-    if(!record || typeof record.protagonist !== 'string' || !record.protagonist.trim() || typeof record.partner !== 'string' || !record.partner.trim() || !packet) importError('本文または心理パケット全文がありません。');
-    for(const key of ['before','changes','evidence','after','evaluations','execution','sources','fingerprint']) if(packet[key] === undefined) importError('心理パケットの' + key + 'がありません。');
-    if(packet.saveId !== bundle.saveId || packet.characterId !== bundle.characterId || packet.protagonistInput !== record.protagonist || chapterNumber(record, 0) !== bundle.chapter || history.turn !== bundle.chapter) importError('本文・心理パケットの識別情報が一致しません。');
+    const compact = bundle.version === 2;
+    const record = bundle.records[0].entry, history = bundle.stateHistory[0].entry;
+    let packet = compact ? null : history?.packet;
+    if(!record || !history || typeof record.protagonist !== 'string' || !record.protagonist.trim() || typeof record.partner !== 'string' || !record.partner.trim()) importError('本文または心理履歴がありません。');
+    if(chapterNumber(record, 0) !== bundle.chapter || history.turn !== bundle.chapter || (compact && history.scene !== 'Chapter ' + bundle.chapter)) importError('本文・心理履歴のChapter番号が一致しません。');
+    if(compact){
+      // Recalculate all derived psychology fields from the exact saved slot.
+      if(history.packet !== undefined || history.before !== undefined || history.after !== undefined || history.protagonistInput !== undefined) importError('新形式に重複した心理パケットがあります。');
+      for(const key of ['changes','evidence','stageTransition','yoinomaContext','fingerprint']) if(history[key] === undefined) importError('心理履歴の' + key + 'がありません。');
+      if(typeof history.fingerprint !== 'string' || !history.fingerprint) importError('心理履歴の指紋が不正です。');
+    } else {
+      if(!packet) importError('旧形式の心理パケット全文がありません。');
+      for(const key of ['before','changes','evidence','after','evaluations','execution','sources','fingerprint']) if(packet[key] === undefined) importError('心理パケットの' + key + 'がありません。');
+      if(packet.saveId !== bundle.saveId || packet.characterId !== bundle.characterId || packet.protagonistInput !== record.protagonist || history.fingerprint !== packet.fingerprint) importError('本文・心理パケットの識別情報が一致しません。');
+    }
     if(history.verification?.ok !== true || (history.validation || history.storyValidation)?.ok !== true) importError('心理計算または本文の検証成功記録がありません。');
-    if(history.fingerprint !== packet.fingerprint || (history.verification.replayFingerprint && history.verification.replayFingerprint !== packet.fingerprint)) importError('検証記録の指紋が一致しません。');
+    const expectedFingerprint = compact ? history.fingerprint : packet.fingerprint;
+    if((history.verification.replayFingerprint && history.verification.replayFingerprint !== expectedFingerprint) ||
+      ((history.validation || history.storyValidation).replayFingerprint && (history.validation || history.storyValidation).replayFingerprint !== expectedFingerprint)) importError('検証記録の指紋が一致しません。');
     if(!window.RenaiGameTurnEngine || !window.RenaiGamePsychologyParameters) importError('検証用JSを読み込めません。再読み込みしてください。');
     const token = getToken(); if(!token) importError('タイトル画面でGitHubトークンを設定してください。');
     const branch = (await githubJson(token, '')).default_branch;
@@ -746,12 +759,14 @@
     const existingHistory = savedHistory.filter((entry,index) => chapterNumber(entry,index) === bundle.chapter);
     const index = await loadIndex(token), meta = index.saves.find(item => item.id === bundle.saveId);
     if(!meta || meta.selectedCharacterId !== id || meta.protagonistName !== buildMeta(save, bundle.saveId).protagonistName) importError('セーブ一覧の組と保存先が一致しません。');
-    const preview = Object.freeze({ saveId: bundle.saveId, protagonistName: meta.protagonistName, partnerName: meta.partnerName, slotNumber: numberSlots(index.saves).find(item => item.id === bundle.saveId).slotNumber, chapter: bundle.chapter, fingerprint: packet.fingerprint, protagonist: record.protagonist, partner: record.partner, alreadySaved: false });
+    const preview = Object.freeze({ saveId: bundle.saveId, protagonistName: meta.protagonistName, partnerName: meta.partnerName, slotNumber: numberSlots(index.saves).find(item => item.id === bundle.saveId).slotNumber, chapter: bundle.chapter, fingerprint: expectedFingerprint, protagonist: record.protagonist, partner: record.partner, alreadySaved: false });
     if(existingRecords.length){
-      if(!equal(existingRecords, [record]) || !equal(existingHistory, [history])) importError('同じChapterに異なる記録があります。上書きはしません。');
+      const sameHistory = compact ? (existingHistory.length === 1 && existingHistory[0].fingerprint === expectedFingerprint) : equal(existingHistory, [history]);
+      if(!equal(existingRecords, [record]) || !sameHistory) importError('同じChapterに異なる記録があります。上書きはしません。');
       return Object.freeze({ ...preview, alreadySaved: true });
     }
     if(bundle.chapter !== lastChapter + 1) importError('次に保存できるのはChapter ' + (lastChapter + 1) + 'です。');
+    if(compact && (bundle.records[0].index !== savedRecords.length || bundle.stateHistory[0].index !== savedHistory.length)) importError('記録・心理履歴の配列位置が正本と一致しません。');
     const full = save;
     let stateEntry = full.state.session.statesByCharacter[id];
     if(!stateEntry){
@@ -761,7 +776,7 @@
     }
     const engine = window.RenaiGameTurnEngine, psychology = window.RenaiGamePsychologyParameters;
     const before = stateEntry.currentState || stateEntry;
-    if(!equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
+    if(!compact && !equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
     const actualRecords = full.state.session.recordsByCharacter[id] || [];
     const context = bundle.replayContext || {};
     if(context.records !== undefined && context.recordIndices !== undefined) importError('過去ログ本文と参照番号を同時に指定しないでください。');
@@ -776,14 +791,29 @@
     if(engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
     const character = window.RenaiGameCharacters?.getById(id) || window.SimulationCharacters?.[id];
     const behavior = window['SimulationCharacter' + id.slice(5) + 'Behavior'];
-    const args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, stateEntry, records, protagonistProfile: profile, protagonistInput: packet.protagonistInput, changes: packet.changes, evidence: packet.evidence, stageTransition: packet.stageTransition, yoinomaContext: packet.yoinomaContext };
+    const args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, stateEntry, records, protagonistProfile: profile, protagonistInput: record.protagonist, changes: compact ? history.changes : packet.changes, evidence: compact ? history.evidence : packet.evidence, stageTransition: compact ? history.stageTransition : packet.stageTransition, yoinomaContext: compact ? history.yoinomaContext : packet.yoinomaContext };
+    if(compact){
+      try { packet = engine.runTurn(args); }
+      catch(error){ importError('心理JSの計算に失敗しました：' + error.message); }
+      if(packet.fingerprint !== expectedFingerprint) importError('心理パケットの再計算指紋が一致しません。入力・心理状態・参照ログを確認してください。');
+    }
     const verification = engine.verifyTurn(args, packet);
     if(!verification.ok) importError('心理JSの再検証に失敗しました：' + verification.errors.join('／'));
     const validation = engine.validateStory(args, packet, record.partner, context.storyActions || {});
     if(!validation.ok) importError('本文の再検証に失敗しました：' + validation.errors.join('／'));
-    for(const key of ['before','changes','evidence','after','evaluations','execution']) if(!equal(history[key],packet[key])) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
+    if(!compact) for(const key of ['before','changes','evidence','after','evaluations','execution']) if(!equal(history[key],packet[key])) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
+    // New entries hold the engine-verified result exactly once. Story input
+    // is kept only in records; no second nested packet is stored in history.
+    const storedHistory = compact ? {
+      turn: history.turn, scene: history.scene,
+      before: clone(packet.before), changes: clone(packet.changes), evidence: clone(packet.evidence),
+      stageTransition: packet.stageTransition, yoinomaContext: clone(packet.yoinomaContext),
+      after: clone(packet.after), evaluations: clone(packet.evaluations),
+      execution: clone(packet.execution), sources: clone(packet.sources), fingerprint: packet.fingerprint,
+      verification: clone(verification), validation: clone(validation)
+    } : clone(history);
     save.state.session.recordsByCharacter[id] = [...savedRecords, clone(record)];
-    save.state.session.statesByCharacter[id] = { ...(savedState || {}), currentState: clone(packet.after), stateHistory: [...savedHistory, clone(history)] };
+    save.state.session.statesByCharacter[id] = { ...(savedState || {}), currentState: clone(packet.after), stateHistory: [...savedHistory, storedHistory] };
     if(!save.chapterImportMetadataByCharacter) save.chapterImportMetadataByCharacter = {};
     if(!save.chapterImportMetadataByCharacter[id]) save.chapterImportMetadataByCharacter[id] = {};
     save.chapterImportMetadataByCharacter[id][bundle.chapter] = Object.fromEntries(Object.entries(bundle).filter(([key]) => key !== 'records' && key !== 'stateHistory'));

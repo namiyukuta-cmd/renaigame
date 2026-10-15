@@ -272,9 +272,28 @@
 
 
   function continuityInput(input) {
-    if (typeof input !== "string") return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
-    const unresolved = /(?:死んだ|死亡した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/.test(input);
-    return { ok: !unresolved, requiresClarification: false, preservesProtagonist: true, inputConflictsWithContinuity: unresolved, errors: unresolved ? ["主人公を残す継続方針と衝突する入力です。死亡・消滅・存在否定・過去の嫌悪を確定せず、最後の継続可能な場面と相手役・NPCの対応を確認してください。確認への返答を死亡展開の許可として扱わないでください。"] : [] };
+    if (typeof input !== "string" || !input.trim()) return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
+    const concerns = /(?:死んだ|死亡した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/;
+    const clauses = input.match(/[^。！？!?\r\n]+[。！？!?]?/g) || [];
+    let unresolved = false, reportedConcern = false;
+    for (const clause of clauses) {
+      // A report/question about a previous line is not a new death event.
+      // Check each clause: a quoted question cannot exempt a separate harmful directive.
+      const directsHarm = /(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない)|言わせて|言わせろ)|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写)/.test(clause);
+      if (directsHarm) { unresolved = true; continue; }
+      if (!concerns.test(clause)) continue;
+      const report = /(?:と|って|とも)[^。！？!?]{0,15}(?:言っ(?:ていた|た|ている)|言われ(?:た|ていた)|書(?:いてあった|いていた|かれた|かれていた)|認め(?:た|ていた|ている))|(?:過去|前の|以前の)[^。！？!?]{0,12}(?:発言|台詞|セリフ|記録|ログ|出力)/.test(clause);
+      const question = /[?？]|(?:のよね|のでしょうか|んでしょうか|のでしょう|のですか|んですか|なのですか|思っているのね|思っているのよね)/.test(clause);
+      const rejectsHarm = /(?:死んだ|死亡した|消滅した|消された|死んで[よ良]かった|大嫌いだった)[^。！？!?]{0,15}(?:ことにしないで|とは思わない|とは言わない|とは認めない|確定しないで|という結末にしないで)/.test(clause);
+      if (report || question || rejectsHarm) reportedConcern = true;
+      else unresolved = true;
+    }
+    return {
+      ok: !unresolved, requiresClarification: false, preservesProtagonist: true,
+      inputConflictsWithContinuity: unresolved,
+      reportedConcern: reportedConcern && !unresolved, requiresSemanticReview: true,
+      errors: unresolved ? ["主人公の死亡・消滅等を新たに確定する入力は本文化しないでください。過去の発言を問いただす会話・引用・抗議は、それ自体を新しい死亡の確定にせず応答してください。"] : []
+    };
   }
 
   // Conservative phrase checks, not a substitute for semantic review.

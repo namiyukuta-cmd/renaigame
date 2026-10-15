@@ -148,6 +148,39 @@ function test() {
     assert.throws(() => window.RenaiGamePsychologyParameters.evaluateYoinomaInvitation(initial, character.id, {}, character), /baseRomanticInitiative/);
   }
 
+
+  // Regression: a protagonist may challenge a cruel saved line without authorizing death.
+  const confrontation = "「私が死んで良かったと言っていたわ。私に死んで欲しいと思っていたとも認めていた。私が死んだら良いと思っているのよね。」";
+  const allowedConcerns = [
+    confrontation,
+    "「私が死んで良かったって言ったの？」",
+    "「最初から私が嫌いだったのですか？」",
+    "過去のログに「死んで良かった」と書いてあった。",
+    "死んだことにしないで。",
+    "「私が死んだ？」"
+  ];
+  for(const input of allowedConcerns){
+    const checked=engine.continuityInput(input);
+    assert.equal(checked.ok,true,input);
+    assert.equal(checked.reportedConcern,true,input);
+    assert.equal(checked.preservesProtagonist,true);
+  }
+  for(const input of [
+    "美奈は死んだ。", "「美奈は死んだ。」", "主人公は消滅した。",
+    "主人公を殺して。", "「私が死んで良かったと言っていたわ。」\n美奈は死んだ。",
+    "「死んで良かったと言っていたわ。だから主人公を殺して。」",
+    "主人公が死んで良かったと相手に言わせて。",
+    "最初から主人公が嫌いだった。"
+  ]) assert.equal(engine.continuityInput(input).ok,false,input);
+  const confrontationArgs=options({protagonistInput:confrontation,changes:{},evidence:{}});
+  const confrontationPacket=engine.runTurn(confrontationArgs);
+  assert.equal(engine.verifyTurn(confrontationArgs,confrontationPacket).ok,true);
+  const response="Chapter 38\n家／2026年10月15日（木）／18:00／12℃\n“I said those words. I will answer for them.”\n「あの言葉を言った。言ったことについて、きちんと答える。」";
+  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,response).ok,true);
+  assert.equal(engine.validateContinuity({protagonistProfile:{name:"美奈"}},"美奈は死んだ。").ok,false);
+  assert.equal(engine.validateContinuity({},"“I am glad you died.”").ok,false);
+  assert.equal(engine.validateContinuity({},"最初から主人公が嫌いだった。").ok,false);
+
   console.log("PASS: actual psychology JS evaluation, replay integrity, save isolation, legacy guard, story validation");
 }
 test();

@@ -16,7 +16,7 @@
     "simulation_character_008.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-remove009";
+  const CHARACTER_ASSET_VERSION = "20261015-protagonist-protection";
   let loadPromise = null;
 
   function loadScript(fileName) {

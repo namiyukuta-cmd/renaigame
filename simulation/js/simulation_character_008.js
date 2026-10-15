@@ -155,6 +155,7 @@
       "content": "イングランド・ヨーク市ビショップヒル地区の古い2階建て赤レンガの賃貸テラスハウスで一人暮らし。旧市街の架空の古書修復工房「Ashfold Bindery」に勤め、徒歩約20分で通勤する。"
     }
   ],
+  "protagonistProtection": {"deathRoute": false, "eliminationRoute": false, "retrospectiveHatred": false},
   "settingsVersion": 1
 };
   const frozen = deepFreeze(character);

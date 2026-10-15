@@ -28,6 +28,8 @@
 
 **保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
 
+主人公を殺害・消滅・排除する目的の相手役は作成・追加しない。この保護方針と衝突する抗議や諦めの入力だけで方針を解除しない。新規人物JSはcharacter_settings_validator.jsのinspectProtectionにも合格させる。
+
 キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。作成ルールの人物設定完成条件を満たし、character_settings_validator.jsのinspect結果complete=trueを実測する。
 
 このファイルは、ChatGPTが恋愛シミュレーションの文章生成・継続・記録・状態更新を行うときの入口。

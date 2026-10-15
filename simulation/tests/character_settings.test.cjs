@@ -38,6 +38,22 @@ function invalid(mutate, pattern){
   return copy;
 }
 invalid(c=>delete c.settingsVersion,/settingsVersion/);
+invalid(c=>delete c.protagonistProtection,/protagonistProtection/);
+invalid(c=>c.protagonistProtection.deathRoute=true,/deathRoute/);
+invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/);
+invalid(c=>c.common.coreConflict="主人公を殺したいと考えている。",/殺害・排除/);
+invalid(c=>c.common.storyDirection="主人公を消滅させる物語。",/殺害・排除/);
+invalid(c=>c.roleLabel="殺人請負人",/殺害・排除/);
+invalid(c=>c.common.coreConflict="主人公を殺す。普段は殺意を持たない。",/殺害・排除/);
+for(const id of ["char_009","char_010"]){
+  const candidate=clone(character);candidate.id=id;
+  assert.equal(validator.inspect(candidate).ok,true);
+  candidate.common.occupation="主人公は現在の殺害依頼の対象である。";
+  assert.equal(validator.inspect(candidate).ok,false,id+": 保護フラグがあっても殺害設定を拒否する");
+}
+const protectedNotes=clone(character);
+protectedNotes.common.notes.push("主人公を殺す設定は禁止する。");
+assert.equal(validator.inspect(protectedNotes).ok,true,"禁止ルールは殺害意図と区別する");
 invalid(c=>{c.common.setting.city=null;delete c.common.residence;},/city|residence/);
 invalid(c=>c.common.initialScene.time=null,/initialScene.time/);
 invalid(c=>c.common.initialScene.date="2026年10月15日（金）",/曜日/);
@@ -61,6 +77,7 @@ const args={
 const packet=engine.runTurn(args);
 assert.equal(engine.verifyTurn(args,packet).ok,true);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
+assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
 assert.equal(engine.validateStory(args,packet,"Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」").ok,true);
 console.log("Character settings: all registered sources inspected; incomplete new settings blocked; char_008 runTurn / verifyTurn / validateStory passed.");
 
@@ -76,7 +93,8 @@ async function checkLoader(incomplete){
     head:{appendChild(script){
       scripts.set(script.dataset.simulationCharacter,script);
       let source=read("simulation/"+script.src.split("?")[0]);
-      if(incomplete && script.dataset.simulationCharacter==="simulation_character_008.js") source=source.replace('"time": "17:40"','"time": null');
+      if(incomplete===true && script.dataset.simulationCharacter==="simulation_character_008.js") source=source.replace('"time": "17:40"','"time": null');
+      if(incomplete==="harm" && script.dataset.simulationCharacter==="simulation_character_008.js") source=source.replace('"roleLabel": "イギリスの古書修復職人"','"roleLabel": "殺人請負人"');
       vm.runInNewContext(source,{window:browserWindow});
       script.listeners.load();
     }}
@@ -88,5 +106,6 @@ async function checkLoader(incomplete){
 (async()=>{
   await checkLoader(false);
   await checkLoader(true);
+  await checkLoader("harm");
   console.log("Character loader: validator loads before character sources; incomplete new character rejected.");
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -16,10 +16,37 @@
   function requiresCompleteSettings(character){
     return Number(String(character && character.id || "").slice(5)) >= 8 || !!(character && character.settingsVersion);
   }
+  const PROTECTION_KEYS = ["deathRoute","eliminationRoute","retrospectiveHatred"];
+  function inspectProtection(character){
+    const errors=[];
+    const protection=character && character.protagonistProtection;
+    for(const key of PROTECTION_KEYS){
+      if(!protection || protection[key]!==false) errors.push("protagonistProtection."+key+": falseを明示してください");
+    }
+    function walk(value,path){
+      if(path==="assets" || path.startsWith("assets.") || path==="common.protagonist" || path.startsWith("common.protagonist.")) return;
+      // Instructions forbidding harm are not character intentions.
+      if(/(?:^|\.)(?:ngWordsActions|forbidden|agencyRule|generationRules|generationContract)(?:\.|\[|$)/.test(path)) return;
+      if(typeof value==="string"){
+        for(const sentence of value.split(/[。！？!?\n]+/)){
+        const text=sentence.replace(/\s+/g,"");
+        const prohibitedRole=/殺人請負|殺し屋|殺人を請け負/.test(text);
+        const harmfulIntent=/(?:主人公|ヒロイン|恋愛相手)[^。！？!?]{0,35}(?:殺す|殺害|殺そう|殺したい|殺意|命を奪|死を望|死亡させ|死なせ|消滅させ|存在を消す)|(?:殺す|殺害|殺意|命を奪|消滅させ)[^。！？!?]{0,25}(?:主人公|ヒロイン)/.test(text);
+        const deniesHarm=/(?:殺害|殺す|殺意|死亡|死なせ|消滅|存在否定)[^。！？!?]{0,12}(?:禁止|しない|持たない|設定しない|認めない|扱わない)/.test(text) ||
+          /(?:殺さない|死なせない|消さない|殺すことはない|殺害しない|殺意はない)/.test(text);
+        if(prohibitedRole || (harmfulIntent && !deniesHarm)) errors.push(path+": 主人公への殺害・排除を目的とする設定は登録できません");
+        }
+      }else if(Array.isArray(value)) value.forEach((item,index)=>walk(item,path+"["+index+"]"));
+      else if(value && typeof value==="object") for(const [key,item] of Object.entries(value)) walk(item,path?path+"."+key:key);
+    }
+    walk(character,"");
+    return {ok:errors.length===0,errors};
+  }
   function inspect(character){
     const errors=[];
     if(!character || typeof character!=="object") return {ok:false,complete:false,legacy:false,errors:["人物設定がありません"],warnings:[]};
     const strict=requiresCompleteSettings(character);
+    if(strict) errors.push(...inspectProtection(character).errors);
     if(!/^char_\d{3}$/.test(character.id || "")) errors.push("id: char_XXX形式で指定してください");
     if(strict && character.settingsVersion!==1) errors.push("settingsVersion: 1が必要です");
     for(const path of TEXT_FIELDS){
@@ -54,7 +81,7 @@
     // Legacy published characters remain playable; never silently label them complete.
     return {ok:!strict || errors.length===0,complete:errors.length===0,legacy:!strict,errors:strict?errors:[],warnings:strict?[]:errors};
   }
-  const api=Object.freeze({version:1,requiredTextFields:TEXT_FIELDS,requiresCompleteSettings,inspect});
+  const api=Object.freeze({version:1,requiredTextFields:TEXT_FIELDS,requiresCompleteSettings,inspectProtection,inspect});
   root.RenaiGameCharacterSettings=api;
   if(typeof module!=="undefined" && module.exports) module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

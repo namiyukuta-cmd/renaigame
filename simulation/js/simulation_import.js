@@ -26,6 +26,16 @@
       try {
         if(file.size > 10 * 1024 * 1024) throw new Error('ファイルが大きすぎます。1章分のJSONを選んでください。');
         const data = JSON.parse(await file.text());
+        // An old cached simulation_save.js only accepts version 1. Reload the
+        // actual v2 import implementation before validating a compact bundle.
+        if(data.characterId != null && data.version === 2 &&
+           typeof window.RenaiGameSave?.compactChapterBundle !== 'function'){
+          await loadScript('js/simulation_save.js?v=20261015-chapter-v2-cache-repair');
+        }
+        if(data.characterId != null && data.version === 2 &&
+           typeof window.RenaiGameSave?.compactChapterBundle !== 'function'){
+          throw new Error('旧版の取り込み処理が残っています。画面を再読み込みしてからJSONを選び直してください。');
+        }
         if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') await loadScript('js/character_settings_validator.js?v=20261015-validator-bootstrap-v2');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') throw new Error('人物設定の検証JSが有効になっていません。最新版のゲーム画面を開いてください。');

@@ -455,26 +455,28 @@ after と各evaluationを「今回の会話ステータス」として固定
 - `stateHistory` へ今回Turnを追記する。
 - 過去Turnは変更しない。
 
-推奨stateHistoryエントリ：
+内部のstateHistoryエントリ（version 2の章取り込み時にゲームが計算して作成）：
 
 ```json
 {
   "turn": 14,
-  "scene": "Chapter 4",
-  "input": "主人公の今回入力全文",
+  "scene": "Chapter 14",
   "before": {},
-  "change": {},
+  "changes": {},
+  "evidence": {},
+  "stageTransition": null,
+  "yoinomaContext": {},
   "after": {},
-  "evaluation": {
-    "romanceOnset": {},
-    "conflict": {},
-    "approachAvoidance": {},
-    "attachmentTension": {},
-    "repair": {},
-    "intimacy": {}
-  }
+  "evaluations": {},
+  "execution": {},
+  "sources": {},
+  "fingerprint": "実際の計算結果",
+  "verification": {},
+  "validation": {}
 }
 ```
+
+主人公原文は同じ章のrecordsだけに保存する。内部心理履歴に`packet`の二重ネストや`protagonistInput`を追加しない。旧version 1の保存済み履歴は改変しない。
 
 旧flat stateを保存対象にした場合は、既存フィールドを失わずにcurrentStateへ引き継ぎ、stateHistoryを追加する。
 

@@ -13,10 +13,11 @@
     "simulation_character_005.js",
     "simulation_character_006.js",
     "simulation_character_007.js",
-    "simulation_character_008.js"
+    "simulation_character_008.js",
+    "simulation_character_010.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-protagonist-protection";
+  const CHARACTER_ASSET_VERSION = "20261015-add-owen-char010";
   let loadPromise = null;
 
   function loadScript(fileName) {

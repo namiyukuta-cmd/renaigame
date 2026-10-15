@@ -16,6 +16,7 @@
     "simulation_character_008.js"
   ];
 
+  const CHARACTER_ASSET_VERSION = "20261015-char008";
   let loadPromise = null;
 
   function loadScript(fileName) {
@@ -31,7 +32,7 @@
       }
 
       const script = document.createElement("script");
-      script.src = `js/${fileName}`;
+      script.src = `js/${fileName}?v=${CHARACTER_ASSET_VERSION}`;
       script.async = false;
       script.dataset.simulationCharacter = fileName;
       script.addEventListener("load", () => {

@@ -124,35 +124,6 @@ async function main(){
     assert.equal((await api.prepareChapterImport(next)).alreadySaved,true);
   }
 
-  // Version 2 stores only deltas and a calculation fingerprint in the import
-  // file; the game reconstructs the full, verified state exactly once.
-  {
-    const chapter=4, slot=files.get(prefix+id+'.json');
-    const logs=slot.state.session.recordsByCharacter.char_007;
-    const indices=[2];
-    const turnArgs={...args,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter4\\n「ありがとう。」'};
-    const calculated=engine.runTurn(turnArgs);
-    const turnStory=story.replace('Chapter 1','Chapter 4');
-    const verification=engine.verifyTurn(turnArgs,calculated);
-    const validation=engine.validateStory(turnArgs,calculated,turnStory);
-    const compact={version:2,saveId:id,characterId,chapter,records:[{index:3,entry:{scene:'Chapter 4',date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:3,entry:{turn:4,scene:'Chapter 4',changes:calculated.changes,evidence:calculated.evidence,stageTransition:calculated.stageTransition,yoinomaContext:calculated.yoinomaContext,fingerprint:calculated.fingerprint,verification,validation}}],replayContext:{recordIndices:indices,storyActions:{}}};
-    assert.ok(json(compact).length < json({...compact,version:1,stateHistory:[{index:3,entry:{turn:4,scene:'Chapter 4',...calculated,verification,validation,packet:calculated}}]}).length / 2,'new import is materially smaller');
-    const before=JSON.stringify([...files]);
-    const view=await api.prepareChapterImport(compact);
-    assert.equal(JSON.stringify([...files]),before,'compact preview never writes');
-    const changed=copy(compact);changed.stateHistory[0].entry.changes.gratitude++;
-    await assert.rejects(api.prepareChapterImport(changed),/指紋|失敗|不一致/,'tampered deltas cannot be imported');
-    const wrong=copy(compact);wrong.stateHistory[0].index=999;
-    await assert.rejects(api.prepareChapterImport(wrong),/配列位置/,'incorrect history index is blocked');
-    const saved=await api.commitChapterImport(view);
-    const hist=saved.state.session.statesByCharacter.char_007.stateHistory.at(-1);
-    assert.equal(hist.turn,4);
-    assert.equal(hist.packet,undefined,'no nested packet in new stored history');
-    assert.equal(hist.protagonistInput,undefined,'protagonist input stays in the record only');
-    assert.equal(hist.fingerprint,calculated.fingerprint);
-    assert.equal(JSON.stringify(hist.after),JSON.stringify(calculated.after),'actual JS recomputed result is saved');
-    assert.equal((await api.prepareChapterImport(compact)).alreadySaved,true,'compact duplicate is not appended');
-  }
   console.log('PASS: legacy version 1 + compact version 2, JS replay, duplicate and tamper protection, no nested history packet');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

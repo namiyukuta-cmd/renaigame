@@ -16,7 +16,7 @@
     "simulation_character_008.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-complete-settings";
+  const CHARACTER_ASSET_VERSION = "20261015-remove009";
   let loadPromise = null;
 
   function loadScript(fileName) {

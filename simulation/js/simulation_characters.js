@@ -15,10 +15,11 @@
     "simulation_character_007.js",
     "simulation_character_008.js",
     "simulation_character_010.js",
-    "simulation_character_011.js"
+    "simulation_character_011.js",
+    "simulation_character_012.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261016-add-oliver-char011";
+  const CHARACTER_ASSET_VERSION = "20261016-add-arthur-char012";
   let loadPromise = null;
 
   function loadScript(fileName) {
@@ -115,3 +116,4 @@
     getHomeAsset
   });
 })();
+

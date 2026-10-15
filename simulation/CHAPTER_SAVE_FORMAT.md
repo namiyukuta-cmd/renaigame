@@ -1,38 +1,67 @@
 # 章JSON取り込みと1スロット1ファイル保存
 
-## 現在の保存方式
+## 正本セーブ
 
-正本は private-game-data の `renaigame/simulation/saves/<saveId>.json`。**1スロットの本文・心理状態・心理履歴・主人公プロフィールをこの1つのJSONに保持する。章ファイルへ分割して新規保存しない。** セーブ一覧 index.json は名前・相手・固定slotNumber・更新日時のみ。主人公名＋selectedCharacterIdの組で一覧をまとめ、その中のスロットを選ぶ。
+正本は private-game-data の `renaigame/simulation/saves/<saveId>.json`。**1スロット＝1つの完全JSON**。本文・心理履歴・プロフィールを含む。別スロットや別キャラの内容は混ぜない。旧分割chapter-files-v1は読み込み時に復元する。
 
-- `state.session.recordsByCharacter[characterId]`：主人公入力と攻略対象本文等の全文を章順に保持する。
-- `state.session.statesByCharacter[characterId].currentState`：最新の心理状態。
-- `state.session.statesByCharacter[characterId].stateHistory`：各Turnのbefore・changes・evidence・after・evaluations・execution・verification・validation・packet全文。
+- `state.session.recordsByCharacter[characterId]`：各章の主人公原文と相手本文を1度だけ保持する。
+- `state.session.statesByCharacter[characterId].currentState`：最新の心理状態（高速取得用）。
+- `state.session.statesByCharacter[characterId].stateHistory`：各Turnの計算結果・検証結果を1組だけ保持する。**新しく保存する履歴には二重の`packet`と`protagonistInput`を格納しない。**
 - `state.profile`：主人公プロフィール。
-- `chapterImportMetadataByCharacter[characterId][chapter]`：取り込み用JSONの補助情報。過去ログはreplayContext.recordIndices（0始まりの配列添字、使用順）とrecordsFingerprintで参照し、本文を重複保存しない。storyActionsと未知の補助項目は保持する。
+- `chapterImportMetadataByCharacter[characterId][chapter]`：`replayContext.recordIndices`、`recordsFingerprint`、`storyActions`など。過去ログ全文をここに複製しない。
 
-同じ攻略対象でも別主人公・別スロットの内容を混ぜない。既存の未知のフィールドを削除しない。主要心理値が不足する旧stateを勝手に0で補完しない。
+## 新規の章取り込みJSON：version 2（重複排除）
 
-## AIが出すファイル
-
-ユーザーが「保存して」と言ったら、標準ではゲームで取り込む**今回の1章分だけ**のJSONファイルを出す。GitHubに保存したとは報告しない。直接GitHubへ保存するよう明示された場合のみ直接保存を行う。
-
-ファイル名：`<saveId>_<characterId>_<4桁chapter>.json`。
+AIは`runTurn`→`verifyTurn`→`validateStory`を実行・確認した後、**今回1章分のみ**を次の構造で出力する。ファイル名：`<saveId>_<characterId>_<4桁chapter>.json`。
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "saveId": "run_example",
   "characterId": "char_007",
   "chapter": 2,
-  "records": [{"index": 1, "entry": {"scene": "Chapter 2", "date": "", "protagonist": "主人公入力の全文", "partner": "本文全文"}}],
-  "stateHistory": [{"index": 1, "entry": {"turn": 2, "scene": "Chapter 2", "before": {}, "changes": {}, "evidence": {}, "after": {}, "evaluations": {}, "execution": {}, "sources": {}, "fingerprint": "", "verification": {}, "validation": {}, "packet": {}}}],
+  "records": [
+    {
+      "index": 1,
+      "entry": {
+        "scene": "Chapter 2",
+        "date": "2026年10月14日（水）",
+        "protagonist": "今回の主人公入力全文",
+        "partner": "生成本文全文"
+      }
+    }
+  ],
+  "stateHistory": [
+    {
+      "index": 1,
+      "entry": {
+        "turn": 2,
+        "scene": "Chapter 2",
+        "changes": {"gratitude": 2},
+        "evidence": {"gratitude": "ありがとう"},
+        "stageTransition": null,
+        "yoinomaContext": {},
+        "fingerprint": "実行したrunTurnのfingerprint",
+        "verification": {"ok": true, "errors": [], "replayFingerprint": "同じfingerprint"},
+        "validation": {"ok": true, "errors": [], "warnings": [], "replayFingerprint": "同じfingerprint", "requiresSemanticReview": true}
+      }
+    }
+  ],
   "replayContext": {"recordIndices": [0], "storyActions": {}}
 }
 ```
 
-これは構造例。空の心理項目を本物のデータとして使わない。history.entryには実際のpacketの全フィールドを保持し、verificationとvalidationの成功結果、packet自体も元のまま含める。主人公入力・本文を要約に置き換えない。
+上記は**構造例**。実際の`changes`・`evidence`・`yoinomaContext`・`fingerprint`・検証結果を使う。空の心理情報を計算済みとして捏造しない。
 
-replayContext.recordIndicesにはrunTurn/verifyTurnに実際に渡した過去実ログの、保存済みrecordsByCharacter[characterId]における0始まりの添字を使用順に入れる。全ログを使った場合もその添字一覧を出す。Chapter 1は空配列。storyActionsにはvalidateStoryへ実際に渡した行動宣言を含める。過去ログ全文のreplayContext.recordsは今後の出力には不要。ゲームが同じスロットから実ログを取得し、packet.sources.recordsの指紋一致と実際のJS再検証を必須にする。旧JSONのreplayContext.recordsも受け入れ、保存時には参照番号へ変換する。生成時の計算結果と検証記録を保持し、ファイル出力のために文章・心理変化を作り直さない。
+- **入れない**：`stateHistory[0].entry.packet`、`before`、`after`、`evaluations`、`execution`、`sources`、`protagonistInput`。これらは取り込み時の`runTurn`で正本から再生成し、指紋で一致検査する。主人公入力は`records[0].entry.protagonist`にだけ置く。
+- `history.entry.changes/evidence/stageTransition/yoinomaContext`は生成時に検証したpacketと**完全一致**させる。`history.entry.fingerprint`は元のpacketの指紋。`verification`・`validation`も元の実測結果を記録する。ファイル出力のために心理変化や本文を再生成しない。
+- `replayContext.recordIndices`は実際の計算に渡した過去実ログの**正本内の0始まりの添字**。全ログ利用時も使用順に記す。Chapter 1は`[]`。`replayContext.storyActions`は`validateStory`に使った宣言。過去の本文を複製しない。
+- 取り込み側は、保存済み`currentState`・指定された過去ログ・主人公プロフィール・人物JS・行動JSから**実際に`runTurn`し直す**。指紋不一致や`verifyTurn/validateStory`の失敗時は保存しない。
+- 検証成功時に保存される心理履歴は、再生成した`before/changes/evidence/stageTransition/yoinomaContext/after/evaluations/execution/sources/fingerprint`と`verification/validation`を**各1回**保持する。`packet`ネスト・主人公入力の複製は付けない。
+
+### 旧形式との互換性
+
+既存の**version 1**（`history.entry`内に計算項目と同じ内容の`packet`を両方持つ）も引き続き取り込める。すでに保存した旧章の心理履歴は**無断で削除・変換しない**。新規のversion 2だけ重複を排除する。旧形式のゲームや古い端末ではversion 2を扱えないため、最新版を開き直すこと。
 
 ## ゲームでの保存
 

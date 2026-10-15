@@ -450,3 +450,7 @@ Chapter実ログ：
 相手役は、現在場面でその言葉について具体的に答える。抽象的な否定だけを反復せず、何を発言し、どこが間違っていて、今回どう応答するかを描く。主人公に納得・許し・安心を強制せず、その心理や返答を補完しない。過去ログ・心理を勝手に修正しない。生成後のvalidateStory / validateContinuityは継続し、新たな死亡・死への肯定・遡及的嫌悪は拒否する。
 
 入力の引用を許可することは、相手役に同じ残酷な台詞を新たに発言させる許可ではない。本文に過去の文言を出す必要がある場合も、話者・引用・実ログの根拠を確認する。JSは意味や話者の全てを保証するものではない。
+
+## 心理パケット全文の指定がある場合
+
+before・changes・evidence・after・evaluations・execution・sources・verification等の全文保持を求められた場合は、省略型version 2にせず、CHAPTER_SAVE_FORMAT.mdの「version 1、重複なし」を使う。history.entry直下へpacketの全項目を1回だけ展開し、verification・validationを保持する。packetオブジェクトをもう一度入れない。beforeとafterを両方残し、値や指紋を変更しない。

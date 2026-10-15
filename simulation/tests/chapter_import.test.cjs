@@ -41,10 +41,34 @@ const args={saveId:id,characterId,character:sandbox.window.SimulationCharacter00
 const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／朝／10℃\n\nエミールは静かに頷いた。';
 const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',date:'2026-10-13',protagonist:args.protagonistInput,partner:story}}],stateHistory:[{index:0,entry:{turn:1,scene:'Chapter 1',...packet,verification:engine.verifyTurn(args,packet),validation:engine.validateStory(args,packet,story),packet}}]};
 const copy=x=>JSON.parse(JSON.stringify(x));
+function v2Bundle(value){
+  const result=copy(value); result.version=2;
+  const h=result.stateHistory[0].entry;
+  for(const key of ['version','saveId','characterId','protagonistInput','before','after','evaluations','sources','execution','packet']) delete h[key];
+  return result;
+}
 async function main(){
   api.setToken('test');files.set(prefix+id+'.json',copy(current));files.set(prefix+'index.json',{version:1,saves:[copy(current.meta),{id:'unrelated',protagonistName:'別',selectedCharacterId:'char_006',updatedAt:'unchanged'}]});
   const before=JSON.stringify([...files]);
-  const preview=await api.prepareChapterImport(bundle);
+  const extended=copy(bundle);
+  extended.stateHistory[0].entry.packet.futureAudit={kept:"all"};
+  const extendedCompact=api.compactChapterBundle(extended).stateHistory[0].entry;
+  assert.equal(extendedCompact.futureAudit.kept,"all");
+  assert.ok(extendedCompact.packetFieldNames.includes("futureAudit"));
+  assert.deepEqual(JSON.parse(JSON.stringify(api.compactChapterBundle(api.compactChapterBundle(bundle)))),copy(api.compactChapterBundle(bundle)),"compaction is idempotent");
+  const compact=api.compactChapterBundle(bundle);
+  assert.equal(compact.stateHistory[0].entry.packet,undefined);
+  assert.deepEqual(compact.stateHistory[0].entry.before,bundle.stateHistory[0].entry.before);
+  assert.equal(JSON.stringify(bundle.stateHistory[0].entry.packet),JSON.stringify(packet),'source bundle remains unchanged');
+  const fromNested=copy(bundle);
+  for(const key of Object.keys(packet)) delete fromNested.stateHistory[0].entry[key];
+  const nestedPreview=await api.prepareChapterImport(fromNested);
+  assert.equal(nestedPreview.chapter,1,'nested-only packet compatibility');
+  const v2Preview=await api.prepareChapterImport(v2Bundle(bundle));
+  assert.equal(v2Preview.chapter,1,'v2 lightweight format stays compatible');
+  const corruptV2=v2Bundle(bundle);corruptV2.stateHistory[0].entry.fingerprint='invalid';corruptV2.stateHistory[0].entry.verification.replayFingerprint='invalid';
+  await assert.rejects(api.prepareChapterImport(corruptV2),/指紋/);
+  const preview=await api.prepareChapterImport(compact);
   assert.equal(preview.chapter,1);assert.equal(preview.protagonistName,profile.name);
   assert.equal(JSON.stringify([...files]),before,'preview never writes');
   const bad=copy(bundle);bad.stateHistory[0].entry.packet.after.gratitude++;
@@ -60,28 +84,42 @@ async function main(){
   await api.loadSaveById(id);
   assert.equal(JSON.parse(local.get(api.SESSION_KEY)).recordsByCharacter.char_007.length,1);
   assert.equal(saved.state.session.recordsByCharacter.char_007.length,1);
+  const storedHistory=saved.state.session.statesByCharacter.char_007.stateHistory[0];
+  assert.equal(storedHistory.packet,undefined,'store packet values only once');
+  assert.deepEqual(JSON.parse(JSON.stringify(storedHistory)),JSON.parse(JSON.stringify(compact.stateHistory[0].entry)));
+  // A previously saved legacy entry and a new compact upload are the same chapter.
+  const persisted=files.get(prefix+id+'.json');
+  persisted.state.session.statesByCharacter.char_007.stateHistory[0]=copy(bundle.stateHistory[0].entry);
+  assert.equal((await api.prepareChapterImport(compact)).alreadySaved,true);
+  persisted.state.session.statesByCharacter.char_007.stateHistory[0]=copy(storedHistory);
+  const metadata=copy(bundle);metadata.stateHistory[0].entry.customAudit={retained:true};
+  assert.equal(api.compactChapterBundle(metadata).stateHistory[0].entry.customAudit.retained,true);
   assert.equal(JSON.stringify(saved.state.session.statesByCharacter.char_007.currentState),JSON.stringify(packet.after));
   assert.equal(files.get(prefix+'index.json').saves[1].updatedAt,'unchanged');
   const duplicate=await api.prepareChapterImport(bundle);assert.equal(duplicate.alreadySaved,true);
   await assert.rejects(api.commitChapterImport(duplicate));
   const conflict=copy(bundle);conflict.records[0].entry.partner+='違う本文';await assert.rejects(api.prepareChapterImport(conflict),/異なる記録/);
-  for(const chapter of [2,3]){
+  for(const chapter of [2,3,4]){
     const slot=files.get(prefix+id+'.json');
     const logs=slot.state.session.recordsByCharacter.char_007;
     // Chapter 3 deliberately replays a subset; use exactly the same selection.
-    const indices=chapter===2?[0]:[1];
-    const turnArgs={...args,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
+    const indices=chapter===2?[0]:chapter===3?[1]:[2];
+    const turnArgs={...args,protagonistProfile:chapter===4?{}:profile,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
     const turnPacket=engine.runTurn(turnArgs);
     const turnStory=story.replace('Chapter 1','Chapter '+chapter);
     const next={version:1,saveId:id,characterId,chapter,records:[{index:chapter-1,entry:{scene:'Chapter '+chapter,date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:chapter-1,entry:{turn:chapter,scene:'Chapter '+chapter,...turnPacket,verification:engine.verifyTurn(turnArgs,turnPacket),validation:engine.validateStory(turnArgs,turnPacket,turnStory),packet:turnPacket}}],replayContext:chapter===2?{records:copy(turnArgs.records),storyActions:{}}:{recordIndices:indices,storyActions:{}}};
     const wrong=copy(next);wrong.replayContext={recordIndices:[999]};await assert.rejects(api.prepareChapterImport(wrong),/参照番号/);
     const mismatch=copy(next);mismatch.replayContext={recordIndices:chapter===2?[]:[0]};await assert.rejects(api.prepareChapterImport(mismatch),/指紋/);
-    const result=await api.commitChapterImport(await api.prepareChapterImport(next));
+    const incoming=chapter===4?v2Bundle(next):chapter===3?api.compactChapterBundle(next):next;
+    const result=await api.commitChapterImport(await api.prepareChapterImport(incoming));
     const metadata=result.chapterImportMetadataByCharacter.char_007[chapter];
     assert.equal(metadata.replayContext.records,undefined,'past story bodies are not saved twice');
     assert.equal(JSON.stringify(metadata.replayContext.recordIndices),JSON.stringify(indices));
     assert.equal(metadata.replayContext.recordsFingerprint,turnPacket.sources.records);
-    assert.equal(JSON.stringify(result.state.session.statesByCharacter.char_007.stateHistory.at(-1)),JSON.stringify(next.stateHistory[0].entry),'full original packet and verification survive');
+    const expectedHistory=copy(api.compactChapterBundle(next).stateHistory[0].entry);
+    if(chapter===4) delete expectedHistory.protagonistInput;
+    assert.deepEqual(JSON.parse(JSON.stringify(result.state.session.statesByCharacter.char_007.stateHistory.at(-1))),expectedHistory,'all psychology and verification survive without nested duplicate');
+    assert.equal((await api.prepareChapterImport(incoming)).alreadySaved,true);
     assert.equal(result.state.session.recordsByCharacter.char_007.length,chapter);
     assert.equal((await api.prepareChapterImport(next)).alreadySaved,true);
   }

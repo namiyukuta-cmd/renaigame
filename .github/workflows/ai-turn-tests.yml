@@ -7,6 +7,7 @@ on:
       - "simulation/state/templates/**"
       - "simulation/tests/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
+      - "simulation/CHAPTER_SAVE_FORMAT.md"
       - "js/renaigame_psychology_parameters.js"
       - ".github/workflows/ai-turn-tests.yml"
   pull_request:
@@ -15,6 +16,7 @@ on:
       - "simulation/state/templates/**"
       - "simulation/tests/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
+      - "simulation/CHAPTER_SAVE_FORMAT.md"
       - "js/renaigame_psychology_parameters.js"
       - ".github/workflows/ai-turn-tests.yml"
 
@@ -30,3 +32,5 @@ jobs:
           node-version: "22"
       - run: node simulation/tests/character_settings.test.cjs
       - run: node simulation/tests/ai_turn_engine.test.cjs
+      - run: node simulation/tests/chapter_import.test.cjs
+      - run: node simulation/tests/chapter_save.test.cjs

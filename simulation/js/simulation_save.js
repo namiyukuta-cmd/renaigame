@@ -678,6 +678,42 @@
     return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
   }
 
+  const PACKET_FIELDS = ['version','saveId','characterId','protagonistInput','changes','evidence','stageTransition','yoinomaContext','before','after','evaluations','sources','execution','fingerprint'];
+  const HISTORY_FIELDS = new Set(['turn','scene','verification','validation','storyValidation','packet','packetFieldNames']);
+  // Canonical history stores all packet values once, directly in the entry.
+  // Accept old nested packets only after checking every duplicated field.
+  function canonicalChapterHistory(value){
+    if(!value || typeof value !== 'object' || Array.isArray(value)) importError('心理履歴がありません。');
+    const history = clone(value);
+    let packet;
+    if(history.packet !== undefined){
+      if(!history.packet || typeof history.packet !== 'object' || Array.isArray(history.packet)) importError('心理パケットが不正です。');
+      packet = clone(history.packet);
+      for(const [key,item] of Object.entries(packet)){
+        if(HISTORY_FIELDS.has(key)) importError('心理パケットの項目名が履歴情報と衝突しています。');
+        if(Object.prototype.hasOwnProperty.call(history,key) && !equal(history[key],item)) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
+        history[key] = clone(item);
+      }
+      delete history.packet;
+      // Preserve unknown future packet fields without a second copy of values.
+      if(Object.keys(packet).some(key => !PACKET_FIELDS.includes(key))) history.packetFieldNames = Object.keys(packet);
+      else delete history.packetFieldNames;
+    } else {
+      const keys = history.packetFieldNames === undefined ? PACKET_FIELDS : history.packetFieldNames;
+      if(!Array.isArray(keys) || keys.some(key => typeof key !== 'string' || HISTORY_FIELDS.has(key)) || new Set(keys).size !== keys.length) importError('心理パケットの項目一覧が不正です。');
+      packet = Object.fromEntries(keys.filter(key => Object.prototype.hasOwnProperty.call(history,key)).map(key => [key,clone(history[key])]));
+    }
+    return {history,packet};
+  }
+  function compactChapterBundle(value){
+    const bundle = clone(value);
+    if(bundle && bundle.characterId != null && Array.isArray(bundle.stateHistory)){
+      bundle.stateHistory = bundle.stateHistory.map(item => ({...item,entry:canonicalChapterHistory(item.entry).history}));
+    }
+    return bundle;
+  }
+
+
   // Unassigned story records have no partner psychology to calculate.
   // Retain the original bundle and explicitly keep it unverified.
   async function prepareUnassignedImport(value){
@@ -720,12 +756,12 @@
 
   async function prepareChapterImport(value){
     if(value && value.characterId == null) return prepareUnassignedImport(value);
-    const bundle = clone(value);
+    const bundle = compactChapterBundle(value);
     if(![1,2].includes(bundle.version) || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
     if(bundle.records?.length !== 1 || bundle.stateHistory?.length !== 1) importError('1章分の本文と心理履歴を入れてください。');
     const compact = bundle.version === 2;
     const record = bundle.records[0].entry, history = bundle.stateHistory[0].entry;
-    let packet = compact ? null : history?.packet;
+    let packet = compact ? null : canonicalChapterHistory(history).packet;
     if(!record || !history || typeof record.protagonist !== 'string' || !record.protagonist.trim() || typeof record.partner !== 'string' || !record.partner.trim()) importError('本文または心理履歴がありません。');
     if(chapterNumber(record, 0) !== bundle.chapter || history.turn !== bundle.chapter || (compact && history.scene !== 'Chapter ' + bundle.chapter)) importError('本文・心理履歴のChapter番号が一致しません。');
     if(compact){
@@ -761,7 +797,11 @@
     if(!meta || meta.selectedCharacterId !== id || meta.protagonistName !== buildMeta(save, bundle.saveId).protagonistName) importError('セーブ一覧の組と保存先が一致しません。');
     const preview = Object.freeze({ saveId: bundle.saveId, protagonistName: meta.protagonistName, partnerName: meta.partnerName, slotNumber: numberSlots(index.saves).find(item => item.id === bundle.saveId).slotNumber, chapter: bundle.chapter, fingerprint: expectedFingerprint, protagonist: record.protagonist, partner: record.partner, alreadySaved: false });
     if(existingRecords.length){
-      const sameHistory = compact ? (existingHistory.length === 1 && existingHistory[0].fingerprint === expectedFingerprint) : equal(existingHistory, [history]);
+      const sameHistory = compact ? (existingHistory.length === 1 && existingHistory[0].fingerprint === expectedFingerprint) : equal(existingHistory.map(entry => {
+        const normalized = canonicalChapterHistory(entry).history;
+        for(const key of ['version','saveId','characterId','protagonistInput']) if(normalized[key] === undefined) normalized[key] = packet[key];
+        return normalized;
+      }), [history]);
       if(!equal(existingRecords, [record]) || !sameHistory) importError('同じChapterに異なる記録があります。上書きはしません。');
       return Object.freeze({ ...preview, alreadySaved: true });
     }
@@ -786,15 +826,20 @@
       records = context.recordIndices.map(index => actualRecords[index]);
     } else records = context.records === undefined ? actualRecords : context.records;
     if(!Array.isArray(records) || records.some(entry => !actualRecords.some(original => equal(entry,original)))) importError('再検証用の過去ログが現在のセーブと一致しません。');
-    if(engine.fingerprint(records) !== packet.sources.records) importError('再検証用の過去ログの指紋が一致しません。');
+    if(!compact && engine.fingerprint(records) !== packet.sources.records) importError('再検証用の過去ログの指紋が一致しません。');
     let profile = save.state.profile;
-    if(engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
+    if(!compact && engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
     const character = window.RenaiGameCharacters?.getById(id) || window.SimulationCharacters?.[id];
     const behavior = window['SimulationCharacter' + id.slice(5) + 'Behavior'];
     const args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, stateEntry, records, protagonistProfile: profile, protagonistInput: record.protagonist, changes: compact ? history.changes : packet.changes, evidence: compact ? history.evidence : packet.evidence, stageTransition: compact ? history.stageTransition : packet.stageTransition, yoinomaContext: compact ? history.yoinomaContext : packet.yoinomaContext };
     if(compact){
       try { packet = engine.runTurn(args); }
       catch(error){ importError('心理JSの計算に失敗しました：' + error.message); }
+      if(packet.fingerprint !== expectedFingerprint && Object.keys(profile || {}).length){
+        const withoutProfile = {...args, protagonistProfile: {}};
+        const replay = engine.runTurn(withoutProfile);
+        if(replay.fingerprint === expectedFingerprint){ args.protagonistProfile = {}; packet = replay; }
+      }
       if(packet.fingerprint !== expectedFingerprint) importError('心理パケットの再計算指紋が一致しません。入力・心理状態・参照ログを確認してください。');
     }
     const verification = engine.verifyTurn(args, packet);
@@ -802,16 +847,9 @@
     const validation = engine.validateStory(args, packet, record.partner, context.storyActions || {});
     if(!validation.ok) importError('本文の再検証に失敗しました：' + validation.errors.join('／'));
     if(!compact) for(const key of ['before','changes','evidence','after','evaluations','execution']) if(!equal(history[key],packet[key])) importError('心理履歴と生成用パケットの' + key + 'が一致しません。');
-    // New entries hold the engine-verified result exactly once. Story input
-    // is kept only in records; no second nested packet is stored in history.
-    const storedHistory = compact ? {
-      turn: history.turn, scene: history.scene,
-      before: clone(packet.before), changes: clone(packet.changes), evidence: clone(packet.evidence),
-      stageTransition: packet.stageTransition, yoinomaContext: clone(packet.yoinomaContext),
-      after: clone(packet.after), evaluations: clone(packet.evaluations),
-      execution: clone(packet.execution), sources: clone(packet.sources), fingerprint: packet.fingerprint,
-      verification: clone(verification), validation: clone(validation)
-    } : clone(history);
+    // Keep all original verification and auxiliary fields; store packet values once.
+    const storedHistory = canonicalChapterHistory({...history, packet}).history;
+    if(compact) delete storedHistory.protagonistInput; // v2 input is already preserved in the record.
     save.state.session.recordsByCharacter[id] = [...savedRecords, clone(record)];
     save.state.session.statesByCharacter[id] = { ...(savedState || {}), currentState: clone(packet.after), stateHistory: [...savedHistory, storedHistory] };
     if(!save.chapterImportMetadataByCharacter) save.chapterImportMetadataByCharacter = {};
@@ -873,7 +911,7 @@
     hydrateSave,
     isSplit,
     pairKey, groupSlots, numberSlots, getPartnerName,
-    prepareChapterImport, commitChapterImport
+    compactChapterBundle, prepareChapterImport, commitChapterImport
   };
 })();
 

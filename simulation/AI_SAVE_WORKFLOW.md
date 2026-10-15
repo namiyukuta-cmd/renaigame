@@ -638,3 +638,7 @@ currentStateの更新対象例：
 
 
 
+
+## 心理パケット全文を指定された場合の互換形式
+
+CHAPTER_SAVE_FORMAT.mdの「version 1、重複なし」に対応する。before・after等を省略せず、history.entry直下にpacket全項目を1回だけ展開し、verification・validationを保持する。同じpacketオブジェクトを重ねない。新規取り込み時には旧二重形式も全項目を保持した単一履歴に整理する。過去の保存済み履歴は一括改変しない。

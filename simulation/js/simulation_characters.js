@@ -16,7 +16,7 @@
     "simulation_character_008.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-char008-york-home";
+  const CHARACTER_ASSET_VERSION = "20261015-complete-settings";
   let loadPromise = null;
 
   function loadScript(fileName) {
@@ -48,8 +48,14 @@
     if (!loadPromise) {
       loadPromise = CHARACTER_SCRIPTS.reduce(
         (promise, fileName) => promise.then(() => loadScript(fileName)),
-        Promise.resolve()
-      ).then(() => getAll());
+        loadScript("character_settings_validator.js")
+      ).then(() => {
+        for(const character of getAll()){
+          const result = window.RenaiGameCharacterSettings.inspect(character);
+          if(!result.ok) throw new Error(character.name + "の設定が未完成です：" + result.errors.join("／"));
+        }
+        return getAll();
+      }).catch(error => { loadPromise = null; throw error; });
     }
     return loadPromise;
   }

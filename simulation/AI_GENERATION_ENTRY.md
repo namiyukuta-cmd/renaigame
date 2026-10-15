@@ -28,7 +28,7 @@
 
 **保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
 
-キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。
+キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。作成ルールの人物設定完成条件を満たし、character_settings_validator.jsのinspect結果complete=trueを実測する。
 
 このファイルは、ChatGPTが恋愛シミュレーションの文章生成・継続・記録・状態更新を行うときの入口。
 
@@ -103,7 +103,7 @@
 
 毎Turn、**本文を書く前に実際のJS実行結果を得る**こと。必要ファイルを取得できない場合は本文を生成しません。
 
-1. 今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
+1. `simulation/js/character_settings_validator.js`を取得・評価し、相手役の設定検査を実行する。新規形式の設定不足は補完・検査に戻し、主人公の未指定情報は埋めない。今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
 2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。
 3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと8つの心理関数の実行証跡が含まれる。
 4. `RenaiGameTurnEngine.verifyTurn(args, packet)`で、同じ元データから**再計算**して`ok === true`を確認する。不一致・不足時は停止する。

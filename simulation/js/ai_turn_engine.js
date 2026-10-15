@@ -76,6 +76,13 @@
     if (!record(args.character) || args.character.id !== args.characterId) {
       fail("人物JSとcharacterIdが一致しません");
     }
+
+    if(Number(args.characterId.slice(5)) >= 8 || args.character.settingsVersion){
+      const validator = root.RenaiGameCharacterSettings || (typeof require === "function" ? require("./character_settings_validator.js") : null);
+      if(!validator) fail("character_settings_validator.jsを取得・実行してください");
+      const settings = validator.inspect(args.character);
+      if(!settings.ok) fail("人物設定が未完成です: " + settings.errors.join("／"));
+    }
     const initiative = args.character.common && args.character.common.baseRomanticInitiative;
     if (!Number.isInteger(initiative) || initiative < 1 || initiative > 10) {
       fail("人物設定のbaseRomanticInitiativeは1〜10の整数で必須です");

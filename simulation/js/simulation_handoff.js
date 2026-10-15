@@ -51,7 +51,7 @@
       '押し付けを避けてほしいという指示を、見捨ててよいという意味にしないでください。断られた行為だけを止め、主人公との関わり全体の拒絶へ広げないでください。同じ行為を迫り続けず、求められた返答や負担の少ない具体的な応答を行ってください。',
       '主人公の新しい台詞・行動・心理・反応・未設定プロフィールを補完しないでください。',
       '主人公の今回入力を受け取ってから、心理変化→更新後state→JS計算→攻略対象・NPC・環境の返答の順に進めてください。',
-      '毎ターン必須：simulation/js/ai_turn_engine.js を取得し、js/renaigame_psychology_parameters.js の本物のJS関数を実行してください。読むだけ・計算したと宣言するだけは禁止です。',
+      '毎ターン必須：simulation/js/character_settings_validator.jsを取得・評価して人物設定を検査し、simulation/js/ai_turn_engine.js を取得し、js/renaigame_psychology_parameters.js の本物のJS関数を実行してください。読むだけ・計算したと宣言するだけは禁止です。',
       '今回入力の原文を使ったchangesとevidenceを作り、RenaiGameTurnEngine.runTurnで生成用パケットを作成し、verifyTurnのok=trueを確認してから本文を生成してください。',
       '生成後はvalidateStoryを実行し、ok=falseなら本文を修正・再検査してください。意味・設定の整合性は実ログ・個別behaviorとも照合してください。',
       '実行器、対象JS、現在saveId、心理state、実ログが取得できない時、または検証失敗時は小説を捏造せず処理を停止してください。',

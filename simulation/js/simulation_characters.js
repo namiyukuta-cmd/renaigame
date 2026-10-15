@@ -16,7 +16,7 @@
     "simulation_character_008.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-char008-visible-first";
+  const CHARACTER_ASSET_VERSION = "20261015-char008-york-home";
   let loadPromise = null;
 
   function loadScript(fileName) {

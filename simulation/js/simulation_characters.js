@@ -16,7 +16,7 @@
     "simulation_character_008.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-char008";
+  const CHARACTER_ASSET_VERSION = "20261015-char008-visible-first";
   let loadPromise = null;
 
   function loadScript(fileName) {
@@ -56,7 +56,7 @@
 
   function getAll() {
     const characters = window.SimulationCharacters || {};
-    return Object.values(characters);
+    return Object.values(characters).sort((a, b) => b.id.localeCompare(a.id));
   }
 
   function getById(id) {

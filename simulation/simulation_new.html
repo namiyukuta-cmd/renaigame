@@ -640,7 +640,7 @@
     <button id="writeButton" type="button">文章を書く</button>
   </nav>
 
-  <script src="js/simulation_characters.js?v=20261015-char008"></script>
+  <script src="js/simulation_characters.js?v=20261015-char008-visible-first"></script>
   <script src="js/simulation_save.js?v=20261015-delete-slots"></script>
   <script src="js/simulation_import.js?v=20261014-continuity-audit"></script>
   <script src="js/simulation_slots.js?v=20261015-delete-slots"></script>
@@ -773,11 +773,14 @@
         <section class="content-panel" aria-labelledby="romanceTitle">
           <h2 id="romanceTitle">恋愛相手</h2>
           <p class="panel-note">カードをタップして恋愛相手を選びます。「AIに渡す」の画面内でも選べます。</p>
+          <p class="panel-note" id="targetCount" aria-live="polite"></p>
           <div class="target-list" id="targetList"></div>
         </section>
       `;
 
       const list = document.getElementById('targetList');
+      const allTargets = RenaiGameCharacters.getAll();
+      document.getElementById('targetCount').textContent = `登録済みの恋愛相手：${allTargets.length}人（新しい人物から表示）`;
 
       const roomButton = document.createElement('button');
       roomButton.type = 'button';
@@ -797,7 +800,7 @@
       });
       list.appendChild(roomButton);
 
-      RenaiGameCharacters.getAll().forEach((character) => {
+      allTargets.forEach((character) => {
         list.appendChild(makeTargetCard(character, selectedId));
       });
 

@@ -19,7 +19,7 @@
 
 ユーザーが「保存して」と指示したら、標準では本文生成時に確定した本文・心理パケット・検証記録から1章分のJSONファイルを出力する。ゲームの「セーブ → 章データを取り込んで保存」でユーザー自身が最後の保存操作を行う。明示的にChatGPTからGitHubへ直接保存するよう指定された場合だけ、従来の直接保存手順を使う。ファイルを出しただけではGitHub保存済みと報告しない。
 
-ファイルはCHAPTER_SAVE_FORMAT.mdの章ファイル構造に従う。version=1、saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。record.entryにscene/date/protagonist/partnerの原文全文を保持する。history.entryにturn/scene、packetの全項目、verification、validation、packet自体を原形で保持する。before・changes・evidence・after・evaluations・execution・sources・fingerprintを省略しない。
+ファイルはCHAPTER_SAVE_FORMAT.mdの**version=2（重複排除）**を使用。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに重複収録しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込みにも対応する。
 
 追加のreplayContext.recordIndicesには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの保存済み配列における0始まりの添字を使用順に入れる（Chapter 1は空配列）。過去本文をreplayContext.recordsへ重複収録しない。ゲームが正本から取得し指紋一致とJS再検証を行う。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
 

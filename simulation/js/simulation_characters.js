@@ -14,10 +14,11 @@
     "simulation_character_006.js",
     "simulation_character_007.js",
     "simulation_character_008.js",
-    "simulation_character_010.js"
+    "simulation_character_010.js",
+    "simulation_character_011.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261015-add-owen-char010";
+  const CHARACTER_ASSET_VERSION = "20261016-add-oliver-char011";
   let loadPromise = null;
 
   function loadScript(fileName) {

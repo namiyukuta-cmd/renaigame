@@ -284,6 +284,11 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 5. `simulation/js/simulation_character_008.js`
 6. `simulation/js/simulation_character_008_behavior.js`
 
+### char_011 オリヴァー・ウェストブルック
+
+5. `simulation/js/simulation_character_011.js`
+6. `simulation/js/simulation_character_011_behavior.js`
+
 最後に現在進行中のセーブJSONを読む。
 
 7. `private-game-data/renaigame/simulation/saves/<saveId>.json`
@@ -308,6 +313,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - char_007: `simulation/state/templates/char_007_initial_state.json`
 - char_008: `simulation/state/templates/char_008_initial_state.json`
 - char_010: `simulation/state/templates/char_010_initial_state.json`
+- char_011: `simulation/state/templates/char_011_initial_state.json`
 
 テンプレートは新規周回の初期値専用。
 プレイ中の状態を書き戻さない。

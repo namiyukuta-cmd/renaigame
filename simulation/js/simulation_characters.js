@@ -18,10 +18,11 @@
     "simulation_character_011.js",
     "simulation_character_012.js",
     "simulation_character_013.js",
-    "simulation_character_014.js"
+    "simulation_character_014.js",
+    "simulation_character_015.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261016-add-vincent-char014";
+  const CHARACTER_ASSET_VERSION = "20261016-add-theodore-char015";
   let loadPromise = null;
 
   function loadScript(fileName) {

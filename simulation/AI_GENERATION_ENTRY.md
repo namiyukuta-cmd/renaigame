@@ -470,3 +470,12 @@ Chapter実ログ：
 ## 心理パケット全文の指定がある場合
 
 before・changes・evidence・after・evaluations・execution・sources・verification等の全文保持を求められた場合は、省略型version 2にせず、CHAPTER_SAVE_FORMAT.mdの「version 1、重複なし」を使う。history.entry直下へpacketの全項目を1回だけ展開し、verification・validationを保持する。packetオブジェクトをもう一度入れない。beforeとafterを両方残し、値や指紋を変更しない。
+
+
+### char_013 維郷親王（瑞梛国・架空王朝）
+
+5. `simulation/js/simulation_character_013.js`
+6. `simulation/js/simulation_character_013_behavior.js`
+7. 初期心理テンプレート：`simulation/state/templates/char_013_initial_state.json`
+
+この相手役の正本は上記人物JS・behaviorと、同一saveIdの実ログ・心理state。綾羽内親王の母弟の失脚から入内までの政治的計画を主導した本人であり、藤原氏相当の冬篠氏の無知な被害者として書かない。主人公の発話・心理・行動・同意・結末はユーザーのみが決める。璃暦・瑞梛国は架空設定であり現実の史実によって置き換えない。

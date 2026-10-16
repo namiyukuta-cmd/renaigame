@@ -35,4 +35,14 @@ for (const f of [d+"characters.json",d+"timeline.json",d+"world.json"]) {
 }
 assert.ok(people.characters.find(x=>x.id==="ayahime").appearance.skin.includes("初雪"));
 assert.ok(timeline.hiddenCourtTruth.planner==="korezato");
+
+assert.equal(timeline.firstEncounter.year,770);
+assert.equal(timeline.firstEncounter.ages.korezato,33);
+assert.equal(timeline.firstEncounter.ages.ayahime,16);
+assert.ok(timeline.firstEncounter.hisResponse.includes("執着"));
+assert.ok(timeline.firstEncounter.heroineResponse.includes("確定しない"));
+const c13 = load("simulation/js/simulation_character_013.js");
+const b13 = load("simulation/js/simulation_character_013_behavior.js");
+assert.ok(c13.includes('"firstEncounter"'));
+assert.ok(b13.includes('"firstEncounter770"'));
 console.log("Mizunagi world references, NPC IDs, chronology and handoff: OK");

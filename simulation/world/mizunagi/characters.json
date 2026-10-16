@@ -1,0 +1,289 @@
+{
+  "version": 1,
+  "worldId": "mizunagi",
+  "characterId": "char_013",
+  "title": "瑞梛国・維郷親王編の人物名鑑",
+  "rules": {
+    "scope": "攻略対象以外の皇族、貴族、家族の名前・血縁・社会的立場を参照するフレーバー資料。維郷の心理と行動の詳細は個別 character / behavior JSを優先。",
+    "narratorKnowledge": "作者が知る計画の真相を全NPCの知識に転用しない。人物ごとに実ログ・地位・当時知り得る情報を確認する。",
+    "protagonist": "綾羽内親王の未入力の言動、心理、反応、承諾を代筆しない。",
+    "future": "将来の出来事を勝手に前倒し・自動発生させない。年表は作者が作った架空史である。",
+    "realHistory": "日本史と似た要素があっても架空名・架空制度を優先し、実在の人物と史実を持ち込まない。"
+  },
+  "characters": [
+    {
+      "id": "ayahime",
+      "name": "綾羽内親王",
+      "role": "主人公・皇女",
+      "originalEquivalent": "左家女内親王",
+      "relations": {
+        "father": "tsuneaki",
+        "mother": "suzue",
+        "youngerBrother": "motoharu",
+        "elderHalfBrother": "korezato",
+        "daughter": "kotonoha"
+      },
+      "bornYear": 754,
+      "notes": [
+        "母方に瑞華女帝の血を継ぎ、皇女として極めて身分が高い。維郷親王より17歳年下。",
+        "770年、父の即位に伴う宮中移転の際、維郷親王と初めて正式に会う。",
+        "772年、突然斎王に卜定され、ののうちを経て伊西へ下る。",
+        "774年に幽閉先で亡くなった母と弟の不幸を受けて都に戻る。",
+        "のち維郷へ入内。家格は高いが后妃序列は3位。779年に琴葉内親王を出産。"
+      ],
+      "appearance": {
+        "source": "ユーザーが記述した確定済み容姿",
+        "skin": "冬に降る白銀の初雪が、月に照らされたごとく白く発光するような輝く肌。",
+        "hairAndEyes": "夜の闇を固めて墨を擦り、筆にとって紙片に垂らした墨汁よりも黒く艶めかしい黒髪と瞳。",
+        "lips": "他国から持ち込まれた陶器のように美しく形取られ発色は鮮やか。",
+        "overall": "姿容姿形は神仏が天女と重ね合わせて模ったかのような美しさ。幼き頃から衣の内側から光り輝くようで、大人になると畏敬を抱かせるほど。",
+        "agencyRule": "この外見以外の主人公の新規の台詞・行動・心理・認識・反応・同意を決めない。"
+      }
+    },
+    {
+      "id": "tsuneaki",
+      "name": "常顕王／景安天皇",
+      "role": "皇子たちの父、のちの天皇",
+      "originalEquivalent": "私良壁王／高認天皇",
+      "relations": {
+        "fatherLine": "meiei",
+        "wives": [
+          "suzue",
+          "choran"
+        ],
+        "children": [
+          "ayahime",
+          "motoharu",
+          "korezato"
+        ]
+      },
+      "notes": [
+        "770年10月23日に即位。即位への反対があったが、妻鈴枝の女帝血統が支持につながる。",
+        "多くの妻子を持つ。維郷の才覚を高く評価し、溺愛・重用・期待していた。母の身分が高ければ維郷を皇太子にできたと目されたほど。",
+        "鈴枝との夫婦仲は普通。政変後は酒に溺れ、妻子を守れる状態にない。"
+      ]
+    },
+    {
+      "id": "suzue",
+      "name": "鈴枝内親王",
+      "role": "綾羽と基晴の母、皇女",
+      "originalEquivalent": "異ノ植内親王",
+      "relations": {
+        "spouse": "tsuneaki",
+        "children": [
+          "ayahime",
+          "motoharu"
+        ],
+        "bloodline": "zuika"
+      },
+      "notes": [
+        "父帝の多くの妃のなかで母方の血統・身分が突出して高い。夫との仲は普通。",
+        "772年3月2日、巫蠱大逆の疑いで捕縛され、廃位・幽閉。774年に幽閉先で不可解な死。",
+        "維郷は個人的に妬んだり憎んだりしていない。その地位ゆえに排斥した。"
+      ]
+    },
+    {
+      "id": "motoharu",
+      "name": "基晴親王",
+      "role": "綾羽の弟、元皇太子",
+      "originalEquivalent": "祖父了親王",
+      "relations": {
+        "father": "tsuneaki",
+        "mother": "suzue",
+        "elderSister": "ayahime"
+      },
+      "bornYear": 761,
+      "notes": [
+        "父の即位により770年に皇太子となる。772年に廃太子・幽閉。774年に母とともに幽閉先で不可解な死。",
+        "維郷の排斥理由は個人的憎悪ではなく、皇太子という政治上の地位。"
+      ]
+    },
+    {
+      "id": "korezato",
+      "name": "維郷親王／玄景天皇",
+      "role": "恋愛相手・異母兄・後の天皇",
+      "originalEquivalent": "多桜親王／完向天皇",
+      "relations": {
+        "father": "tsuneaki",
+        "mother": "choran",
+        "youngerHalfSister": "ayahime",
+        "spouses": [
+          "kano",
+          "chikayori_daughter",
+          "ayahime"
+        ],
+        "daughter": "kotonoha"
+      },
+      "bornYear": 737,
+      "notes": [
+        "母の家格が低いため皇太子になれない一方、父から溺愛され、政治的才能を発揮して重用された。",
+        "772年の政変、鈴枝母子の排斥、綾羽一人を斎王として伊西へ移す計画、帰京後の入内を自ら主導した。",
+        "鈴枝母子を憎まず妬まず、皇位を阻む地位のゆえに排斥した。綾羽には真摯な恋慕と独占欲がある。",
+        "綾羽の不幸を本気でいたわしく思うが排斥自体は後悔しない。綾羽に自分の関与が察せられうる計略の甘さは悔い得る。",
+        "父と母・妻子・統治者としての詳細心理は simulation/js/simulation_character_013.js と behavior JSを参照。"
+      ]
+    },
+    {
+      "id": "choran",
+      "name": "澄蘭夫人",
+      "role": "維郷親王の母",
+      "originalEquivalent": "原案では他国から嫁いだ母",
+      "relations": {
+        "spouse": "tsuneaki",
+        "son": "korezato",
+        "birthCountry": "gitou"
+      },
+      "notes": [
+        "岐灯国出身。国内皇族の后妃としては母方の家格が低い。",
+        "それは維郷の皇位継承順位には影響するが、父の維郷への深い愛情や期待を減じなかった。"
+      ]
+    },
+    {
+      "id": "nagakage",
+      "name": "冬篠長景",
+      "role": "太政大臣、鈴枝母子派",
+      "originalEquivalent": "藤原ながて",
+      "relations": {
+        "supports": [
+          "suzue",
+          "motoharu"
+        ],
+        "clan": "冬篠"
+      },
+      "notes": [
+        "鈴枝内親王と基晴親王を支持する重臣。771年急逝。"
+      ]
+    },
+    {
+      "id": "koremichi",
+      "name": "冬篠伊道",
+      "role": "維郷派の有力貴族",
+      "originalEquivalent": "藤原よしつぐ",
+      "relations": {
+        "supports": "korezato",
+        "daughter": "kano",
+        "clan": "冬篠"
+      },
+      "notes": [
+        "娘の佳乃を維郷親王に嫁がせた。",
+        "維郷親王の政治的協力者。政変全体の首謀者は維郷本人。",
+        "長期にわたる疫病・病苦の期間に病で逝去。"
+      ]
+    },
+    {
+      "id": "chikayori",
+      "name": "冬篠周頼",
+      "role": "維郷派の有力貴族",
+      "originalEquivalent": "藤原ももかわ",
+      "relations": {
+        "supports": "korezato",
+        "daughter": "chikayori_daughter",
+        "clan": "冬篠"
+      },
+      "notes": [
+        "娘を維郷親王に嫁がせた。",
+        "維郷親王の政治的協力者。政変全体の首謀者は維郷本人。",
+        "長期にわたる疫病・病苦の期間に病で逝去。"
+      ]
+    },
+    {
+      "id": "kano",
+      "name": "冬篠佳乃",
+      "role": "維郷の正妻・後の皇后",
+      "originalEquivalent": "藤原おとむろ",
+      "relations": {
+        "father": "koremichi",
+        "spouse": "korezato",
+        "son": "kano_son"
+      },
+      "notes": [
+        "維郷と綾羽が入内で結ばれるより先に維郷の正妻となり、男子を産んでいる。",
+        "維郷の即位後は皇后。息子はのち天皇となり、琴葉内親王を娶る。"
+      ]
+    },
+    {
+      "id": "chikayori_daughter",
+      "name": "冬篠周頼の娘",
+      "role": "維郷の妃",
+      "originalEquivalent": null,
+      "relations": {
+        "father": "chikayori",
+        "spouse": "korezato"
+      },
+      "notes": [
+        "冬篠周頼の娘で維郷の妻の一人。固有名は確定していないため新たに付けない。"
+      ]
+    },
+    {
+      "id": "kano_son",
+      "name": "冬篠佳乃の男子",
+      "role": "維郷の皇子・後の天皇",
+      "originalEquivalent": null,
+      "relations": {
+        "father": "korezato",
+        "mother": "kano",
+        "futureSpouse": "kotonoha"
+      },
+      "notes": [
+        "佳乃と維郷との男子。のち天皇になり、琴葉内親王と結婚。固有名・婚姻年は確定していない。"
+      ]
+    },
+    {
+      "id": "kotonoha",
+      "name": "琴葉内親王",
+      "role": "維郷と綾羽の娘、のちの皇后",
+      "originalEquivalent": "案左原内親王",
+      "relations": {
+        "father": "korezato",
+        "mother": "ayahime",
+        "futureSpouse": "kano_son"
+      },
+      "bornYear": 779,
+      "notes": [
+        "784年に4歳で斎宮に卜定、787年に7歳で伊西へ。年齢表記は作者の年表に従う。",
+        "のち帰京し、佳乃の男子（後の天皇）に嫁いで皇后となる。",
+        "817年、綾羽より先に逝去。"
+      ]
+    },
+    {
+      "id": "meiei",
+      "name": "明叡天皇",
+      "role": "常顕王の父方の皇統に連なる人物",
+      "originalEquivalent": "展智天皇",
+      "relations": {},
+      "notes": [
+        "常顕王の父方の血筋。詳しい世代関係は設定されていない。"
+      ]
+    },
+    {
+      "id": "zuika",
+      "name": "瑞華天皇（女帝）",
+      "role": "鈴枝と綾羽に連なる女帝の皇統",
+      "originalEquivalent": "展娘天皇",
+      "relations": {},
+      "notes": [
+        "鈴枝と、その娘綾羽、孫琴葉に継がれる皇統の起点。詳しい世代関係は設定されていない。"
+      ]
+    },
+    {
+      "id": "shomei",
+      "name": "昌明天皇",
+      "role": "770年崩御の天皇",
+      "originalEquivalent": "恋妙天皇",
+      "relations": {},
+      "notes": [
+        "770年8月1日崩御。同年10月23日に常顕王が即位。"
+      ]
+    },
+    {
+      "id": "eisei",
+      "name": "永成天皇",
+      "role": "781年崩御の天皇",
+      "originalEquivalent": "案潤天皇",
+      "relations": {},
+      "notes": [
+        "781年に崩御し、その後維郷が玄景天皇として即位。770年～781年の間の継承経緯を独自に補完しない。"
+      ]
+    }
+  ]
+}

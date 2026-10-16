@@ -96,6 +96,7 @@
       "workplace": "碧京宮城の議政殿と弘雲殿の政務書斎。人事・財政・寺社の奏上を側近と取りまとめる。",
       "commute": "弘雲殿東棟から議政殿へは回廊を通って徒歩約8分。公式参内は近習2人以上が随行する。",
       "calendar": "璃暦。国家は架空の瑞梛国で、現実の元号・皇統・寺社を法的または史実上の正本としない。",
+      "worldDataPaths": ["simulation/world/mizunagi/characters.json","simulation/world/mizunagi/timeline.json","simulation/world/mizunagi/world.json"],
       "courtStructure": "皇位継承は父系を基本とするが母方の皇統と家格が承認を左右する。皇后の地位と天皇の私的寵愛は一致しない。",
       "notes": "古代宮廷を模した架空世界。主人公の場所・発話・受諾を初期場面から確定しない。"
     },

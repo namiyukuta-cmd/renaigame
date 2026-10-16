@@ -6,6 +6,7 @@ on:
       - "simulation/js/**"
       - "simulation/state/templates/**"
       - "simulation/tests/**"
+      - "simulation/world/mizunagi/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
       - "simulation/CHAPTER_SAVE_FORMAT.md"
       - "js/renaigame_psychology_parameters.js"
@@ -15,6 +16,7 @@ on:
       - "simulation/js/**"
       - "simulation/state/templates/**"
       - "simulation/tests/**"
+      - "simulation/world/mizunagi/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
       - "simulation/CHAPTER_SAVE_FORMAT.md"
       - "js/renaigame_psychology_parameters.js"
@@ -30,6 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - run: node simulation/tests/world_mizunagi.test.cjs
       - run: node simulation/tests/character_settings.test.cjs
       - run: node simulation/tests/ai_turn_engine.test.cjs
       - run: node simulation/tests/chapter_import.test.cjs

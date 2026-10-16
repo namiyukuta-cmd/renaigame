@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "id": "mizunagi",
+  "name": "瑞梛国",
+  "reading": "みずなぎこく",
+  "fictional": true,
+  "calendar": "璃暦",
+  "capital": {
+    "name": "碧京",
+    "reading": "へききょう",
+    "palace": "宮城",
+    "knownPlaces": [
+      "議政殿",
+      "東苑・弘雲殿",
+      "ののうち",
+      "伊西",
+      "伊西神宮"
+    ]
+  },
+  "regions": [
+    {
+      "name": "瑞梛国",
+      "role": "舞台となる皇国"
+    },
+    {
+      "name": "岐灯国",
+      "role": "維郷の母・澄蘭夫人の故国"
+    }
+  ],
+  "court": {
+    "system": "天皇を中心とする皇族と有力貴族の政治。実在日本の制度に限定しない。",
+    "succession": "皇位継承では父系に加えて母方の皇統・家格が重視される。皇子の才覚や父帝の寵愛と皇太子の身分は一致しない。",
+    "factions": [
+      {
+        "name": "鈴枝・基晴支持",
+        "leading": "冬篠長景"
+      },
+      {
+        "name": "維郷支持",
+        "leading": [
+          "冬篠伊道",
+          "冬篠周頼"
+        ]
+      }
+    ],
+    "marriage": "身分上の序列と私的寵愛は別。維郷の正妻は冬篠佳乃、綾羽はのち妻の序列3位。即位後は少なくとも30人以上の妃と側室を持つという作者設定。",
+    "positions": [
+      "太政大臣",
+      "皇太子",
+      "斎王・斎宮"
+    ]
+  },
+  "beliefs": "神仏、寺院、祈祷、万灯会、伊西神宮の祭祀がある。実在の社寺や日本史をもとに設定を改変しない。",
+  "authoring": {
+    "scope": "維郷親王 char_013 の世界・NPCフレーバー資料であり、個別キャラの心理 state とセーブの代用品ではない。",
+    "realHistory": "国・暦・皇統・人物名は全て創作上の名称。史実で補完しない。",
+    "avoidFabrication": "寺院名、未命名皇子・妃の固有名、事件の未確定日付は勝手に確定しない。",
+    "agency": "主人公の台詞・行動・心理・同意はユーザー入力以外から新規に確定しない。",
+    "privacyOfSecrets": "陰謀の真相は作者と計画者が知る設定であり、NPCの認識は作中の証拠と場面ごとに判断する。",
+    "time": "未来の年表を現時点の出来事とみなしたり、物語を強制進行させたりしない。"
+  },
+  "dataPaths": {
+    "characters": "simulation/world/mizunagi/characters.json",
+    "timeline": "simulation/world/mizunagi/timeline.json",
+    "world": "simulation/world/mizunagi/world.json"
+  }
+}

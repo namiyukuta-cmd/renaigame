@@ -210,6 +210,16 @@ state.session.statesByCharacter[characterId]
 5. `simulation/js/simulation_character_XXX.js`
 6. `simulation/js/simulation_character_XXX_behavior.js`
 
+### char_013 維郷親王の世界・NPC資料
+
+維郷親王の人物JS・behavior JSを読んだ直後に、次の3つの**renaigame内の静的資料**を毎Turn参照する。
+
+- `simulation/world/mizunagi/characters.json`
+- `simulation/world/mizunagi/timeline.json`
+- `simulation/world/mizunagi/world.json`
+
+人物の固有名・身分・家系は人物名鑑を、年表と秘密の既定事実は年表を、制度と地理は世界設定を参照する。これらは攻略対象の心理state・主人公の入力・セーブ実ログを置き換えない。政治上の秘密はNPCが当然知っていることにしない。
+
 ### 現在周回
 
 7. `private-game-data/renaigame/simulation/saves/<saveId>.json`

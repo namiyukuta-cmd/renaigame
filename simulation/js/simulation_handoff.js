@@ -16,6 +16,16 @@
       '人物設定: simulation/js/simulation_character_' + number + '.js',
       '行動設定: simulation/js/simulation_character_' + number + '_behavior.js'
     ];
+
+    if (character.id === 'char_013') {
+      lines.push(
+        '瑞梛国・世界設定（renaigame側／本文生成前に3ファイルを必ず取得）:',
+        'NPC・皇族・冬篠家の人物名鑑: simulation/world/mizunagi/characters.json',
+        '架空年表・政変の真相: simulation/world/mizunagi/timeline.json',
+        '国家・官位・地理・祭祀: simulation/world/mizunagi/world.json',
+        '上記は攻略対象本人の心理JSや当該saveIdの実ログに代わるものではありません。綾羽内親王の未入力の台詞・行動・心理を作らず、架空世界の設定を史実で補正せず、陰謀をNPC全員が知っていることにせず、将来年表を勝手に発生させないでください。資料が取得できなければ推測で代用せず不足を報告してください。'
+      );
+    }
     if (saveId) {
       const path = saveId === '__legacy__'
         ? 'renaigame/simulation/save.json'

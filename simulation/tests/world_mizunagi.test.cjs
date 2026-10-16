@@ -45,4 +45,8 @@ const c13 = load("simulation/js/simulation_character_013.js");
 const b13 = load("simulation/js/simulation_character_013_behavior.js");
 assert.ok(c13.includes('"firstEncounter"'));
 assert.ok(b13.includes('"firstEncounter770"'));
+assert.equal(timeline.storyOpening.watchingStatus,"confirmed");
+assert.equal(world.authoring.watchStatus,"confirmed");
+assert.ok(timeline.firstEncounter.followupMonitoring.includes("監視"));
+assert.ok(people.characters.find(x=>x.id==="korezato").notes.some(x=>x.includes("監視")));
 console.log("Mizunagi world references, NPC IDs, chronology and handoff: OK");

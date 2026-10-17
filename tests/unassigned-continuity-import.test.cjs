@@ -24,6 +24,17 @@ async function main(){
  assert.equal((await api.prepareChapterImport(supported)).unverifiedDraft,true);
  const forged=JSON.parse(JSON.stringify(supported));forged.draftMetadata.storyActions.continuity.supportProgress.outcomeQuote='本文にない結果';
  await assert.rejects(()=>api.prepareChapterImport(forged),/継続検査/);
+ const romance=JSON.parse(JSON.stringify(supported));romance.records[0].entry.protagonist='恋愛を進めてください。';
+ delete romance.draftMetadata.storyActions.continuity;
+ await assert.rejects(()=>api.prepareChapterImport(romance),/恋愛の進展/,'support is not a substitute for the requested male romance');
+ const maleAction='青年セシルは自分で門を訪れた。',maleIntent='「あなたに会いたくて来ました」';
+ romance.records[0].entry.partner=maleAction+maleIntent;
+ romance.draftMetadata.storyActions.romanceProgress={kind:'initiative',actor:'セシル',actorGender:'male',bloodRelatedToProtagonist:false,relationshipToProtagonist:'unrelated',actionQuote:maleAction,romanticIntentQuote:maleIntent};
+ assert.equal((await api.prepareChapterImport(romance)).unverifiedDraft,true);
+ const woman=JSON.parse(JSON.stringify(romance));woman.draftMetadata.storyActions.romanceProgress.actorGender='female';
+ await assert.rejects(()=>api.prepareChapterImport(woman),/男性限定/);
+ const blood=JSON.parse(JSON.stringify(romance));blood.draftMetadata.storyActions.romanceProgress.bloodRelatedToProtagonist=true;
+ await assert.rejects(()=>api.prepareChapterImport(blood),/血縁者/);
  const historical=JSON.parse(JSON.stringify(bundle.records[0].entry));historical.protagonist=need;
  const oldSave=JSON.parse(JSON.stringify(save));oldSave.state.session.recordsByCharacter.__unassigned__=[historical];
  files.set(base+id+'.json',oldSave);

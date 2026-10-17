@@ -140,3 +140,8 @@ fetch_file/Contents APIが空のcontentとshaを返した場合、セーブが�
 
 未知の履歴補助項目は保持する。未知のpacket項目がある場合は値をentryへ1回保持し、復元用のpacketFieldNamesに項目名だけを残す。生成時の指紋・検証記録・本文・数値を変更しない。既存セーブの過去履歴をこの処理のために一括書き換えない。
 
+
+
+## 男性の相手との恋愛進展の宣言
+
+`ROMANCE_PREFERENCES.md`の方針は全章共通。恋愛進展の宣言`romanceProgress`は心理付き章の`replayContext.storyActions`、未選択章の`draftMetadata.storyActions`へ保持し、本文原文と現在の相手・設定から再検査する。家族の支援を恋愛進展の宣言へ変換しない。ルートの必須項目や標準version 2の形式は変更しない。

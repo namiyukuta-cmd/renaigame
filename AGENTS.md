@@ -1,5 +1,6 @@
 # 恋愛シミュレーションのAI作業規定
 
+- **主人公の恋愛相手は男性限定。** このリポジトリは男性の相手との恋愛を進めるゲームであり、女性NPCや実父・祖父・実兄弟を恋愛相手にしない。家族・世話役の支援で恋愛の進展を代用しない。生成・規定・検査を扱う前に`simulation/ROMANCE_PREFERENCES.md`を読む。
 - 章の保存JSONを扱う前に`simulation/CHAPTER_SAVE_FORMAT.md`を読む。保存形式の正本はこの文書。
 - 「保存して」「保存JSON」「記録と情報更新」「完全保存」「心理パケット全項目を保持」は、標準version 2の1章JSONを出力する指示。保持の要求からversion 1を選ばない。
 - 標準ファイル名は`<saveId>_<characterId>_<4桁chapter>.json`。`_light`・`_full`等の別名を独断で作らない。
@@ -12,3 +13,6 @@
 - このリポジトリのコード・規定の修正で、private-game-dataの既存セーブ・本文・心理履歴を変更しない。
 - 形式・取り込み・AI引き継ぎを変更したら`node simulation/tests/chapter_format.test.cjs`と`node simulation/tests/chapter_import.test.cjs`を実行する。
 - 生成規定・本文検査の修正時は`simulation/PROTAGONIST_CONTINUITY_RULES.md`を読み、`node simulation/tests/support_progress.test.cjs`と`node tests/unassigned-continuity-import.test.cjs`を実行する。支援の申し出や準備だけで対応を終えること、世話の反復だけを境遇・関係の改善と扱うことを防ぐ。
+
+
+- 恋愛の方針・検査を修正したら`node simulation/tests/romance_progress.test.cjs`を実行する。女性NPC・血縁者・別の攻略対象を恋愛の実行者として通さず、男性の相手自身の働きかけを確認する。

@@ -45,6 +45,11 @@
   function inspect(character){
     const errors=[];
     if(!character || typeof character!=="object") return {ok:false,complete:false,legacy:false,errors:["人物設定がありません"],warnings:[]};
+    const romanceErrors=[];
+    const gender=get(character,"common.gender");
+    if((gender!==undefined || Number(String(character.id || "").slice(5))>=17) && !["male","男性"].includes(gender)){
+      romanceErrors.push("common.gender: 主人公の恋愛相手は男性限定です。新規人物にはmaleを明記してください");
+    }
     const strict=requiresCompleteSettings(character);
     if(strict) errors.push(...inspectProtection(character).errors);
     if(!/^char_\d{3}$/.test(character.id || "")) errors.push("id: char_XXX形式で指定してください");
@@ -79,9 +84,10 @@
     if(get(character,"common.residence") && get(character,"common.setting.residence") && get(character,"common.residence")!==get(character,"common.setting.residence")) errors.push("common.residence: setting.residenceと一致しません");
     if(get(character,"common.setting.workshop") && get(character,"common.setting.workplace") && get(character,"common.setting.workshop")!==get(character,"common.setting.workplace")) errors.push("common.setting.workplace: workshopと一致しません");
     // Legacy published characters remain playable; never silently label them complete.
-    return {ok:!strict || errors.length===0,complete:errors.length===0,legacy:!strict,errors:strict?errors:[],warnings:strict?[]:errors};
+    return {ok:romanceErrors.length===0 && (!strict || errors.length===0),complete:romanceErrors.length===0 && errors.length===0,legacy:!strict,errors:[...romanceErrors,...(strict?errors:[])],warnings:strict?[]:errors};
   }
   const api=Object.freeze({version:1,requiredTextFields:TEXT_FIELDS,requiresCompleteSettings,inspectProtection,inspect});
   root.RenaiGameCharacterSettings=api;
   if(typeof module!=="undefined" && module.exports) module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);
+

@@ -11,6 +11,7 @@
     const number = character.id.slice(5);
     const lines = [
       'GitHubの namiyukuta-cmd/renaigame の恋愛シミュレーションを使って遊びます。',
+      '主人公の恋愛相手は男性限定です。simulation/ROMANCE_PREFERENCES.mdを必ず読み、女性NPC・実父・祖父・実兄弟を恋愛相手にせず、家族や世話役の支援を恋愛進展の代用にしないでください。選択中の男性と現在の世界設定を保ち、その男性自身の接近・関心・求愛・関係への応答を進めてください。',
       'まず simulation/AI_GENERATION_ENTRY.md を読み、そこに指定された運用ルール・共通恋愛ルール・心理計算JSを取得してください。',
       '攻略対象: ' + JSON.stringify({ id: character.id, name: character.name }),
       '人物設定: simulation/js/simulation_character_' + number + '.js',
@@ -60,6 +61,7 @@
       '毎Turnの本文生成前に最新版のai_turn_engine.jsからcontinuityInputを実行してください。過去の発言を問いただす主人公の台詞・引用は新しい死亡指示と区別し、死亡語だけで会話を停止しないでください。ok=falseなら死亡・消滅・過去の嫌悪を本文化せず、保護方針を維持して最後の継続可能な場面と相手役・NPCの可能な具体的対応を確認してください。恋愛相手未選択の章も、生成後にvalidateContinuityを実行しok=trueを確認してください。心理JSのok=trueだけで本文の意味を正当化しないでください。',
       '主人公を通じて私が見捨てられた・見放された・世界に不要とされた・傷つけられたと思う描写を出さないでください。死亡だけでなく、無視・放置・支援の先延ばし・存在否定を避け、相手役・NPCが知り得る情報で可能な具体的応答を同じ章に描いてください。主人公の安心・承諾・反応を勝手に補完して済ませないでください。',
       '押し付けを避けてほしいという指示を、見捨ててよいという意味にしないでください。断られた行為だけを止め、主人公との関わり全体の拒絶へ広げないでください。同じ行為を迫り続けず、求められた返答や負担の少ない具体的な応答を行ってください。',
+      '恋愛の進行を求めた章や停滞を反復した章は、storyActions.romanceProgressに男性の実行者・actorGender:male・bloodRelatedToProtagonist:false・relationshipToProtagonist・現在のcharacterId・actionQuote・romanticIntentQuoteを記録し、validateRomanceProgressも成功させてください。未選択を恋愛禁止と解釈せず、時代・世界・既存関係に合う血縁のない男性との接点を扱ってください。主人公の選択や好意は確定しないでください。',
       '主人公の新しい台詞・行動・心理・反応・未設定プロフィールを補完しないでください。',
       '主人公の今回入力を受け取ってから、心理変化→更新後state→JS計算→攻略対象・NPC・環境の返答の順に進めてください。',
       '毎ターン必須：simulation/js/character_settings_validator.jsを取得・評価して人物設定を検査し、simulation/js/ai_turn_engine.js を取得し、js/renaigame_psychology_parameters.js の本物のJS関数を実行してください。読むだけ・計算したと宣言するだけは禁止です。',
@@ -237,6 +239,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
 
 
 

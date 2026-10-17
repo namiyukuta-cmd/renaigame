@@ -17,6 +17,11 @@
     "evaluateIntimacyInitiative",
     "evaluateYoinomaInvitation"
   ]);
+  const ROMANCE_POLICY = Object.freeze({
+    partnerGender: "male",
+    bloodRelativesAllowed: false,
+    supportCountsAsRomance: false
+  });
 
   function fail(message) {
     throw new Error("AIターン検証失敗: " + message);
@@ -75,6 +80,10 @@
     if (!/^char_\d{3}$/.test(args.characterId || "")) fail("characterIdが不正です");
     if (!record(args.character) || args.character.id !== args.characterId) {
       fail("人物JSとcharacterIdが一致しません");
+    }
+    const gender = args.character.common && args.character.common.gender;
+    if (gender !== undefined && !["male", "男性"].includes(gender)) {
+      fail("このゲームの主人公の恋愛相手は男性限定です。女性NPCや家族の支援で恋愛相手を置き換えないでください");
     }
 
     if(Number(args.characterId.slice(5)) >= 8 || args.character.settingsVersion){
@@ -300,6 +309,66 @@
     return typeof text === "string" && /(?:助けて(?:ください|ほしい|[。！!？?\s」]|$)|救(?:って|済して|済を)|状況を変えて|何も変わらない|変わり映えのない|死の訪れを待|死ぬ日が来るまで|死に近づく|生きる意味(?:も|が|は)?な|いる意味がない|誰(?:も|にも)[^。\n]{0,25}(?:必要とされない|助けてもらえない))/.test(text);
   }
 
+  function stalledRomance(text) {
+    return typeof text === "string" && /(?:何も変わらない|変わり映えのない|死の訪れを待|死ぬ日が来るまで|死に近づく|生きる意味(?:も|が|は)?な|いる意味がない)/.test(text);
+  }
+
+  // Family/care interactions remain possible, but cannot satisfy romance.
+  // Metadata is checked against the story; meaning and relationships must also
+  // be checked against the selected character, profile and world settings.
+  function validateRomanceProgress(args, story, storyActions = {}) {
+    if (typeof story !== "string" || !story.trim()) {
+      return {ok: false, required: false, errors: ["本文が空です"], requiresSemanticReview: true};
+    }
+    const records = args && Array.isArray(args.records) ? args.records : [];
+    const input = args && args.protagonistInput || "";
+    const recent = records.slice(-2);
+    const pause = /(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/.test(input);
+    const requested = /(?:恋愛(?:を|が)?進め|恋愛したい|恋愛の進展|ロマンスを進め|求愛して)/.test(input);
+    const immediateCare = /(?:空腹|飢え|食事が届か|食べ(?:ていない|られない)|寒い|凍え)/.test(input);
+    const required = !pause && (requested || stalledRomance(input) ||
+      (!immediateCare && recent.length === 2 && recent.every(entry => stalledRomance(entry && entry.protagonist))));
+    const progress = storyActions && storyActions.romanceProgress;
+    const errors = [];
+    if (!required && progress === undefined) return {ok: true, required: false, errors, requiresSemanticReview: true};
+    if (!record(progress)) {
+      errors.push("恋愛の進展が必要な場面です。家族・世話役の支援だけで代用せず、男性の恋愛相手自身の接近・関心・求愛・関係への応答を描き、storyActions.romanceProgressへ根拠を指定してください。");
+    } else {
+      if (progress.actorGender !== ROMANCE_POLICY.partnerGender) errors.push("主人公の恋愛相手は男性限定です。actorGenderをmaleとし、設定と本文でも男性であることを確認してください。");
+      if (progress.bloodRelatedToProtagonist !== false ||
+          !["unrelated", "spouse", "in_law"].includes(progress.relationshipToProtagonist)) {
+        errors.push("実父・祖父・実兄弟などの血縁者を恋愛相手にしないでください。血縁関係のない男性との恋愛として設定を確認してください。");
+      }
+      const actor = typeof progress.actor === "string" ? progress.actor.trim() : "";
+      if (!actor || !story.includes(actor)) errors.push("恋愛相手の名前または呼称を本文中に示してください。");
+      if (/^(?:父|父親|実父|母|母親|実母|祖父|祖母|実兄|実弟|実姉|実妹|伯父|叔父|伯母|叔母|女房|侍女|女性の世話役)$/.test(actor) ||
+          ["主人公", "彼女", "あなた", args && args.protagonistProfile && args.protagonistProfile.name].includes(actor)) {
+        errors.push("家族・女性の世話役・主人公自身を男性の恋愛相手として申告しないでください。");
+      }
+      if (!["encounter", "initiative", "affection", "relationship_change"].includes(progress.kind)) {
+        errors.push("恋愛の出来事をencounter/initiative/affection/relationship_changeで指定してください。生活支援は恋愛の進展に数えません。");
+      }
+      if (args && args.characterId && progress.characterId !== args.characterId) {
+        errors.push("恋愛の実行者が現在選択中の攻略対象と一致しません。別の相手へ勝手に切り替えないでください。");
+      }
+      if (args && args.character) {
+        const character = args.character;
+        const names = [character.name, character.englishName, character.common && character.common.name]
+          .filter(name => typeof name === "string" && name.trim())
+          .flatMap(name => [name.trim(), name.trim().split(/[・\s]/)[0], name.trim().replace(/親王$/, "")]);
+        if (names.length && !names.includes(actor)) errors.push("恋愛の実行者の名前が現在の男性攻略対象と一致しません。家族や世話役にIDだけを流用しないでください。");
+        const gender = character.common && character.common.gender;
+        if (gender !== undefined && !["male", "男性"].includes(gender)) errors.push("人物設定の恋愛相手が男性ではありません。男性限定の共通方針を確認してください。");
+      }
+      for (const key of ["actionQuote", "romanticIntentQuote"]) {
+        if (typeof progress[key] !== "string" || !progress[key].trim() || !story.includes(progress[key])) {
+          errors.push("恋愛の" + key + "は男性の相手自身の行動・関心・希望を示す今回本文の原文が必要です。");
+        }
+      }
+    }
+    return {ok: errors.length === 0, required, errors, requiresSemanticReview: true};
+  }
+
   // Evidence checks for support scenes. Whether the outcome addresses the
   // protagonist's problem still requires review of the actual story's meaning.
   function validateSupportProgress(args, story, storyActions = {}) {
@@ -386,6 +455,7 @@
       }
     }
     errors.push(...validateSupportProgress(args, story, storyActions).errors);
+    errors.push(...validateRomanceProgress(args, story, storyActions).errors);
     return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, requiresSemanticReview: true };
   }
 
@@ -446,6 +516,8 @@
     continuityInput,
     validateContinuity,
     validateSupportProgress,
+    validateRomanceProgress,
+    romancePolicy: ROMANCE_POLICY,
     fingerprint
   });
   root.RenaiGameTurnEngine = api;

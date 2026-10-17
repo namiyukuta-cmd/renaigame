@@ -48,7 +48,8 @@ const care = {...progress, actor: "女房", problem: {source: "record", index: 0
 assert.equal(engine.validateContinuity(repeated, careStory, actions(care)).ok, false,
   "fresh wording for repeated care must not count as a changed circumstance");
 const grounded = {...progress, problem: care.problem};
-assert.equal(engine.validateContinuity(repeated, story, actions(grounded)).ok, true);
+assert.equal(engine.validateContinuity(repeated, story, actions(grounded)).ok, false,
+  "improved family access is support, not progress with a male romance partner");
 assert.equal(engine.validateContinuity(repeated, story).ok, false, "a short next-day input retains relevant context");
 const waiting = {...grounded, actionQuote: "管理人は手紙を送った。", outcomeQuote: "返答を待っていた。"};
 assert.equal(engine.validateContinuity(repeated, waiting.actionQuote + waiting.outcomeQuote, actions(waiting)).ok, false);

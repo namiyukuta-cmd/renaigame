@@ -108,3 +108,8 @@ packet.execution.invokedは7個のevaluate関数の実行証跡で、正規化�
 ## 支援場面の本文検査
 
 `PROTAGONIST_CONTINUITY_RULES.md`の支援の実行結果の規定を適用する。入力・過去ログの苦痛や停滞を検出した場合は、`storyActions.continuity.supportProgress`に対応した問題の原文参照、実行者、対応と結果の本文引用を渡す。申し出・準備・同じ世話だけを結果と申告しない。失敗時は同じ章の本文を修正して再検査し、説明だけで終了しない。心理計算・過去ログ・主人公の未入力心理を成果に合わせて書き換えない。
+
+
+## 恋愛の進展を支援で置き換えない
+
+主人公の恋愛相手は男性限定。`ROMANCE_PREFERENCES.md`に従い、恋愛の進行を求めた章や停滞が反復した章では`storyActions.romanceProgress`を`validateStory`へ渡す。女性NPC・血縁者・別の攻略対象は恋愛の実行者にしない。生活支援の`supportProgress`が合格しても恋愛の進展が成立したとは扱わない。男性自身の行動と個人的な関心・希望が本文にあるか照合する。

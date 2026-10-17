@@ -282,18 +282,20 @@
 
   function continuityInput(input) {
     if (typeof input !== "string" || !input.trim()) return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
-    const concerns = /(?:死んだ|死亡した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/;
+    const concerns = /(?:死んだ|死亡した|身罷(?:られ|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ)|命を落と(?:した|された)|絶命した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/;
     const clauses = input.match(/[^。！？!?\r\n]+[。！？!?]?/g) || [];
     let unresolved = false, reportedConcern = false;
     for (const clause of clauses) {
       // A report/question about a previous line is not a new death event.
       // Check each clause: a quoted question cannot exempt a separate harmful directive.
-      const directsHarm = /(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない)|言わせて|言わせろ)|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写)/.test(clause);
+      const directsHarm = /(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない))|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写|言わせて|言わせろ)/.test(clause);
       if (directsHarm) { unresolved = true; continue; }
       if (!concerns.test(clause)) continue;
+      if(/(?:父|母|夫|祖父|祖母|両親|叔父|叔母)(?:は|が)[^。\n]{0,16}(?:身罷|逝去|息を引き取|命を落と)/.test(clause) &&
+         !/(?:主人公|彼女|あなた|私)(?:は|が)[^。\n]{0,20}(?:身罷|逝去|息を引き取|命を落と)/.test(clause)) continue;
       const report = /(?:と|って|とも)[^。！？!?]{0,15}(?:言っ(?:ていた|た|ている)|言われ(?:た|ていた)|書(?:いてあった|いていた|かれた|かれていた)|認め(?:た|ていた|ている))|(?:過去|前の|以前の)[^。！？!?]{0,12}(?:発言|台詞|セリフ|記録|ログ|出力)/.test(clause);
       const question = /[?？]|(?:のよね|のでしょうか|んでしょうか|のでしょう|のですか|んですか|なのですか|思っているのね|思っているのよね)/.test(clause);
-      const rejectsHarm = /(?:死んだ|死亡した|消滅した|消された|死んで[よ良]かった|大嫌いだった)[^。！？!?]{0,15}(?:ことにしないで|とは思わない|とは言わない|とは認めない|確定しないで|という結末にしないで)/.test(clause);
+      const rejectsHarm = /(?:死んだ|死亡した|身罷[^。！？!?]{0,8}|消滅した|消された|死んで[よ良]かった|大嫌いだった)[^。！？!?]{0,15}(?:ことにしないで|とは思わない|とは言わない|とは認めない|確定しないで|という結末にしないで)|身罷られて(?:は)?いない|身罷られたのではない/.test(clause);
       if (report || question || rejectsHarm) reportedConcern = true;
       else unresolved = true;
     }
@@ -303,6 +305,91 @@
       reportedConcern: reportedConcern && !unresolved, requiresSemanticReview: true,
       errors: unresolved ? ["主人公の死亡・消滅等を新たに確定する入力は本文化しないでください。過去の発言を問いただす会話・引用・抗議は、それ自体を新しい死亡の確定にせず応答してください。"] : []
     };
+  }
+
+  const REVIEW_AXES = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange'];
+  function reviewSource(args, cite){
+    if(!record(cite) || typeof cite.quote !== 'string' || !cite.quote.trim()) return null;
+    let value;
+    if(cite.source === 'input') value = args.protagonistInput;
+    else if(cite.source === 'profile') value = args.protagonistProfile;
+    else if(cite.source === 'character') value = args.character;
+    else if(cite.source === 'behavior') value = args.behavior;
+    else if(cite.source === 'record' && Number.isInteger(cite.index) && cite.index >= 0) value = args.records?.[cite.index];
+    else return null; // Unsaved drafts and assistant memory are never canon.
+    if(cite.field !== undefined){
+      if(typeof cite.field !== 'string' || cite.field.split('.').some(key=>['__proto__','constructor','prototype'].includes(key))) return null;
+      for(const key of cite.field.split('.')) value = record(value) && Object.prototype.hasOwnProperty.call(value,key) ? value[key] : undefined;
+    }
+    const text = typeof value === 'string' ? value : value === undefined ? '' : stable(value);
+    return typeof text === 'string' && text.includes(cite.quote) ? text : null;
+  }
+  function storyReviewBinding(args, story, storyActions = {}){
+    const actions = Object.fromEntries(Object.entries(storyActions).filter(([key])=>key !== 'semanticReview'));
+    return fingerprint({policy:1,saveId:args?.saveId || null,characterId:args?.characterId || null,
+      input:args?.protagonistInput || '',profile:args?.protagonistProfile || {},records:args?.records || [],
+      character:args?.character || null,behavior:args?.behavior || null,state:args?.stateEntry || null,
+      changes:args?.changes || {},evidence:args?.evidence || {},stageTransition:args?.stageTransition || null,
+      yoinomaContext:args?.yoinomaContext || {},story,actions});
+  }
+  function prepareStoryReview(args, story, storyActions = {}){
+    return {version:1,binding:storyReviewBinding(args,story,storyActions),pass:'after_draft',
+      freshStart:!(args?.records || []).length,usedUnsavedDraft:false,
+      checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[]}]))};
+  }
+  // This is a separate check of current protagonist acts and proxy decisions.
+  // A generic semantic "pass" cannot override missing source evidence.
+  function validateProtagonistAgency(args, story, storyActions = {}){
+    const errors = [], claims = storyActions.protagonistClaims || [];
+    const names = [args?.protagonistProfile?.name,'主人公','彼女','あなた'].filter(Boolean);
+    const sensitive = /(?:頷いた|うなずいた|微笑んだ|笑った|承諾した|同意した|許した|安心した|救われた|会いたくない|会わない|拒んだ|部屋を出た)/;
+    const proxy = /(?:どなたとも|誰とも|誰にも)[^。\n]{0,18}(?:お会いになりません|会われません|会いたくない|会わない)|(?:ご本人|姫君|主人公|彼女)[^。\n]{0,24}(?:ご意向|望んで|お断り|面会を拒)|(?:面会|訪問)[^。\n]{0,18}(?:拒んで|お断りにな|望んでいない)/;
+    const fragments = typeof story === 'string' ? story.split(/[。\n]/).map(x=>x.trim()).filter(Boolean) : [];
+    for(const fragment of fragments){
+      const isProxy = proxy.test(fragment);
+      if(!isProxy && !(names.some(name=>fragment.includes(name)) && sensitive.test(fragment))) continue;
+      const matched = Array.isArray(claims) && claims.some(claim=>record(claim) && typeof claim.storyQuote === 'string' &&
+        claim.storyQuote.includes(fragment) && story.includes(claim.storyQuote) && claim.source?.source === 'input' &&
+        reviewSource(args,claim.source) !== null && (isProxy ? /(?:会わない|会いたくない|面会を断|面会を拒|誰にも会|どなたとも会)/.test(claim.source.quote) : sensitive.test(claim.source.quote)));
+      if(!matched) errors.push('主人公の未入力行動・意思またはNPCによる代弁に、今回入力の根拠がありません: ' + fragment);
+    }
+    return {ok:!errors.length,errors};
+  }
+  function validateSemanticReview(args, story, storyActions = {}){
+    const errors = [], review = storyActions.semanticReview;
+    const binding = storyReviewBinding(args,story,storyActions);
+    const romance = validateRomanceProgress(args,story,storyActions), support = validateSupportProgress(args,story,storyActions);
+    if(!record(review) || review.version !== 1 || review.pass !== 'after_draft' || review.binding !== binding ||
+       review.usedUnsavedDraft !== false || review.freshStart !== !(args?.records || []).length){
+      return {ok:false,binding,errors:['確定本文・今回入力・正本資料に一致する、下書き後の意味確認記録がありません。']};
+    }
+    for(const axis of REVIEW_AXES){
+      const check = review.checks?.[axis];
+      const applicable = axis === 'romanceMotivation' ? romance.required || !!storyActions.romanceProgress : axis === 'circumstanceChange' ? support.required || !!storyActions.continuity?.supportProgress : true;
+      if(!record(check) || check.status !== (applicable ? 'pass' : 'not_applicable') || typeof check.reason !== 'string' || check.reason.trim().length < 8 || !Array.isArray(check.quotes) || !Array.isArray(check.sources)){
+        errors.push(axis + ': 独立した意味確認の結論・理由・根拠を記録してください。'); continue;
+      }
+      if(check.quotes.some(quote=>typeof quote !== 'string' || !quote.trim() || !story.includes(quote)) || check.sources.some(cite=>reviewSource(args,cite) === null)) errors.push(axis + ': 根拠が今回本文または正本資料にありません。');
+      if(applicable && !check.sources.length) errors.push(axis + ': 今回入力または正本資料の原文参照が必要です。');
+      if(['inputConsistency','protagonistAgency'].includes(axis) && !check.sources.some(cite=>cite.source === 'input' && reviewSource(args,cite) !== null)) errors.push(axis + ': 今回入力そのものの原文を照合してください。');
+      if(applicable && ['romanceMotivation','circumstanceChange'].includes(axis)){
+        const progress = axis === 'romanceMotivation' ? storyActions.romanceProgress : storyActions.continuity?.supportProgress;
+        const quotes = axis === 'romanceMotivation' ? [progress?.actionQuote,progress?.romanticIntentQuote] : [progress?.actionQuote,progress?.outcomeQuote];
+        if(quotes.some(quote=>typeof quote !== 'string' || !check.quotes.includes(quote))) errors.push(axis + ': 対応する行動と関心・結果の本文原文を照合してください。');
+      }
+    }
+    const progress = storyActions.romanceProgress;
+    if(record(progress)){
+      const motive = progress.motivation;
+      if(progress.origin === 'new_encounter'){
+        if(typeof progress.encounterQuote !== 'string' || !progress.encounterQuote.trim() || !story.includes(progress.encounterQuote) ||
+           story.indexOf(progress.encounterQuote) > story.indexOf(progress.actionQuote) || /以前から|長年|昔から|幼い頃|再会/.test(progress.encounterQuote)) errors.push('新しい出会いの経緯を求愛より先に本文へ示してください。未保存の過去の関係は流用できません。');
+        if(!record(motive) || motive.source !== 'story' || typeof motive.quote !== 'string' || !motive.quote.trim() || !story.includes(motive.quote)) errors.push('新しい出会いで男性が関心を持った具体的な経緯がありません。');
+      }else if(progress.origin !== 'canon' || reviewSource(args,motive) === null ||
+               (!args?.characterId && !reviewSource(args,motive)?.includes(progress.actor))) errors.push('男性の訪問・求愛の動機を正本の人物・今回入力・実ログに結び付けてください。');
+      if(/御膳|膳|粥|食事|火桶|灯火|炭/.test(progress.romanticIntentQuote || '') && !/会いた|一緒|好き|惹かれ|知りたい|愛し|そばに/.test(progress.romanticIntentQuote || '')) errors.push('生活支援だけを男性自身の恋愛的な関心の代用にしないでください。');
+    }
+    return {ok:!errors.length,binding,errors};
   }
 
   function needsSupport(text) {
@@ -435,16 +522,19 @@
     const errors = [], warnings = [];
     if (typeof story !== "string" || !story.trim()) return { ok: false, errors: ["本文が空です"], warnings, requiresSemanticReview: true };
     const profile = args && args.protagonistProfile || {};
+    const inputCheck = typeof args?.protagonistInput === 'string' && args.protagonistInput.trim() ? continuityInput(args.protagonistInput) : {ok:true,errors:[]};
+    const agencyCheck = validateProtagonistAgency(args || {},story,storyActions);
+    errors.push(...inputCheck.errors,...agencyCheck.errors);
     const names = [profile.name, "主人公", "彼女", "あなた"].filter(value => typeof value === "string" && value.trim()).map(value => value.trim());
     if (profile.name) names.push(String(profile.name).split(/[・\s]/)[0]);
     const namesIn = text => names.some(name => text.includes(name));
     const sentences = story.split(/[。\n]/).map(value => value.trim()).filter(Boolean);
     for (const sentence of sentences) {
-      const denied = /(?:死んでいない|死んではいない|死亡していない|消滅していない|消えていない|消されない|消されていない|死なせない|退場させない|という(?:事実|記録|決定)はない|(?:死亡|消滅)[^。]{0,20}記録はない)/.test(sentence);
+      const denied = /(?:死んでいない|死んではいない|死亡していない|身罷られて(?:は)?いない|身罷られたのではない|消滅していない|消えていない|消されない|消されていない|死なせない|退場させない|という(?:事実|記録|決定)はない|(?:死亡|消滅)[^。]{0,20}記録はない)/.test(sentence);
       const exclusion = /(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/.test(sentence);
       const exclusionDenied = /(?:見(?:捨|放)て(?:ない|られていない)|見放されていない|居場所がないわけではない|居場所はないわけではない|いない方がいいとは(?:言え|思ってい)ない|助けないわけではない|という(?:事実|記録)はない)/.test(sentence);
       if (namesIn(sentence) && exclusion && !exclusionDenied) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
-      if (namesIn(sentence) && !denied && /(?:死んだ|死亡した|亡くなった|消滅した|消された|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/.test(sentence)) {
+      if (namesIn(sentence) && !denied && /(?:死んだ|死亡した|亡くなった|身罷(?:られ|った|り|る)|逝去した|息を引き取った|命を落とした|消滅した|消された|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/.test(sentence)) {
         errors.push("主人公の死亡・消滅・存在否定を確定する文章があります。保護方針に沿って本文を修正してください。");
       }
       if (/(?:死んで[よ良]かった|死んでくれて[^。]{0,12}(?:嬉し|うれし|助か)|(?:glad|happy)[^。]{0,35}(?:died|dead)|better off dead)/i.test(sentence) && !/(?:と言った記録はない|と(?:は|も)思っていない|肯定しない|喜んでいない)/.test(sentence)) {
@@ -454,9 +544,16 @@
         errors.push("過去の嫌悪を確定する描写です。過去の問題出力を引用して再生成せず、主人公を守る継続方針に沿って本文を修正してください。");
       }
     }
-    errors.push(...validateSupportProgress(args, story, storyActions).errors);
-    errors.push(...validateRomanceProgress(args, story, storyActions).errors);
-    return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, requiresSemanticReview: true };
+    const supportCheck = validateSupportProgress(args, story, storyActions);
+    const romanceCheck = validateRomanceProgress(args, story, storyActions);
+    errors.push(...supportCheck.errors,...romanceCheck.errors);
+    const mechanicalOk = errors.length === 0;
+    const semanticReview = validateSemanticReview(args || {},story,storyActions);
+    return { ok: mechanicalOk && semanticReview.ok, mechanicalOk, readyForOutput:mechanicalOk && semanticReview.ok,
+      errors: [...new Set([...errors,...semanticReview.errors])], warnings, requiresSemanticReview: true,
+      checks:{inputConsistency:{ok:inputCheck.ok},protagonistAgency:{ok:agencyCheck.ok},
+        romanceProgress:{ok:romanceCheck.ok,required:romanceCheck.required},circumstanceChange:{ok:supportCheck.ok,required:supportCheck.required}},
+      semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
   }
 
   function validateStory(args, packet, story, storyActions = {}) {
@@ -499,14 +596,23 @@
     }
     return {
       ok: errors.length === 0,
+      mechanicalOk: verified.ok && continuity.mechanicalOk && errors.length === continuity.errors.length,
+      readyForOutput: errors.length === 0,
       errors,
       warnings,
       replayFingerprint: verified.replayFingerprint,
       // 内容・心理描写・主人公の勝手な補完は機械検査だけで完全保証できない。
-      requiresSemanticReview: true
+      requiresSemanticReview: true,
+      semanticReview: continuity.semanticReview,
+      checks:continuity.checks
     };
   }
 
+  function releaseStory(args,packet,story,storyActions = {}){
+    const validation = packet ? validateStory(args,packet,story,storyActions) : validateContinuity(args,story,storyActions);
+    if(!validation.ok || !validation.readyForOutput) fail('本文を出力できません: ' + validation.errors.join('／'));
+    return {story,validation};
+  }
   const api = Object.freeze({
     version: 1,
     functionNames: FUNCTION_NAMES,
@@ -517,6 +623,10 @@
     validateContinuity,
     validateSupportProgress,
     validateRomanceProgress,
+    validateProtagonistAgency,
+    prepareStoryReview,
+    validateSemanticReview,
+    releaseStory,
     romancePolicy: ROMANCE_POLICY,
     fingerprint
   });

@@ -6,6 +6,7 @@ const os = require('node:os');
 const vm = require('node:vm');
 const {spawnSync} = require('node:child_process');
 const runtime = require('../js/ai_turn_runtime.js');
+const reviewedActions = require('./helpers/review_fixture.cjs');
 const root = path.resolve(__dirname,'../..');
 const read = file=>fs.readFileSync(path.join(root,file),'utf8');
 const copy = value=>JSON.parse(JSON.stringify(value));
@@ -24,9 +25,10 @@ assert.throws(()=>oldScope.RenaiGameTurnEngine.runTurn({...input,character:oldSc
 
 const original=JSON.stringify({save,input});
 const runner=setup(),turn=runner.runTurn(input);
+const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,runner.buildArgs(input),story);
 assert.equal(turn.verification.ok,true);
 assert.equal(turn.packet.execution.invoked.length,7);
-assert.equal(runner.validateStory(input,turn.packet,story,{}).validation.ok,true);
+assert.equal(runner.validateStory(input,turn.packet,story,actions).validation.ok,true);
 assert.equal(turn.packet.sources.protagonistProfile,runner.scope.RenaiGameTurnEngine.fingerprint(save.state.profile));
 assert.equal(JSON.stringify({save,input}),original,'loading, running and validation do not mutate the save or input');
 
@@ -37,7 +39,7 @@ const fetched=Object.fromEntries(Object.entries(sources).map(([file,source])=>[f
 const codeMode=isolated.window.RenaiGameTurnRuntime.createRuntime({sources:fetched,save,saveId,characterId});
 const codeTurn=codeMode.runTurn(input);
 assert.equal(codeTurn.packet.fingerprint,turn.packet.fingerprint,'code mode and Node use the same packet');
-assert.equal(codeMode.validateStory(input,codeTurn.packet,story,{}).validation.ok,true);
+assert.equal(codeMode.validateStory(input,codeTurn.packet,story,actions).validation.ok,true);
 assert.equal(globalThis.RenaiGameTurnEngine,undefined,'source evaluation does not pollute the host global');
 
 for(const overrides of [{saveId:'other'},{characterId:'char_015'},{save:{...save,storage:{format:'chapter-files-v1'}}},{recordIndices:[0]}]) assert.throws(()=>setup(overrides));
@@ -70,13 +72,16 @@ assert.equal(setup({save:newSlot,initialState:initial}).runTurn(input).verificat
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ai-turn-runtime-'));
 try{
   const saveFile=path.join(dir,'save.json'),inputFile=path.join(dir,'input.json'),packetFile=path.join(dir,'packet.json'),storyFile=path.join(dir,'story.txt');
-  fs.writeFileSync(saveFile,JSON.stringify(save));fs.writeFileSync(inputFile,JSON.stringify(input));fs.writeFileSync(storyFile,story);
+  fs.writeFileSync(saveFile,JSON.stringify(save));fs.writeFileSync(inputFile,JSON.stringify({...input,storyActions:actions}));fs.writeFileSync(storyFile,story);
   const before=fs.readFileSync(saveFile,'utf8');
   const command=path.join(root,'simulation/scripts/run_ai_turn.cjs');
   const run=(...args)=>spawnSync(process.execPath,[command,...args],{cwd:dir,encoding:'utf8'});
   const result=run('run',saveFile,inputFile);assert.equal(result.status,0,result.stderr);
   assert.equal(JSON.parse(result.stdout).packet.fingerprint,turn.packet.fingerprint);
   fs.writeFileSync(packetFile,result.stdout);
+  const release=run('release',saveFile,inputFile,packetFile,storyFile);assert.equal(release.status,0,release.stderr);assert.equal(release.stdout.trim(),story);
+  const unreviewed=path.join(dir,'unreviewed.json');fs.writeFileSync(unreviewed,JSON.stringify(input));
+  const blocked=run('release',saveFile,unreviewed,packetFile,storyFile);assert.equal(blocked.status,1);assert.equal(blocked.stdout,'','unreviewed prose is never printed by the release command');
   const validation=run('validate',saveFile,inputFile,packetFile,storyFile);assert.equal(validation.status,0,validation.stderr);
   assert.equal(JSON.parse(validation.stdout).validation.ok,true);
   fs.writeFileSync(packetFile,JSON.stringify(corrupt));

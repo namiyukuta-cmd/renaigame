@@ -60,9 +60,9 @@ function test() {
   assert.throws(() => engine.runTurn(options({ stateEntry: legacy })), /主要心理項目が不足/);
 
   const goodStory = "Chapter 1\nカフェ／不明／不明／不明℃\n“Hello.”\n「こんにちは」";
-  assert.equal(engine.validateStory(args, packet, goodStory).ok, true);
-  assert.equal(engine.validateStory(args, packet, "“Hello.”").ok, false);
-  assert.equal(engine.validateStory(args, modified, goodStory).ok, false);
+  assert.equal(engine.validateStory(args, packet, goodStory).mechanicalOk, true);
+  assert.equal(engine.validateStory(args, packet, "“Hello.”").mechanicalOk, false);
+  assert.equal(engine.validateStory(args, modified, goodStory).mechanicalOk, false);
 
   const stage = engine.runTurn(options({
     stateEntry: { ...initial, stage: 2, stageName: "興味" },
@@ -101,9 +101,9 @@ function test() {
   assert.equal(shy.evaluations.evaluateYoinomaInvitation.mode, "indirect");
   assert.equal(shy.after.yoinomaInvitation.status, "pending");
   assert.equal(engine.verifyTurn(invitationArgs, shy).ok, true);
-  assert.equal(engine.validateStory(invitationArgs, shy, goodStory).ok, false);
+  assert.equal(engine.validateStory(invitationArgs, shy, goodStory).mechanicalOk, false);
   const inviteStory = goodStory + "\n“Would you like to spend a little more time with me at my place?”\n「よければ、僕の家でもう少し一緒に過ごしませんか」";
-  assert.equal(engine.validateStory(invitationArgs, shy, inviteStory, {yoinomaInvitation: "indirect"}).ok, true);
+  assert.equal(engine.validateStory(invitationArgs, shy, inviteStory, {yoinomaInvitation: "indirect"}).mechanicalOk, true);
   const directArgs = {...invitationArgs, character: {...invitationArgs.character,
     common: {...invitationArgs.character.common, baseRomanticInitiative: 10}}};
   assert.equal(engine.runTurn(directArgs).evaluations.evaluateYoinomaInvitation.mode, "direct");
@@ -176,11 +176,12 @@ function test() {
   const confrontationPacket=engine.runTurn(confrontationArgs);
   assert.equal(engine.verifyTurn(confrontationArgs,confrontationPacket).ok,true);
   const response="Chapter 38\n家／2026年10月15日（木）／18:00／12℃\n“I said those words. I will answer for them.”\n「あの言葉を言った。言ったことについて、きちんと答える。」";
-  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,response).ok,true);
-  assert.equal(engine.validateContinuity({protagonistProfile:{name:"美奈"}},"美奈は死んだ。").ok,false);
-  assert.equal(engine.validateContinuity({},"“I am glad you died.”").ok,false);
-  assert.equal(engine.validateContinuity({},"最初から主人公が嫌いだった。").ok,false);
+  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,response).mechanicalOk,true);
+  assert.equal(engine.validateContinuity({protagonistProfile:{name:"美奈"}},"美奈は死んだ。").mechanicalOk,false);
+  assert.equal(engine.validateContinuity({},"“I am glad you died.”").mechanicalOk,false);
+  assert.equal(engine.validateContinuity({},"最初から主人公が嫌いだった。").mechanicalOk,false);
 
   console.log("PASS: actual psychology JS evaluation, replay integrity, save isolation, legacy guard, story validation");
 }
 test();
+

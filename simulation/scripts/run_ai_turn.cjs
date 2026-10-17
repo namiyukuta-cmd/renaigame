@@ -7,7 +7,7 @@ const repoRoot = path.resolve(__dirname,'../..');
 const readJson = file => JSON.parse(fs.readFileSync(file,'utf8'));
 function main(argv){
   const [command,saveFile,inputFile,packetFile,storyFile] = argv;
-  if(!['run','validate'].includes(command) || argv.length !== (command === 'run' ? 3 : 5)) throw new Error('使い方: node simulation/scripts/run_ai_turn.cjs run <save.json> <input.json> または validate <save.json> <input.json> <packet.json> <story.txt>');
+  if(!['run','review','validate','release'].includes(command) || argv.length !== (command === 'run' ? 3 : 5)) throw new Error('使い方: node simulation/scripts/run_ai_turn.cjs run <save.json> <input.json> または review|validate|release <save.json> <input.json> <packet.json> <story.txt>');
   const save = readJson(saveFile), input = readJson(inputFile);
   const sources = Object.fromEntries(runtime.sourcePaths(input.characterId).map(file=>[file,fs.readFileSync(path.join(repoRoot,file),'utf8')]));
   const savedState = save.state?.session?.statesByCharacter?.[input.characterId];
@@ -17,11 +17,19 @@ function main(argv){
   if(command === 'run') return runner.runTurn(input);
   const previous = readJson(packetFile);
   const packet = previous.packet || previous;
-  const result = runner.validateStory(input,packet,fs.readFileSync(storyFile,'utf8'),input.storyActions || {});
+  const story = fs.readFileSync(storyFile,'utf8');
+  if(command === 'review'){
+    const args = runner.buildArgs(input), engine = runner.scope.RenaiGameTurnEngine;
+    const verified = engine.verifyTurn(args,packet);
+    if(!verified.ok) throw new Error(verified.errors.join('／'));
+    return {semanticReview:engine.prepareStoryReview(args,story,input.storyActions || {})};
+  }
+  if(command === 'release') return runner.releaseStory(input,packet,story,input.storyActions || {}).story;
+  const result = runner.validateStory(input,packet,story,input.storyActions || {});
   return {packet,...result};
 }
 if(require.main === module){
-  try{ process.stdout.write(JSON.stringify(main(process.argv.slice(2)),null,2)+'\n'); }
+  try{ const result=main(process.argv.slice(2)); process.stdout.write((typeof result === 'string' ? result : JSON.stringify(result,null,2))+'\n'); }
   catch(error){ console.error(error.stack || error.message); process.exitCode = 1; }
 }
 module.exports = {main};

@@ -84,6 +84,7 @@
       'JSの読込手順はsimulation/AI_TURN_EXECUTION.mdです。simulation/js/ai_turn_runtime.jsで設定検証JSを含む依存ファイルを同じwindowへ読み込むか、Nodeのsimulation/scripts/run_ai_turn.cjsを使ってください。GitHub取得ツールのAction completed.はソースではありません。structuredContent.contentの本物のJSを使ってください。読込ミスは保持中の入力で修正・再実行し、解消できない場合は試した実行ツール・コマンド、失敗したJSのパス、元のエラー全文を報告してください。環境へ読み込めないという結論だけで終了しないでください。',
       '今回入力の原文を使ったchangesとevidenceを作り、RenaiGameTurnEngine.runTurnで生成用パケットを作成し、verifyTurnのok=trueを確認してから本文を生成してください。',
       'runTurnとverifyTurnの成功後に本文を下書きし、生成後にvalidateStoryを実行してください。ok=falseなら本文を修正・再検査してください。本文がまだない段階でvalidateStoryの成功を求めて停止しないでください。意味・設定の整合性は実ログ・個別behaviorとも照合してください。',
+      '本文出力の必須手順はsimulation/STORY_REVIEW_GATE.mdです。下書き後にprepareStoryReviewで未完了の確認票を作り、今回入力との整合・正本出典・主人公の操作権・男性の具体的な動機・実際の境遇の変化を別工程で確認し、根拠付きでstoryActions.semanticReviewへ記録してください。機械検査のmechanicalOk:trueだけでは出力できません。NPCの台詞による主人公の意思の代弁も今回入力の根拠が必要です。実ログ0件なら以前の未保存の展開を流用せず、新しい開始として扱ってください。releaseStoryが成功して返した本文だけを出してください。確認票を自動で全てpassにしないでください。',
       '実行器、対象JS、現在saveId、心理state、実ログが取得できない時、または検証失敗時は小説を捏造せず処理を停止してください。',
       '旧セーブの主要心理値が不足する場合は0で補完して恋愛を後退させず、過去の実ログから整合するstateへの移行が必要だと報告してください。旧セーブを勝手に書き換えないでください。',
       '実行器の証跡fingerprint、invoked、okと検証エラーは確認できるよう保持し、求められた場合に提示してください。本文には内部計算を混ぜないでください。',

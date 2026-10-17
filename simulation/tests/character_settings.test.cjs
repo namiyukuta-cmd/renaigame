@@ -78,7 +78,9 @@ const packet=engine.runTurn(args);
 assert.equal(engine.verifyTurn(args,packet).ok,true);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
-assert.equal(engine.validateStory(args,packet,"Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」").ok,true);
+const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";
+const reviewActions=require('./helpers/review_fixture.cjs')(engine,args,greeting);
+assert.equal(engine.validateStory(args,packet,greeting,reviewActions).ok,true);
 console.log("Character settings: all registered sources inspected; incomplete new settings blocked; char_008 runTurn / verifyTurn / validateStory passed.");
 
 async function checkLoader(incomplete){
@@ -109,3 +111,4 @@ async function checkLoader(incomplete){
   await checkLoader("harm");
   console.log("Character loader: validator loads before character sources; incomplete new character rejected.");
 })().catch(error=>{console.error(error);process.exitCode=1;});
+

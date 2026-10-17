@@ -5,6 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const vm = require('node:vm');
 const { spawnSync } = require('node:child_process');
+const reviewedActions = require('./helpers/review_fixture.cjs');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root,file), 'utf8');
 const copy = value => JSON.parse(JSON.stringify(value));
@@ -28,10 +29,11 @@ const args = {
 };
 const packet = engine.runTurn(args);
 const partner = 'Chapter 1\n英国・店内／2026年10月17日（土）／午後／15℃\n\nアーサーは頷いた。';
+const actions = reviewedActions(engine,args,partner);
 const input = {
   args, packet, partner, chapter:1, date:'2026年10月17日（土）',
-  verification:engine.verifyTurn(args,packet), validation:engine.validateStory(args,packet,partner,{}),
-  savedRecords:[], recordIndices:[], storyActions:{}
+  verification:engine.verifyTurn(args,packet), validation:engine.validateStory(args,packet,partner,actions),
+  savedRecords:[], recordIndices:[], storyActions:actions
 };
 
 async function main(){
@@ -89,7 +91,8 @@ async function main(){
   const savedRecords=[copy(bundle.records[0].entry)];
   const nextArgs={...args,stateEntry:{currentState:packet.after,stateHistory:[{turn:1}]},records:savedRecords,protagonistInput:args.protagonistInput.replace('Chapter1','Chapter2')};
   const nextPacket=engine.runTurn(nextArgs), nextStory=partner.replace('Chapter 1','Chapter 2');
-  const nextInput={...input,args:nextArgs,packet:nextPacket,partner:nextStory,chapter:2,savedRecords,recordIndices:[0],verification:engine.verifyTurn(nextArgs,nextPacket),validation:engine.validateStory(nextArgs,nextPacket,nextStory,{})};
+  const nextActions=reviewedActions(engine,nextArgs,nextStory);
+  const nextInput={...input,args:nextArgs,packet:nextPacket,partner:nextStory,chapter:2,savedRecords,recordIndices:[0],storyActions:nextActions,verification:engine.verifyTurn(nextArgs,nextPacket),validation:engine.validateStory(nextArgs,nextPacket,nextStory,nextActions)};
   const next=api.createChapterBundleV2(nextInput);
   assert.equal(next.records[0].index,1);
   assert.equal(next.stateHistory[0].index,1);
@@ -103,7 +106,7 @@ async function main(){
     assert.match(prompt,/assertChapterBundleV2/);
     assert.doesNotMatch(prompt,/心理パケットの値はstateHistoryのentry直下に1回だけ展開/);
   }
-  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-unassigned-handoff/);
+  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-story-review/);
 
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chapter-format-'));
   try{

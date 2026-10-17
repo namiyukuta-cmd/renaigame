@@ -80,6 +80,8 @@ AIは`runTurn`→`verifyTurn`→`validateStory`を実行・確認した後、**�
 
 ### AIの出力手順と出力前検査
 
+新規章は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)の5軸の意味確認を必須とする。確認記録は既存の`replayContext.storyActions.semanticReview`（未選択章は`draftMetadata.storyActions.semanticReview`）に保持し、本文作成・取り込みで再検査する。`mechanicalOk:true`だけの本文を保存JSONとして出さない。標準version 2のルート・ファイル名は変更しない。
+
 1. 本文生成時の`args/packet/verification/validation`と確定本文を保持する。保存のために心理変化や物語を生成し直さない。
 2. `simulation/js/simulation_save.js`を評価し、`RenaiGameSave.createChapterBundleV2({args,packet,verification,validation,chapter,date,partner,savedRecords,recordIndices,storyActions})`で組み立てる。`savedRecords`はそのsaveIdの正本の全実ログ、`args.records`は実際に計算に渡した選択ログ、`partner`は確定本文全文。`args.stateEntry`も同じ正本の心理状態・履歴を使う。
 3. この関数は元パケットと元の検証結果を再照合し、参照ログが正本の添字と一致すること、正本の次章であることを確認する。本文・パケットを再生成せず、既存オブジェクトを書き換えない。

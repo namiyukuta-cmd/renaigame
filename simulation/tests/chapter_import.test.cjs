@@ -1,3 +1,4 @@
+const reviewedActions=require('./helpers/review_fixture.cjs');
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict'), path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const files = new Map(), local = new Map(), pending = new Map(), commits = new Map();
@@ -39,7 +40,8 @@ const prefix='renaigame/simulation/saves/', id='run_import_test', characterId='c
 const current={version:2,saveId:id,hasSave:true,game:'simulation',page:'simulation_new.html',updatedAt:'old',meta:{id,protagonistName:profile.name,partnerName:'エミール',selectedCharacterId:characterId,updatedAt:'old'},state:{profile,selectedCharacterId:characterId,session:{id,recordsByCharacter:{},statesByCharacter:{}}},storage:{format:'chapter-files-v1',characters:{}}};
 const args={saveId:id,characterId,character:sandbox.window.SimulationCharacter007,behavior:sandbox.window.SimulationCharacter007Behavior,psychology,stateEntry:initial,records:[],protagonistProfile:profile,protagonistInput:'Chapter1\n「ありがとう。」',changes:{gratitude:2},evidence:{gratitude:'ありがとう。'},yoinomaContext:{}};
 const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／朝／10℃\n\nエミールは静かに頷いた。';
-const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',date:'2026-10-13',protagonist:args.protagonistInput,partner:story}}],stateHistory:[{index:0,entry:{turn:1,scene:'Chapter 1',...packet,verification:engine.verifyTurn(args,packet),validation:engine.validateStory(args,packet,story),packet}}]};
+const actions=reviewedActions(engine,args,story);
+const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',date:'2026-10-13',protagonist:args.protagonistInput,partner:story}}],stateHistory:[{index:0,entry:{turn:1,scene:'Chapter 1',...packet,verification:engine.verifyTurn(args,packet),validation:engine.validateStory(args,packet,story,actions),packet}}],replayContext:{recordIndices:[],storyActions:actions}};
 const copy=x=>JSON.parse(JSON.stringify(x));
 function v2Bundle(value){
   const result=copy(value); result.version=2;
@@ -108,7 +110,8 @@ async function main(){
     const turnArgs={...args,protagonistProfile:chapter===4?{}:profile,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
     const turnPacket=engine.runTurn(turnArgs);
     const turnStory=story.replace('Chapter 1','Chapter '+chapter);
-    const next={version:1,saveId:id,characterId,chapter,records:[{index:chapter-1,entry:{scene:'Chapter '+chapter,date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:chapter-1,entry:{turn:chapter,scene:'Chapter '+chapter,...turnPacket,verification:engine.verifyTurn(turnArgs,turnPacket),validation:engine.validateStory(turnArgs,turnPacket,turnStory),packet:turnPacket}}],replayContext:chapter===2?{records:copy(turnArgs.records),storyActions:{}}:{recordIndices:indices,storyActions:{}}};
+    const turnActions=reviewedActions(engine,turnArgs,turnStory);
+    const next={version:1,saveId:id,characterId,chapter,records:[{index:chapter-1,entry:{scene:'Chapter '+chapter,date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:chapter-1,entry:{turn:chapter,scene:'Chapter '+chapter,...turnPacket,verification:engine.verifyTurn(turnArgs,turnPacket),validation:engine.validateStory(turnArgs,turnPacket,turnStory,turnActions),packet:turnPacket}}],replayContext:chapter===2?{records:copy(turnArgs.records),storyActions:turnActions}:{recordIndices:indices,storyActions:turnActions}};
     const wrong=copy(next);wrong.replayContext={recordIndices:[999]};await assert.rejects(api.prepareChapterImport(wrong),/参照番号/);
     const mismatch=copy(next);mismatch.replayContext={recordIndices:chapter===2?[]:[0]};await assert.rejects(api.prepareChapterImport(mismatch),/指紋/);
     const incoming=chapter===4?v2Bundle(next):chapter===3?api.compactChapterBundle(next):next;

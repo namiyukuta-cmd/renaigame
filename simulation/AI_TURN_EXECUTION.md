@@ -1,5 +1,9 @@
 # AIターン実行手順（実コード）
 
+本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが5軸を実際に照合して`storyActions.semanticReview`へ記録する。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
+
+Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt>`は未完了の確認票を返す。確認記録を入力ファイルのstoryActionsへ保持した後、同じ引数で`release`を使うと、検証成功時だけ本文が出力される。`run`や`review`の段階は本文出力の許可ではない。
+
 GitHubから取得した本物のJSを実行し、現在saveIdの正本から計算する。読んだだけで実行済みと扱わない。
 本文生成前にrunTurnとverifyTurnを成功させ、下書き生成後にvalidateStoryを成功させてから本文を返す。まだ下書きがない段階でvalidateStoryの成功を求めて処理を止めない。
 

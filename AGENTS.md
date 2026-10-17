@@ -1,5 +1,7 @@
 # 恋愛シミュレーションのAI作業規定
 
+- 本文生成・検証では`simulation/STORY_REVIEW_GATE.md`を読む。入力整合・正本出典・主人公の操作権・男性の動機・境遇の変化を下書き後に別工程で確認する。`semanticReview`未完了なら本文は出力不可。`mechanicalOk:true`だけで合格と報告しない。`releaseStory`の成功した本文を使う。確認票を自動で全てpassにしない。
+- 本文検証を変更したら`node simulation/tests/story_review.test.cjs`も実行する。
 - **主人公の恋愛相手は男性限定。** このリポジトリは男性の相手との恋愛を進めるゲームであり、女性NPCや実父・祖父・実兄弟を恋愛相手にしない。家族・世話役の支援で恋愛の進展を代用しない。生成・規定・検査を扱う前に`simulation/ROMANCE_PREFERENCES.md`を読む。
 - 章の保存JSONを扱う前に`simulation/CHAPTER_SAVE_FORMAT.md`を読む。保存形式の正本はこの文書。
 - 「保存して」「保存JSON」「記録と情報更新」「完全保存」「心理パケット全項目を保持」は、標準version 2の1章JSONを出力する指示。保持の要求からversion 1を選ばない。

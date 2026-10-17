@@ -87,7 +87,10 @@
       if(!validation.ok) fail('本文検証失敗: ' + validation.errors.join('／'));
       return {verification,validation,context:clone(context)};
     }
-    return Object.freeze({scope,buildArgs,runTurn,validateStory,context:clone(context)});
+    function releaseStory(input,packet,story,storyActions = {}){
+      return engine.releaseStory(buildArgs(input),packet,story,storyActions);
+    }
+    return Object.freeze({scope,buildArgs,runTurn,validateStory,releaseStory,context:clone(context)});
   }
   const api = Object.freeze({version:1,sourcePaths,sourceText,createRuntime});
   root.RenaiGameTurnRuntime = api;

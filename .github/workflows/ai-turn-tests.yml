@@ -56,6 +56,8 @@ jobs:
       - run: node tests/unassigned-continuity-import.test.cjs
       - run: node simulation/tests/ai_turn_runtime.test.cjs
       - run: node simulation/tests/chapter_format.test.cjs
+      - run: node simulation/tests/handoff.test.cjs
+      - run: node simulation/tests/handoff_ui.test.cjs
       - run: node simulation/tests/chapter_import.test.cjs
       - run: node simulation/tests/chapter_save.test.cjs
 

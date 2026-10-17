@@ -23,7 +23,7 @@
     "simulation_character_016.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261017-add-arthur-char016";
+  const CHARACTER_ASSET_VERSION = "20261017-male-romance";
   let loadPromise = null;
 
   function loadScript(fileName) {
@@ -120,4 +120,5 @@
     getHomeAsset
   });
 })();
+
 

@@ -103,7 +103,7 @@ async function main(){
     assert.match(prompt,/assertChapterBundleV2/);
     assert.doesNotMatch(prompt,/心理パケットの値はstateHistoryのentry直下に1回だけ展開/);
   }
-  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-turn-runtime/);
+  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-unassigned-handoff/);
 
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chapter-format-'));
   try{
@@ -119,3 +119,4 @@ async function main(){
   console.log('PASS: standard v2 producer, strict format and filename checks, real char_016 packet, handoff instructions and offline CLI');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
+

@@ -7,7 +7,7 @@ const engine = require("../js/ai_turn_engine.js");
 const copy = value => JSON.parse(JSON.stringify(value));
 
 const input = "助けてください。状況を変えてください。";
-const story = "Chapter 3\n館／不明／不明／不明℃\n管理人は面会を禁じる札を撤去した。\n面会の制限はなくなり、親族が毎日訪ねられるようになった。";
+const story = "Chapter 3\n館／2026年10月17日（土）／15:00／15℃\n管理人は面会を禁じる札を撤去した。\n面会の制限はなくなり、親族が毎日訪ねられるようになった。";
 const progress = {
   kind: "circumstance_change", actor: "管理人",
   problem: {source: "input", quote: "状況を変えてください"},
@@ -17,7 +17,7 @@ const progress = {
 const args = {protagonistInput: input, protagonistProfile: {name: "テスト主人公"}, records: []};
 const actions = p => ({continuity: {supportProgress: p}});
 const original = JSON.stringify({args, progress});
-assert.equal(engine.validateContinuity({}, "庭に花が咲いた。").mechanicalOk, true);
+assert.equal(engine.validateContinuity({}, "Chapter 1\n庭／2026年10月17日（土）／15:00／15℃\n庭に花が咲いた。").mechanicalOk, true);
 assert.equal(engine.validateSupportProgress(args, null).ok, false);
 assert.equal(engine.validateContinuity(args, story).mechanicalOk, false, "a statement of intent is not evidence");
 assert.equal(engine.validateContinuity(args, story, actions(progress)).mechanicalOk, true);
@@ -42,7 +42,7 @@ const repeated = {
     {protagonist: "変わり映えのない時間が続く。", partner: "女房は湯を替え、火桶を整えた。"}
   ]
 };
-const careStory = "女房は夕食を運んだ。火桶の炭を足した。";
+const careStory = "Chapter 3\n館／2026年10月17日（土）／15:00／15℃\n女房は夕食を運んだ。火桶の炭を足した。";
 const care = {...progress, actor: "女房", problem: {source: "record", index: 0, field: "protagonist", quote: "何も変わらない"},
   actionQuote: "女房は夕食を運んだ。", outcomeQuote: "火桶の炭を足した。"};
 assert.equal(engine.validateContinuity(repeated, careStory, actions(care)).mechanicalOk, false,
@@ -59,7 +59,7 @@ const hungry = {...repeated, protagonistInput: "空腹です。助けてくだ�
 const food = {...care, problem: {source: "input", quote: "空腹です"}, outcomeQuote: "温かい食事を御簾の前に置いた。"};
 assert.equal(engine.validateContinuity(hungry, careStory + food.outcomeQuote, actions(food)).mechanicalOk, true,
   "care that addresses the stated immediate problem is still allowed");
-const relationStory = "親族は会いに来た。\n「あなたに会いたくて来た。これからも一緒に時間を過ごしたい」";
+const relationStory = "Chapter 3\n館／2026年10月17日（土）／15:00／15℃\n親族は会いに来た。\n「あなたに会いたくて来た。これからも一緒に時間を過ごしたい」";
 const relation = {...progress, kind: "relationship_response", actor: "親族",
   actionQuote: "親族は会いに来た。", outcomeQuote: "「あなたに会いたくて来た。これからも一緒に時間を過ごしたい」"};
 assert.equal(engine.validateContinuity(args, relationStory, actions(relation)).mechanicalOk, true,

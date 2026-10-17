@@ -39,7 +39,7 @@ const initial=JSON.parse(fs.readFileSync(root+'/simulation/state/templates/char_
 const prefix='renaigame/simulation/saves/', id='run_import_test', characterId='char_007', profile={name:'取込テスト',age:'41',free:''};
 const current={version:2,saveId:id,hasSave:true,game:'simulation',page:'simulation_new.html',updatedAt:'old',meta:{id,protagonistName:profile.name,partnerName:'エミール',selectedCharacterId:characterId,updatedAt:'old'},state:{profile,selectedCharacterId:characterId,session:{id,recordsByCharacter:{},statesByCharacter:{}}},storage:{format:'chapter-files-v1',characters:{}}};
 const args={saveId:id,characterId,character:sandbox.window.SimulationCharacter007,behavior:sandbox.window.SimulationCharacter007Behavior,psychology,stateEntry:initial,records:[],protagonistProfile:profile,protagonistInput:'Chapter1\n「ありがとう。」',changes:{gratitude:2},evidence:{gratitude:'ありがとう。'},yoinomaContext:{}};
-const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／朝／10℃\n\nエミールは静かに頷いた。';
+const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／08:00／10℃\n\nエミールは静かに頷いた。';
 const actions=reviewedActions(engine,args,story);
 const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',date:'2026-10-13',protagonist:args.protagonistInput,partner:story}}],stateHistory:[{index:0,entry:{turn:1,scene:'Chapter 1',...packet,verification:engine.verifyTurn(args,packet),validation:engine.validateStory(args,packet,story,actions),packet}}],replayContext:{recordIndices:[],storyActions:actions}};
 const copy=x=>JSON.parse(JSON.stringify(x));
@@ -71,6 +71,10 @@ async function main(){
   assert.equal(v2Preview.chapter,1,'standard v2 format stays compatible');
   const corruptV2=v2Bundle(bundle);corruptV2.stateHistory[0].entry.fingerprint='invalid';corruptV2.stateHistory[0].entry.verification.replayFingerprint='invalid';
   await assert.rejects(api.prepareChapterImport(corruptV2),/指紋/);
+  const unknown=copy(bundle);
+  unknown.records[0].entry.partner=story.replace('2026年10月13日（火）／08:00／10℃','不明／不明／不明℃');
+  unknown.replayContext.storyActions=reviewedActions(engine,args,unknown.records[0].entry.partner);
+  await assert.rejects(api.prepareChapterImport(unknown),/Chapterヘッダ/,'selected import rechecks the actual header instead of trusting an old ok:true');
   const preview=await api.prepareChapterImport(compact);
   assert.equal(preview.chapter,1);assert.equal(preview.protagonistName,profile.name);
   assert.equal(JSON.stringify([...files]),before,'preview never writes');

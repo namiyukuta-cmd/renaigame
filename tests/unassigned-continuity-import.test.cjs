@@ -12,14 +12,18 @@ async function main(){
  else throw Error('Unexpected '+url);
  return {ok:status===200,status,json:async()=>data};};
  const window={RenaiGameTurnEngine:engine};vm.runInNewContext(fs.readFileSync(__dirname+'/../simulation/js/simulation_save.js','utf8'),{window,fetch,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},TextEncoder,TextDecoder,btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),Date,Math});
- const api=window.RenaiGameSave,bundle={version:1,saveId:id,characterId:null,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',protagonist:'入力',partner:'相手は尋ねられた場所への道順を答えた。'}}],stateHistory:[],draftMetadata:{status:'unverified_draft',psychologyJsExecuted:false}};
+ const api=window.RenaiGameSave,bundle={version:1,saveId:id,characterId:null,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',protagonist:'入力',partner:'Chapter 1\n庭／2026年10月17日（土）／15:00／15℃\n相手は尋ねられた場所への道順を答えた。'}}],stateHistory:[],draftMetadata:{status:'unverified_draft',psychologyJsExecuted:false}};
  function reviewed(b){const r=b.records[0].entry;b.draftMetadata={...b.draftMetadata,storyActions:reviewedActions(engine,{saveId:id,protagonistProfile:save.state.profile,records:[],protagonistInput:r.protagonist},r.partner,b.draftMetadata.storyActions||{})};return b;}
  reviewed(bundle);
  assert.equal((await api.prepareChapterImport(bundle)).unverifiedDraft,true);
+ const unknown=JSON.parse(JSON.stringify(bundle));
+ unknown.records[0].entry.partner=unknown.records[0].entry.partner.replace('2026年10月17日（土）／15:00／15℃','不明／不明／不明℃');
+ reviewed(unknown);
+ await assert.rejects(()=>api.prepareChapterImport(unknown),/Chapterヘッダ/,'unassigned import rejects an invalid header even with completed review evidence');
  for(const text of ['主人公Aはいない方がいい。','誰も主人公Aを助けない。','主人公Aは見放された。'])await assert.rejects(()=>api.prepareChapterImport({...bundle,records:[{index:0,entry:{...bundle.records[0].entry,partner:text}}]}),/継続検査/);
  const need='助けてください。状況を変えてください。';
  const action='管理人は面会を禁じる札を撤去した。',outcome='面会の制限はなくなり、親族が毎日訪ねられるようになった。';
- const supported={...bundle,records:[{index:0,entry:{...bundle.records[0].entry,protagonist:need,partner:action+outcome}}]};
+ const supported={...bundle,records:[{index:0,entry:{...bundle.records[0].entry,protagonist:need,partner:bundle.records[0].entry.partner.split("\n").slice(0,2).join("\n")+"\n"+action+outcome}}]};
  await assert.rejects(()=>api.prepareChapterImport(supported),/継続検査/,'an unassigned draft must validate the actual protagonist input');
  supported.draftMetadata={...bundle.draftMetadata,storyActions:{continuity:{supportProgress:{
    kind:'circumstance_change',actor:'管理人',problem:{source:'input',quote:'状況を変えてください'},actionQuote:action,outcomeQuote:outcome
@@ -32,7 +36,7 @@ async function main(){
  delete romance.draftMetadata.storyActions.continuity;
  await assert.rejects(()=>api.prepareChapterImport(romance),/恋愛の進展/,'support is not a substitute for the requested male romance');
  const maleAction='青年セシルは自分で門を訪れた。',maleIntent='「あなたに会いたくて来ました」';
- romance.records[0].entry.partner=maleAction+maleIntent;
+ romance.records[0].entry.partner=bundle.records[0].entry.partner.split("\n").slice(0,2).join("\n")+"\n"+maleAction+maleIntent;
  romance.draftMetadata.storyActions.romanceProgress={origin:'canon',motivation:{source:'profile',field:'free',quote:'隣家の青年セシルは、主人公に会って話をしたいと願っている。'},kind:'initiative',actor:'セシル',actorGender:'male',bloodRelatedToProtagonist:false,relationshipToProtagonist:'unrelated',actionQuote:maleAction,romanticIntentQuote:maleIntent};
  reviewed(romance);
  assert.equal((await api.prepareChapterImport(romance)).unverifiedDraft,true);
@@ -40,7 +44,7 @@ async function main(){
  await assert.rejects(()=>api.prepareChapterImport(woman),/男性限定/);
  const blood=JSON.parse(JSON.stringify(romance));blood.draftMetadata.storyActions.romanceProgress.bloodRelatedToProtagonist=true;
  await assert.rejects(()=>api.prepareChapterImport(blood),/血縁者/);
- const historical=JSON.parse(JSON.stringify(bundle.records[0].entry));historical.protagonist=need;
+ const historical=JSON.parse(JSON.stringify(bundle.records[0].entry));historical.protagonist=need;historical.partner=historical.partner.replace('2026年10月17日（土）／15:00／15℃','不明／不明／不明℃');
  const oldSave=JSON.parse(JSON.stringify(save));oldSave.state.session.recordsByCharacter.__unassigned__=[historical];
  files.set(base+id+'.json',oldSave);
  const oldBundle={...bundle,records:[{index:0,entry:historical}]};

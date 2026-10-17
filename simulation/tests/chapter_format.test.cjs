@@ -28,7 +28,7 @@ const args = {
   changes: {gratitude:2}, evidence: {gratitude:'ありがとう。'}
 };
 const packet = engine.runTurn(args);
-const partner = 'Chapter 1\n英国・店内／2026年10月17日（土）／午後／15℃\n\nアーサーは頷いた。';
+const partner = 'Chapter 1\n英国・店内／2026年10月17日（土）／15:00／15℃\n\nアーサーは頷いた。';
 const actions = reviewedActions(engine,args,partner);
 const input = {
   args, packet, partner, chapter:1, date:'2026年10月17日（土）',
@@ -88,6 +88,10 @@ async function main(){
   assert.throws(()=>api.createChapterBundleV2({...input,verification:{ok:true}}),/検証記録/);
   assert.throws(()=>api.createChapterBundleV2({...input,chapter:2}),/次のChapter/);
 
+  const unknownStory=partner.replace('2026年10月17日（土）／15:00／15℃','不明／不明／不明℃');
+  const unknownActions=reviewedActions(engine,args,unknownStory);
+  assert.throws(()=>api.createChapterBundleV2({...input,partner:unknownStory,storyActions:unknownActions}),/本文/,'producer rejects an invalid header even with a completed review and an old passing validation');
+
   const savedRecords=[copy(bundle.records[0].entry)];
   const nextArgs={...args,stateEntry:{currentState:packet.after,stateHistory:[{turn:1}]},records:savedRecords,protagonistInput:args.protagonistInput.replace('Chapter1','Chapter2')};
   const nextPacket=engine.runTurn(nextArgs), nextStory=partner.replace('Chapter 1','Chapter 2');
@@ -106,7 +110,7 @@ async function main(){
     assert.match(prompt,/assertChapterBundleV2/);
     assert.doesNotMatch(prompt,/心理パケットの値はstateHistoryのentry直下に1回だけ展開/);
   }
-  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-story-review/);
+  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-chapter-header/);
 
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chapter-format-'));
   try{

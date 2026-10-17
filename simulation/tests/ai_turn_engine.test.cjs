@@ -59,7 +59,7 @@ function test() {
   const legacy = { characterId: "char_003", stage: 6, stageName: "告白前", trust: 70 };
   assert.throws(() => engine.runTurn(options({ stateEntry: legacy })), /主要心理項目が不足/);
 
-  const goodStory = "Chapter 1\nカフェ／不明／不明／不明℃\n“Hello.”\n「こんにちは」";
+  const goodStory = "Chapter 1\nカフェ／2026年10月17日（土）／15:00／15℃\n“Hello.”\n「こんにちは」";
   assert.equal(engine.validateStory(args, packet, goodStory).mechanicalOk, true);
   assert.equal(engine.validateStory(args, packet, "“Hello.”").mechanicalOk, false);
   assert.equal(engine.validateStory(args, modified, goodStory).mechanicalOk, false);

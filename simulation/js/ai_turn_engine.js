@@ -518,9 +518,36 @@
 
   // Conservative phrase checks, not a substitute for semantic review.
   // This also works for scenes without a selected romance partner.
+  // All new chapters share this check, including turns without psychology.
+  // Use UTC only for calendar arithmetic; never infer fictional weather/time from now.
+  function validateChapterHeader(story) {
+    const errors = [];
+    const lines = typeof story === 'string' ? story.trim().split(/\r?\n/) : [];
+    if (!/^Chapter\s+[1-9]\d*\s*$/.test((lines[0] || '').trim())) errors.push('Chapterヘッダがありません（Chapterと1以上の章番号が必要です）');
+    const fields = (lines[1] || '').split('／').map(value => value.trim());
+    if (fields.length !== 4) return {ok:false, errors:[...errors,'Chapterヘッダは場所／年月日（曜）／HH:MM／数値℃の4項目です']};
+    const [place, date, time, temperature] = fields;
+    if (!place || /不明|未定|未設定|未指定|未入力|未取得|[?？<>]/i.test(place) || /^(?:場所|TBD|unknown)$/i.test(place)) errors.push('Chapterヘッダの場所を具体的に設定してください');
+    const match = /^(\d{4})年(\d{1,2})月(\d{1,2})日（([日月火水木金土])）$/.exec(date);
+    if (!match) errors.push('Chapterヘッダの日付は具体的なYYYY年M月D日（曜）が必要です');
+    else {
+      const [,year,month,day,weekday] = match;
+      const value = new Date(0);
+      value.setUTCFullYear(Number(year), Number(month)-1, Number(day));
+      value.setUTCHours(0,0,0,0);
+      if (Number(year) < 1 || value.getUTCFullYear() !== Number(year) || value.getUTCMonth() !== Number(month)-1 || value.getUTCDate() !== Number(day)) errors.push('Chapterヘッダの日付が実在しません');
+      else if ('日月火水木金土'[value.getUTCDay()] !== weekday) errors.push('Chapterヘッダの日付と曜日が一致しません');
+    }
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) errors.push('Chapterヘッダの時刻は具体的な24時間表記HH:MMが必要です');
+    if (!/^[+-]?\d+(?:\.\d+)?℃$/.test(temperature) || !Number.isFinite(Number(temperature.slice(0,-1)))) errors.push('Chapterヘッダの気温は具体的な数値℃が必要です');
+    return {ok:errors.length === 0,errors};
+  }
+
   function validateContinuity(args, story, storyActions = {}) {
     const errors = [], warnings = [];
     if (typeof story !== "string" || !story.trim()) return { ok: false, errors: ["本文が空です"], warnings, requiresSemanticReview: true };
+    const headerCheck = validateChapterHeader(story);
+    errors.push(...headerCheck.errors);
     const profile = args && args.protagonistProfile || {};
     const inputCheck = typeof args?.protagonistInput === 'string' && args.protagonistInput.trim() ? continuityInput(args.protagonistInput) : {ok:true,errors:[]};
     const agencyCheck = validateProtagonistAgency(args || {},story,storyActions);
@@ -551,7 +578,7 @@
     const semanticReview = validateSemanticReview(args || {},story,storyActions);
     return { ok: mechanicalOk && semanticReview.ok, mechanicalOk, readyForOutput:mechanicalOk && semanticReview.ok,
       errors: [...new Set([...errors,...semanticReview.errors])], warnings, requiresSemanticReview: true,
-      checks:{inputConsistency:{ok:inputCheck.ok},protagonistAgency:{ok:agencyCheck.ok},
+      checks:{chapterHeader:{ok:headerCheck.ok},inputConsistency:{ok:inputCheck.ok},protagonistAgency:{ok:agencyCheck.ok},
         romanceProgress:{ok:romanceCheck.ok,required:romanceCheck.required},circumstanceChange:{ok:supportCheck.ok,required:supportCheck.required}},
       semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
   }
@@ -572,13 +599,6 @@
       errors.push("本文が空です");
     } else {
       const lines = story.trim().split(/\r?\n/);
-      if (!/^Chapter\s+\d+\s*$/.test(lines[0].trim())) {
-        errors.push("Chapterヘッダがありません");
-      }
-      const detail = (lines[1] || "").trim();
-      if (!detail.includes("／") || !detail.includes("℃")) {
-        errors.push("場所／日付／時間／気温のヘッダ形式を確認してください");
-      }
       for (let i = 0; i < lines.length; i++) {
         if (/^\s*“/.test(lines[i]) && !/^\s*「/.test(lines[i + 1] || "")) {
           errors.push("英語台詞の直後に日本語訳がありません（" + (i + 1) + "行）");
@@ -619,6 +639,7 @@
     runTurn,
     verifyTurn,
     validateStory,
+    validateChapterHeader,
     continuityInput,
     validateContinuity,
     validateSupportProgress,

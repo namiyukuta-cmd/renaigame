@@ -765,7 +765,7 @@
   // The producer has no version/verbosity switch and never writes to GitHub.
   function createChapterBundleV2({args, packet, verification, validation, chapter, date, partner, savedRecords, recordIndices, storyActions}){
     const engine = window.RenaiGameTurnEngine;
-    if(!engine || typeof engine.releaseStory !== 'function') importError('最新版の本文検証JSを読み込めません。再読み込みしてください。');
+    if(!engine || typeof engine.validateChapterHeader !== 'function') importError('最新版の本文検証JSを読み込めません。再読み込みしてください。');
     if(!args || !Array.isArray(savedRecords) || !Array.isArray(recordIndices) || !Array.isArray(args.records) ||
        recordIndices.length !== args.records.length || recordIndices.some((index,i) => !Number.isSafeInteger(index) || index < 0 || index >= savedRecords.length || !equal(savedRecords[index],args.records[i]))) importError('計算に使った過去ログと正本の参照番号が一致しません。');
     if(chapter !== Math.max(0,...savedRecords.map((entry,index) => chapterNumber(entry,index))) + 1) importError('正本の次のChapterだけ出力できます。');
@@ -808,7 +808,7 @@
     if(!meta || meta.selectedCharacterId || meta.protagonistName !== buildMeta(save,bundle.saveId).protagonistName) importError('セーブ一覧と保存先が一致しません。');
     const session = save.state.session;
     const records = session.recordsByCharacter.__unassigned__ || [];
-    if(!window.RenaiGameTurnEngine || typeof window.RenaiGameTurnEngine.releaseStory !== 'function') importError('本文の継続検査JSを読み込めません。再読み込みしてください。');
+    if(!window.RenaiGameTurnEngine || typeof window.RenaiGameTurnEngine.validateChapterHeader !== 'function') importError('本文の継続検査JSを読み込めません。再読み込みしてください。');
     const existing = records.filter((entry,i) => chapterNumber(entry,i) === bundle.chapter);
     // Preserve idempotent imports of unchanged historical chapters. New chapters
     // must validate their actual input, history and declared support outcome.
@@ -861,7 +861,7 @@
     const expectedFingerprint = compact ? history.fingerprint : packet.fingerprint;
     if((history.verification.replayFingerprint && history.verification.replayFingerprint !== expectedFingerprint) ||
       ((history.validation || history.storyValidation).replayFingerprint && (history.validation || history.storyValidation).replayFingerprint !== expectedFingerprint)) importError('検証記録の指紋が一致しません。');
-    if(typeof window.RenaiGameTurnEngine?.releaseStory !== 'function' || !window.RenaiGamePsychologyParameters) importError('最新版の検証用JSを読み込めません。再読み込みしてください。');
+    if(typeof window.RenaiGameTurnEngine?.validateChapterHeader !== 'function' || !window.RenaiGamePsychologyParameters) importError('最新版の検証用JSを読み込めません。再読み込みしてください。');
     const token = getToken(); if(!token) importError('タイトル画面でGitHubトークンを設定してください。');
     const branch = (await githubJson(token, '')).default_branch;
     const head = (await githubJson(token, 'git/ref/heads/' + encodeURIComponent(branch))).object.sha;

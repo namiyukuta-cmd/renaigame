@@ -4,7 +4,7 @@ const engine=require('../js/ai_turn_engine.js');
 const reviewed=require('./helpers/review_fixture.cjs');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const args={saveId:'run_review',protagonistInput:'主人公は実家に戻った。',protagonistProfile:{name:'綾',free:'平安の都。季房は隣家に住む血縁のない青年で、綾と詩の話をしたいと思っている。'},records:[]};
-const story='Chapter 1\n都・門前／架空の秋／午後／15℃\n季房は門の外で名を告げた。\n「詩のことを、あなたと話したくて参りました」';
+const story='Chapter 1\n都・門前／1001年10月17日（土）／15:00／15℃\n季房は門の外で名を告げた。\n「詩のことを、あなたと話したくて参りました」';
 const action='季房は門の外で名を告げた。',intent='「詩のことを、あなたと話したくて参りました」';
 const progress={origin:'canon',motivation:{source:'profile',field:'free',quote:'季房は隣家に住む血縁のない青年で、綾と詩の話をしたいと思っている。'},kind:'initiative',actor:'季房',actorGender:'male',bloodRelatedToProtagonist:false,relationshipToProtagonist:'unrelated',actionQuote:action,romanticIntentQuote:intent};
 const actions=reviewed(engine,args,story,{romanceProgress:progress});
@@ -29,7 +29,7 @@ for(const mutate of [
 for(const changed of [{...args,protagonistInput:'別の入力'},{...args,records:[{protagonist:'過去入力',partner:'別の正本'}]},{...args,protagonistProfile:{name:'別人'}},{...args,saveId:'other'}]) assert.equal(engine.validateContinuity(changed,story,actions).ok,false,'review cannot be reused across input, save or canon changes');
 assert.equal(engine.validateContinuity(args,story+'\n本文を変更した。',actions).ok,false,'editing a draft invalidates its review');
 
-const proxy='女房は言った。「いまは、どなたともお会いになりませんので」';
+const proxy='Chapter 1\n都・門前／1001年10月17日（土）／15:00／15℃\n女房は言った。「いまは、どなたともお会いになりませんので」';
 assert.equal(engine.validateContinuity(args,proxy,reviewed(engine,args,proxy)).ok,false,'a completed semantic form cannot permit ungrounded proxy volition');
 const declined={...args,protagonistInput:'今日は誰にも会わない。'};
 const cited={protagonistClaims:[{storyQuote:proxy,source:{source:'input',quote:'今日は誰にも会わない。'}}]};
@@ -49,7 +49,7 @@ const noHistory={...args,protagonistProfile:{name:'綾'},protagonistInput:'実�
 const fabricated={romanceProgress:{...progress,motivation:{source:'record',index:0,field:'partner',quote:'季房は前から恋をしていた。'}}};
 assert.equal(engine.validateContinuity(noHistory,story,reviewed(engine,noHistory,story,fabricated)).ok,false,'zero records cannot substantiate an old relationship');
 const newEncounter='青年は門の詩の札に目をとめ、初めて名を告げた。';
-const meeting=newEncounter+'\n'+story;
+const meeting=story.replace('季房は門の外で名を告げた。',newEncounter+'\n季房は門の外で名を告げた。');
 const newActions={romanceProgress:{...progress,origin:'new_encounter',encounterQuote:newEncounter,motivation:{source:'story',quote:newEncounter}}};
 assert.equal(engine.validateContinuity(noHistory,meeting,reviewed(engine,noHistory,meeting,newActions)).ok,true,'a grounded new encounter remains possible');
 const careIntent='「膳と灯火を整えました」',careStory=action+careIntent;

@@ -16,7 +16,7 @@ const input = "恋愛を進めてください。";
 const args = {protagonistInput: input, protagonistProfile: {name: "テスト主人公"}, records: []};
 const action = "青年セシルは自分で門を訪れた。";
 const intent = "「あなたに会いたくて来ました。今日、あなたとお話しする時間をいただきたいのです」";
-const story = "Chapter 1\n庭／不明／不明／不明℃\n" + action + "\n" + intent;
+const story = "Chapter 1\n庭／2026年10月17日（土）／15:00／15℃\n" + action + "\n" + intent;
 const progress = {
   kind: "initiative", actor: "セシル", actorGender: "male",
   bloodRelatedToProtagonist: false, relationshipToProtagonist: "unrelated",
@@ -25,7 +25,7 @@ const progress = {
 const actions = p => ({romanceProgress: p});
 assert.equal(engine.validateContinuity(args, story).mechanicalOk, false, "an explicit romance request cannot be completed by support alone");
 assert.equal(engine.validateContinuity(args, story, actions(progress)).mechanicalOk, true);
-assert.equal(engine.validateContinuity({}, "女房が膳を整え、父親が家計を確かめた。").mechanicalOk, true,
+assert.equal(engine.validateContinuity({}, "Chapter 1\n庭／2026年10月17日（土）／15:00／15℃\n女房が膳を整え、父親が家計を確かめた。").mechanicalOk, true,
   "family and women may remain ordinary supporting characters");
 for (const mutate of [
   p => {p.actorGender = "female";},
@@ -71,7 +71,7 @@ const support = {continuity: {supportProgress: {
 assert.equal(engine.validateSupportProgress(repeated, supportedStory, support).ok, true);
 assert.equal(engine.validateRomanceProgress(repeated, supportedStory, support).ok, false);
 assert.equal(engine.validateContinuity(repeated, supportedStory, support).mechanicalOk, false);
-assert.equal(engine.validateContinuity(repeated, supportedStory + story, {...support, ...actions(progress)}).mechanicalOk, true);
+assert.equal(engine.validateContinuity(repeated, story + supportedStory, {...support, ...actions(progress)}).mechanicalOk, true);
 const maleSupport = {continuity: {supportProgress: {
   kind: "relationship_response", actor: progress.actor,
   problem: support.continuity.supportProgress.problem,

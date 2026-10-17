@@ -809,10 +809,16 @@
     const session = save.state.session;
     const records = session.recordsByCharacter.__unassigned__ || [];
     if(!window.RenaiGameTurnEngine || typeof window.RenaiGameTurnEngine.validateContinuity !== 'function') importError('本文の継続検査JSを読み込めません。再読み込みしてください。');
-    const continuityValidation = window.RenaiGameTurnEngine.validateContinuity({protagonistProfile:save.state.profile || {},records},record.partner);
+    const existing = records.filter((entry,i) => chapterNumber(entry,i) === bundle.chapter);
+    // Preserve idempotent imports of unchanged historical chapters. New chapters
+    // must validate their actual input, history and declared support outcome.
+    const continuityValidation = window.RenaiGameTurnEngine.validateContinuity({
+      protagonistProfile:save.state.profile || {},
+      records:existing.length ? [] : records,
+      protagonistInput:existing.length ? "" : record.protagonist
+    },record.partner,bundle.draftMetadata.storyActions || {});
     if(!continuityValidation.ok) importError('本文の継続検査に失敗しました：' + continuityValidation.errors.join('／'));
 
-    const existing = records.filter((entry,i) => chapterNumber(entry,i) === bundle.chapter);
     const preview = Object.freeze({saveId:bundle.saveId,protagonistName:meta.protagonistName,partnerName:'恋愛相手未選択',slotNumber:numberSlots(index.saves).find(item=>item.id===bundle.saveId).slotNumber,chapter:bundle.chapter,protagonist:record.protagonist,partner:record.partner,unverifiedDraft:true,alreadySaved:existing.length > 0});
     if(existing.length){
       if(!equal(existing,[record])) importError('同じChapterに異なる本文があります。上書きはしません。');
@@ -991,6 +997,7 @@
     compactChapterBundle, prepareChapterImport, commitChapterImport
   };
 })();
+
 
 
 

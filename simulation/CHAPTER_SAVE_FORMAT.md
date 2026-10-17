@@ -127,6 +127,7 @@ fetch_file/Contents APIが空のcontentとshaを返した場合、セーブが�
 
 専用の`version: 1`の章構造に `characterId: null`、`stateHistory: []`、`draftMetadata.status: "unverified_draft"`、`draftMetadata.psychologyJsExecuted: false` を指定します。この専用形式は標準version 2の心理付き出力関数・形式検査の対象外です。
 `saveId` はゲームで作成済みの未選択スロットのID、`records` は原文と本文を含む1章分とします。
+支援の求めや停滞のある新規章は、`draftMetadata.storyActions.continuity.supportProgress`に対応した問題の原文参照・実行者・対応と結果の本文引用を保持します。取り込み時の`validateContinuity`へ今回の主人公入力・保存済み実ログ・この行動宣言を渡して再検査します。詳細は`PROTAGONIST_CONTINUITY_RULES.md`の支援の実行結果の規定に従います。心理計算済みとは扱いません。変更のない保存済み章の再取り込みで新しい支援宣言を遡って要求しません。
 本文は `recordsByCharacter.__unassigned__` に追記し、元の取り込みJSONも保持します。記録画面では恋愛相手未選択の本文として表示します。
 恋愛相手のいるスロットへの取り込み・異なる本文での上書き・章の飛ばし保存は拒否します。
 心理計算・本文検証の成功と案内してはいけません。後から恋愛相手を選んだ場合の心理状態への移行は、この本文保存では実施しません。

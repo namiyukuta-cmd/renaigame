@@ -14,7 +14,23 @@ async function main(){
  const api=window.RenaiGameSave,bundle={version:1,saveId:id,characterId:null,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',protagonist:'入力',partner:'相手は尋ねられた場所への道順を答えた。'}}],stateHistory:[],draftMetadata:{status:'unverified_draft',psychologyJsExecuted:false}};
  assert.equal((await api.prepareChapterImport(bundle)).unverifiedDraft,true);
  for(const text of ['主人公Aはいない方がいい。','誰も主人公Aを助けない。','主人公Aは見放された。'])await assert.rejects(()=>api.prepareChapterImport({...bundle,records:[{index:0,entry:{...bundle.records[0].entry,partner:text}}]}),/継続検査/);
+ const need='助けてください。状況を変えてください。';
+ const action='管理人は面会を禁じる札を撤去した。',outcome='面会の制限はなくなり、親族が毎日訪ねられるようになった。';
+ const supported={...bundle,records:[{index:0,entry:{...bundle.records[0].entry,protagonist:need,partner:action+outcome}}]};
+ await assert.rejects(()=>api.prepareChapterImport(supported),/継続検査/,'an unassigned draft must validate the actual protagonist input');
+ supported.draftMetadata={...bundle.draftMetadata,storyActions:{continuity:{supportProgress:{
+   kind:'circumstance_change',actor:'管理人',problem:{source:'input',quote:'状況を変えてください'},actionQuote:action,outcomeQuote:outcome
+ }}}};
+ assert.equal((await api.prepareChapterImport(supported)).unverifiedDraft,true);
+ const forged=JSON.parse(JSON.stringify(supported));forged.draftMetadata.storyActions.continuity.supportProgress.outcomeQuote='本文にない結果';
+ await assert.rejects(()=>api.prepareChapterImport(forged),/継続検査/);
+ const historical=JSON.parse(JSON.stringify(bundle.records[0].entry));historical.protagonist=need;
+ const oldSave=JSON.parse(JSON.stringify(save));oldSave.state.session.recordsByCharacter.__unassigned__=[historical];
+ files.set(base+id+'.json',oldSave);
+ const oldBundle={...bundle,records:[{index:0,entry:historical}]};
+ assert.equal((await api.prepareChapterImport(oldBundle)).alreadySaved,true,'unchanged historical drafts need no retroactive outcome metadata');
  assert.equal(writes,0);assert.equal(Object.keys(save.state.session.statesByCharacter).length,0);assert.equal(Object.keys(save.state.session.recordsByCharacter).length,0);
  console.log('PASS: unassigned import checks continuity before any write; normal draft accepted; psychology unchanged');
 }
 main().catch(e=>{console.error(e);process.exit(1)});
+

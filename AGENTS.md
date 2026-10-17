@@ -11,3 +11,4 @@
 - 実行ローダーを変更したら`node simulation/tests/ai_turn_runtime.test.cjs`を実行する。
 - このリポジトリのコード・規定の修正で、private-game-dataの既存セーブ・本文・心理履歴を変更しない。
 - 形式・取り込み・AI引き継ぎを変更したら`node simulation/tests/chapter_format.test.cjs`と`node simulation/tests/chapter_import.test.cjs`を実行する。
+- 生成規定・本文検査の修正時は`simulation/PROTAGONIST_CONTINUITY_RULES.md`を読み、`node simulation/tests/support_progress.test.cjs`と`node tests/unassigned-continuity-import.test.cjs`を実行する。支援の申し出や準備だけで対応を終えること、世話の反復だけを境遇・関係の改善と扱うことを防ぐ。

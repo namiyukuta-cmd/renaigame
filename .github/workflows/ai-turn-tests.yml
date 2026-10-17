@@ -13,6 +13,7 @@ on:
       - "simulation/world/mizunagi/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
       - "simulation/CHAPTER_SAVE_FORMAT.md"
+      - "simulation/PROTAGONIST_CONTINUITY_RULES.md"
       - "js/renaigame_psychology_parameters.js"
       - "js/renaigame_romance_rules.js"
       - ".github/workflows/ai-turn-tests.yml"
@@ -28,6 +29,7 @@ on:
       - "simulation/world/mizunagi/**"
       - "simulation/CHARACTER_CREATION_RULES.md"
       - "simulation/CHAPTER_SAVE_FORMAT.md"
+      - "simulation/PROTAGONIST_CONTINUITY_RULES.md"
       - "js/renaigame_psychology_parameters.js"
       - "js/renaigame_romance_rules.js"
       - ".github/workflows/ai-turn-tests.yml"
@@ -45,6 +47,8 @@ jobs:
       - run: node simulation/tests/world_mizunagi.test.cjs
       - run: node simulation/tests/character_settings.test.cjs
       - run: node simulation/tests/ai_turn_engine.test.cjs
+      - run: node simulation/tests/support_progress.test.cjs
+      - run: node tests/unassigned-continuity-import.test.cjs
       - run: node simulation/tests/ai_turn_runtime.test.cjs
       - run: node simulation/tests/chapter_format.test.cjs
       - run: node simulation/tests/chapter_import.test.cjs

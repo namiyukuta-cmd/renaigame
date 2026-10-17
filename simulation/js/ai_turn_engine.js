@@ -296,6 +296,70 @@
     };
   }
 
+  function needsSupport(text) {
+    return typeof text === "string" && /(?:助けて(?:ください|ほしい|[。！!？?\s」]|$)|救(?:って|済して|済を)|状況を変えて|何も変わらない|変わり映えのない|死の訪れを待|死ぬ日が来るまで|死に近づく|生きる意味(?:も|が|は)?な|いる意味がない|誰(?:も|にも)[^。\n]{0,25}(?:必要とされない|助けてもらえない))/.test(text);
+  }
+
+  // Evidence checks for support scenes. Whether the outcome addresses the
+  // protagonist's problem still requires review of the actual story's meaning.
+  function validateSupportProgress(args, story, storyActions = {}) {
+    if (typeof story !== "string" || !story.trim()) {
+      return { ok: false, required: false, errors: ["本文が空です"], requiresSemanticReview: true };
+    }
+    const records = args && Array.isArray(args.records) ? args.records : [];
+    const input = args && args.protagonistInput || "";
+    const recent = records.slice(-2);
+    const required = needsSupport(input) ||
+      (recent.length === 2 && recent.every(entry => needsSupport(entry && entry.protagonist)));
+    const progress = storyActions && storyActions.continuity && storyActions.continuity.supportProgress;
+    const errors = [];
+    if (!required && progress === undefined) return { ok: true, required: false, errors, requiresSemanticReview: true };
+    if (!record(progress)) {
+      errors.push("支援が必要な場面です。申し出や準備で止めず、実行した対応と生じた変化を本文に描き、storyActions.continuity.supportProgressに原文根拠を指定してください。");
+    } else {
+      if (!["circumstance_change", "relationship_response"].includes(progress.kind)) {
+        errors.push("支援の実行結果が必要です。日常の世話・申し出・準備だけを状況や関係の変化として申告しないでください。");
+      }
+      if (typeof progress.actor !== "string" || !progress.actor.trim() || !story.includes(progress.actor)) {
+        errors.push("支援を実行した相手役・NPCを本文中の名前または呼称で指定してください。");
+      }
+      if (["主人公", "彼女", "あなた", args && args.protagonistProfile && args.protagonistProfile.name].includes(progress.actor)) {
+        errors.push("主人公自身の未入力行動を支援の実行者として補完しないでください。相手役・NPCの行動を描いてください。");
+      }
+      const cite = progress.problem;
+      let source = "";
+      if (record(cite) && cite.source === "input") source = input;
+      else if (record(cite) && cite.source === "record" && Number.isInteger(cite.index) &&
+               cite.index >= 0 && records[cite.index] && ["protagonist", "partner", "transcript"].includes(cite.field)) {
+        source = records[cite.index][cite.field] || "";
+      }
+      if (!record(cite) || typeof cite.quote !== "string" || !cite.quote.trim() || typeof source !== "string" || !source.includes(cite.quote)) {
+        errors.push("対応する問題の根拠が今回入力または参照した実ログにありません。");
+      }
+      for (const key of ["actionQuote", "outcomeQuote"]) {
+        if (typeof progress[key] !== "string" || !progress[key].trim() || !story.includes(progress[key])) {
+          errors.push("支援の" + key + "は今回本文に実在する原文を指定してください。");
+        }
+      }
+      const outcome = typeof progress.outcomeQuote === "string" ? progress.outcomeQuote : "";
+      if (outcome && records.some(entry => entry && [entry.partner, entry.transcript].some(text =>
+          typeof text === "string" && text.includes(outcome)))) {
+        errors.push("過去と同じ対応を新しい変化として申告しています。未解決の問題に対する今回の実行結果を描いてください。");
+      }
+      if (/(?:いつか|また今度|返(?:答|事)[^。\n]{0,15}(?:待|届(?:かない|いていない))|まだ[^。\n]{0,15}(?:何も|何ひとつ)[^。\n]{0,15}(?:ない|いない)|(?:つもり|予定)で(?:す|ある)|(?:文|手紙|使者)を(?:送った|出した|託した))/.test(outcome)) {
+        errors.push("返答待ち・予定・手紙の発送だけでは支援の実行結果になりません。同じ章で可能な対応を進めてください。");
+      }
+      const routineCare = /(?:御膳|粥|食事|湯|火桶|燭台|炭|付き添|針仕事|廊下に控)/;
+      const changedCircumstance = /(?:居室|住居|住まい|出入り|外出|面会|権利|地位|自由|訪れ|会いに|会いた|大切|愛して|一緒|関係|取り戻|撤回|取り消|再開|開放|解消)/;
+      const immediateCareNeed = record(cite) && /(?:空腹|飢え|食事が届か|食べ(?:ていない|られない)|寒い|凍え)/.test(cite.quote || "");
+      if (!immediateCareNeed && recent.length === 2 && recent.every(entry => routineCare.test(entry && entry.partner || "")) &&
+          routineCare.test(outcome) && !changedCircumstance.test(outcome)) {
+        errors.push("食事・保温・付き添いだけを繰り返しています。世話を保ちながら、未解決の境遇または関係に対する具体的な変化を描いてください。");
+      }
+    }
+    return { ok: errors.length === 0, required, errors, requiresSemanticReview: true };
+  }
+
   // Conservative phrase checks, not a substitute for semantic review.
   // This also works for scenes without a selected romance partner.
   function validateContinuity(args, story, storyActions = {}) {
@@ -321,6 +385,7 @@
         errors.push("過去の嫌悪を確定する描写です。過去の問題出力を引用して再生成せず、主人公を守る継続方針に沿って本文を修正してください。");
       }
     }
+    errors.push(...validateSupportProgress(args, story, storyActions).errors);
     return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, requiresSemanticReview: true };
   }
 
@@ -380,8 +445,10 @@
     validateStory,
     continuityInput,
     validateContinuity,
+    validateSupportProgress,
     fingerprint
   });
   root.RenaiGameTurnEngine = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
+

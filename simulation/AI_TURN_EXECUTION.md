@@ -1,85 +1,106 @@
 # AIターン実行手順（実コード）
 
-既存の「AIに渡す」からChatGPTでプレイする方法を維持する。
-設定を読んだだけで心理JSを実行済みと扱ってはいけない。
+GitHubから取得した本物のJSを実行し、現在saveIdの正本から計算する。読んだだけで実行済みと扱わない。
+本文生成前にrunTurnとverifyTurnを成功させ、下書き生成後にvalidateStoryを成功させてから本文を返す。まだ下書きがない段階でvalidateStoryの成功を求めて処理を止めない。
 
-## 毎ターン取得
-- 現在saveIdのJSONをprivate-game-dataから取得
-- 該当character JS、behavior JS、共通恋愛ルールJSを取得
-- js/renaigame_psychology_parameters.jsを取得
-- simulation/js/ai_turn_engine.jsを取得
-- 直近実ログ、今回の主人公入力を原文で保持
+## 必須ファイルと読込順
 
-## JavaScript実行例
+1. `simulation/js/ai_turn_runtime.js`（取得済みソースを同じwindowへ読み込む共通ローダー）
+2. ローダーの`sourcePaths(characterId)`が返す6ファイルを、同じリポジトリの同じコミットから取得する。
+   - `simulation/js/character_settings_validator.js`
+   - `js/renaigame_romance_rules.js`
+   - `js/renaigame_psychology_parameters.js`
+   - `simulation/js/ai_turn_engine.js`
+   - 対象の`simulation_character_XXX.js`
+   - 対象の`simulation_character_XXX_behavior.js`
+3. 指定saveIdの完全な正本セーブをprivate-game-dataから取得する。旧分割形式は先に全章を復元する。
+4. 今回の主人公入力原文を保持し、設定・現在心理・実ログに基づくchangesと入力原文からのevidenceを用意する。
 
-以下は取得済みの実コード・セーブを使う例。placeholder変数は実データに置き換える。
+設定検証JSは、特にchar_008以降のrunTurnに必要。取得しただけで読み込みを省略しない。全ソースを同じwindowへ登録し、同じセーブのプロフィール・currentState・実ログを渡す。
 
-~~~js
-const scope = {};
-new Function("window", psychologyJsSource)(scope);
-new Function("window", turnEngineJsSource)(scope);
-new Function("window", characterJsSource)(scope);
-new Function("window", behaviorJsSource)(scope);
+GitHubツールの`content[0].text`が`Action completed.`の場合、それは完了通知でありJSではない。fetch_fileをUTF-8で取得し、`structuredContent.content`のソース本文を使う。ローダーはこのツール応答オブジェクトを直接受け取ることもできる。base64は先にUTF-8へデコードする。
 
-const args = {
-  saveId: actualSaveId,
-  characterId: selectedCharacterId,
-  character: scope.SimulationCharacters[selectedCharacterId],
-  behavior: scope["SimulationCharacter" + selectedCharacterId.slice(5) + "Behavior"],
-  psychology: scope.RenaiGamePsychologyParameters,
-  stateEntry: saved.state.session.statesByCharacter[selectedCharacterId],
-  records: saved.state.session.recordsByCharacter[selectedCharacterId] || [],
+## 実行方法A：コードモード等で取得済みソースを実行する
+
+ファイルシステム・Node・ブラウザー・DOMは不要。JavaScriptを実行できるツールで、取得した文字列を次のように読み込む。sourcesはパスをキー、本物のJS文字列またはfetch_fileの応答を値にするオブジェクト。ユーザーの本文や入力をソースとして評価しない。
+
+```js
+const loaderScope = {};
+new Function('window', runtimeJsSource)(loaderScope);
+const runner = loaderScope.RenaiGameTurnRuntime.createRuntime({
+  sources, save: saved, saveId: actualSaveId, characterId: selectedCharacterId,
+  recordIndices: actualRecordIndices
+});
+const input = {
   protagonistInput: rawProtagonistInput,
-  changes: changeDeltasBasedOnThisInput,
-  evidence: exactQuotesFromThisInput
+  changes: actualChanges,
+  evidence: actualEvidence,
+  stageTransition: actualStageTransition,
+  yoinomaContext: actualYoinomaContext
 };
+const turn = runner.runTurn(input);
+// turn.packet.after/evaluations、人物設定・行動設定、実ログから本文を下書きする。
+const checked = runner.validateStory(input, turn.packet, generatedStory, actualStoryActions);
+// checked.validation.ok === trueを確認し、意味と主人公の未入力描写も照合してから本文を返す。
+```
 
-const engine = scope.RenaiGameTurnEngine;
-const packet = engine.runTurn(args);
-const replay = engine.verifyTurn(args, packet);
-if (!replay.ok) throw new Error(replay.errors.join("; "));
+recordIndicesは正本の全記録に対する0始まりの添字。省略時は全記録を保存順に使い、実際の選択はturn.context.recordIndicesに返る。Chapter 1は[]。
+changes/evidenceは明示必須。根拠のある変化がない場合だけ両方{}にする。読込失敗を回避するために変化を空にしたり、現在stateを初期値へ戻したりしない。
+未開始で記録も心理状態もないスロットだけ、対象の初期値JSONを明示的にinitialStateへ渡せる。既存ログがあるのにstateが欠ける場合は初期値で代用しない。
 
-// packet.after、packet.evaluations、人物固有設定・実ログで小説本文を生成する。
-const inspection = engine.validateStory(args, packet, generatedStory);
-if (!inspection.ok) throw new Error(inspection.errors.join("; "));
-~~~
+このローダーと同じコード・同じセーブで、Nodeとコードモードの指紋が一致することを回帰検査する。
 
-changesは心理値の変化量を示すオブジェクト（例 {trust: 2}）。
-evidenceは、変化した項目それぞれについて主人公の今回入力に含まれる原文の一節。
-根拠のある変化がなければ双方とも {} とする。上記の変数は実際の値を取得して使う。
+## 実行方法B：Nodeで付属コマンドを使う
 
-## 自動検査の限界と失敗時処理
+リポジトリの必要ファイルをローカルへ取得済みなら、依存ライブラリのインストールなしで実行できる。取得できないファイルを記憶から再作成しない。入力JSONのsaveId/characterIdは今回の対象を明示する。
 
-- runTurnは実在するnormalizeStateと6つのevaluate関数を呼び出す
-- verifyTurnは再計算した結果とパケット全文を比較する
-- validateStoryはChapterヘッダ・英語台詞の和訳など形式を検査する
-- 主要心理項目が欠ける旧セーブでは、根拠なく0埋めして恋愛を後退させず、停止する
-- 機械検査が通っても、本文の意味、人物らしさ、主人公の行動の捏造がないかは実ログと人物JSで追加確認する
-- 実行していないのに実行したと申告しない
-- GitHubへの保存はユーザーの明示的な保存指示時だけ
+```json
+{
+  "saveId": "run_example",
+  "characterId": "char_016",
+  "protagonistInput": "今回の主人公入力の原文全文",
+  "changes": {"gratitude": 2},
+  "evidence": {"gratitude": "入力に実在する原文抜粋"},
+  "recordIndices": [],
+  "storyActions": {}
+}
+```
 
-証跡は packet.execution.invoked、packet.fingerprint、replay.ok、inspection.ok。
-fingerprintは照合値であり暗号署名ではない。
-この仕組みは、実際に呼び出したターンの計算を照合するものであり、外部ChatGPTアプリにツール利用を強制するものではない。
+上記は構造例。実際の入力・値・根拠・参照番号へ置き換える。シェルへ原文やJSを埋め込まず、ファイル書込API等でUTF-8の入力ファイルを作る。
+
+```sh
+node simulation/scripts/run_ai_turn.cjs run /path/to/save.json /path/to/input.json > /path/to/turn-result.json
+node simulation/scripts/run_ai_turn.cjs validate /path/to/save.json /path/to/input.json /path/to/turn-result.json /path/to/story.txt
+```
+
+最初のコマンドはpacket/verification/contextを標準出力へ返す。次のコマンドは元のpacketを読み込み、同じ入力・正本から照合して、本文を検証する。新しいpacketに差し替えて合格させない。これらの診断・計算結果は章取り込みJSONとは異なる。
+コマンド自体はネットワーク通信・正本保存を行わない。別の作業場所から実行する場合はスクリプトを絶対パスで指定する。
+
+## 読込に失敗した場合
+
+「取得したが実行環境へ読み込めない」だけで終了しない。利用できるJavaScript実行ツールまたはNodeで実際に試し、依存ファイル・ソース本文の抽出・読込順・同じwindowへの登録を確認する。
+修正できる読込ミスはその場で修正し、保持している今回入力を使って再実行する。ユーザーに同じ入力を再送させない。心理計算の省略や偽の成功記録で回避しない。
+
+解消できなかった場合は、実際に試したツール／コマンド、失敗したJSのパス、元のエラー全文、runTurn/verifyTurn/validateStoryのどこまで実行できたかを報告する。実行ツールが本当に提供されていない場合は、その事実とJS自体の失敗を区別する。別スレッドの環境や未確認の原因を断定しない。
 
 ## 保存JSONの出力
 
-出力形式の正本は[CHAPTER_SAVE_FORMAT.md](CHAPTER_SAVE_FORMAT.md)。通常の保存指示と全文保持の要求には標準version 2を使う。パケット内部のversion:1を章JSONのversionとしてコピーしない。
+形式の正本は[CHAPTER_SAVE_FORMAT.md](CHAPTER_SAVE_FORMAT.md)。標準はversion 2。turn-result.jsonを章JSONの代わりに渡さない。パケット内部のversion:1を章JSONのversionとしてコピーしない。
 
-取得済みの`simulation/js/simulation_save.js`も同じscopeへ評価した後、確定した本文・パケット・元の検証結果から組み立てる。以下の変数は実際の値を使う。
+取得済みのsimulation/js/simulation_save.jsを`new Function('window', saveJsSource)(runner.scope)`で同じwindowへ読み込んでから、確定データで組み立てる。
 
 ```js
-const bundle = scope.RenaiGameSave.createChapterBundleV2({
-  args, packet, verification: replay, validation: inspection,
+const bundle = runner.scope.RenaiGameSave.createChapterBundleV2({
+  args: runner.buildArgs(input), packet: turn.packet,
+  verification: turn.verification, validation: checked.validation,
   chapter: actualChapter, date: actualDate, partner: generatedStory,
-  savedRecords: allRecordsFromThisSave,
-  recordIndices: actualRecordIndices,
-  storyActions: actualStoryActions
+  savedRecords: saved.state.session.recordsByCharacter[selectedCharacterId] || [],
+  recordIndices: turn.context.recordIndices, storyActions: actualStoryActions
 });
 const filename = `${bundle.saveId}_${bundle.characterId}_${String(bundle.chapter).padStart(4, '0')}.json`;
-scope.RenaiGameSave.assertChapterBundleV2(bundle, filename);
-// JSON.stringify(bundle, null, 2)をUTF-8のファイルとして書く。
+runner.scope.RenaiGameSave.assertChapterBundleV2(bundle, filename);
 ```
 
-`inspection`は同じ`actualStoryActions`をvalidateStoryに渡して取得する。形式だけのファイル検査は`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`。このコマンド自体は心理JSの再実行やGitHub保存を行わない。
+UTF-8のファイルとして書いた後の形式検査は`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`。この形式検査だけで心理JSを実行済みとは扱わない。
 
+packet.execution.invokedは7個のevaluate関数の実行証跡で、正規化の実行はnormalizedBefore/normalizedAfterにも記録される。fingerprintは照合値であり暗号署名ではない。機械検査は本文の意味・人物らしさ・主人公の未入力描写を完全には保証しない。外部ChatGPTのツール利用自体をリポジトリから強制する機能でもない。

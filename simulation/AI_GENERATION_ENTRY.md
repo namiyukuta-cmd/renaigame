@@ -145,6 +145,8 @@
 
 毎Turn、**本文を書く前に実際のJS実行結果を得る**こと。必要ファイルを取得できない場合は本文を生成しません。
 
+読込・実行の正本手順は[AI_TURN_EXECUTION.md](AI_TURN_EXECUTION.md)。`simulation/js/ai_turn_runtime.js`で設定検証JSを含む6依存ファイルを同じwindowへ読み込む。コードモードでの実行と`simulation/scripts/run_ai_turn.cjs`のNode実行を用意している。「JSを読み込めない」だけで停止せず、利用できる実行ツールで実際に試して読込ミスを修正する。解消できない場合は試したコマンド・失敗ファイル・元のエラー全文・実行できた段階を報告する。正本・心理数値・今回入力を変更して回避しない。
+
 1. `simulation/js/character_settings_validator.js`を取得・評価し、相手役の設定検査を実行する。新規形式の設定不足は補完・検査に戻し、主人公の未指定情報は埋めない。今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
 2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。
 3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと8つの心理関数の実行証跡が含まれる。

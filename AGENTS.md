@@ -7,5 +7,7 @@
 - `createChapterBundleV2`で確定済みデータから組み立て、`assertChapterBundleV2`または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査する。本文・数値・指紋・検証記録を作り直さない。
 - 既存version 1の取り込み互換性を維持する。ユーザー自身が今回のファイルをversion 1で出すと明示した場合だけ出力の例外とする。恋愛相手未選択の下書きは専用規定に従う。
 - 未実行の心理計算・本文検証を成功として記録しない。ファイル出力だけでGitHub保存済みと報告しない。
+- JS読込は`simulation/AI_TURN_EXECUTION.md`に従い、`ai_turn_runtime.js`か`run_ai_turn.cjs`で設定検証JSを含む全依存を同じwindowへ読み込む。読込失敗時は実行したコマンド・失敗ファイル・元のエラーを残して修正・再実行する。ツールの完了通知をJSとして評価しない。
+- 実行ローダーを変更したら`node simulation/tests/ai_turn_runtime.test.cjs`を実行する。
 - このリポジトリのコード・規定の修正で、private-game-dataの既存セーブ・本文・心理履歴を変更しない。
 - 形式・取り込み・AI引き継ぎを変更したら`node simulation/tests/chapter_format.test.cjs`と`node simulation/tests/chapter_import.test.cjs`を実行する。

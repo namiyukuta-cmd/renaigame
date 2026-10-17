@@ -103,7 +103,7 @@ async function main(){
     assert.match(prompt,/assertChapterBundleV2/);
     assert.doesNotMatch(prompt,/心理パケットの値はstateHistoryのentry直下に1回だけ展開/);
   }
-  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-standard-v2/);
+  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-turn-runtime/);
 
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chapter-format-'));
   try{

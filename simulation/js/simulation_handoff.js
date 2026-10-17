@@ -67,7 +67,9 @@
       '実行器、対象JS、現在saveId、心理state、実ログが取得できない時、または検証失敗時は小説を捏造せず処理を停止してください。',
       '旧セーブの主要心理値が不足する場合は0で補完して恋愛を後退させず、過去の実ログから整合するstateへの移行が必要だと報告してください。旧セーブを勝手に書き換えないでください。',
       '実行器の証跡fingerprint、invoked、okと検証エラーは確認できるよう保持し、求められた場合に提示してください。本文には内部計算を混ぜないでください。',
-      '保存してと指示したら、標準ではゲームで取り込む1章分の完全JSONファイルを出してください。本文・心理パケット全項目・検証記録を保持してください。心理パケットの値はstateHistoryのentry直下に1回だけ展開し、同じpacketオブジェクトを重ねないでください。実際に計算に使った過去ログの保存済み配列の0始まりの添字を使用順にreplayContext.recordIndicesへ保持してください。過去本文は重複収録せず、simulation/CHAPTER_SAVE_FORMAT.mdを読んでください。ゲームのセーブ→章データを取り込んで保存を使います。ファイル出力だけでGitHub保存済みと報告しないでください。直接GitHubへ保存するよう明示された場合だけGitHubの記録・状態更新を行ってください。',
+      '保存して・保存JSONを出して・記録と情報更新は、simulation/CHAPTER_SAVE_FORMAT.mdを正本とする標準version 2の章JSONを1ファイル出力する指示です。全文・全項目保持という文言だけでversion 1へ変更しないでください。今回のファイルをversion 1で出力するとユーザーが明示した場合だけ例外です。標準を軽量版と呼び分けず、_light・_full等の別名を付けないでください。ファイル名は<saveId>_<characterId>_<4桁chapter>.jsonです。',
+      '標準version 2のstateHistory.entryはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけです。packet・before・after・evaluations・execution・sources・protagonistInputを章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。',
+      '出力時はsimulation/js/simulation_save.jsのcreateChapterBundleV2で確定済みデータから組み立て、assertChapterBundleV2で形式とファイル名を検査してください。検証コマンドはnode simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>です。本文・数値・指紋・検証記録を作り直さず、欠けた実データを推測で埋めないでください。ゲームのセーブ→章データを取り込んで保存を使います。ファイル出力だけでGitHub保存済みと報告しないでください。直接GitHubへ保存するよう明示された場合だけGitHubの記録・状態更新を行ってください。',
       '必要なファイルを取得できない場合は、取得できなかったものを示し、記憶や推測で代用しないでください。',
       'まず必要な設定と現在の記録を確認し、私の次の入力を待ってください。'
     );
@@ -233,6 +235,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
 
 
 

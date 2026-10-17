@@ -43,6 +43,7 @@ const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:
 const copy=x=>JSON.parse(JSON.stringify(x));
 function v2Bundle(value){
   const result=copy(value); result.version=2;
+  result.replayContext ||= {recordIndices:[],storyActions:{}};
   const h=result.stateHistory[0].entry;
   for(const key of ['version','saveId','characterId','protagonistInput','before','after','evaluations','sources','execution','packet']) delete h[key];
   return result;
@@ -65,7 +66,7 @@ async function main(){
   const nestedPreview=await api.prepareChapterImport(fromNested);
   assert.equal(nestedPreview.chapter,1,'nested-only packet compatibility');
   const v2Preview=await api.prepareChapterImport(v2Bundle(bundle));
-  assert.equal(v2Preview.chapter,1,'v2 lightweight format stays compatible');
+  assert.equal(v2Preview.chapter,1,'standard v2 format stays compatible');
   const corruptV2=v2Bundle(bundle);corruptV2.stateHistory[0].entry.fingerprint='invalid';corruptV2.stateHistory[0].entry.verification.replayFingerprint='invalid';
   await assert.rejects(api.prepareChapterImport(corruptV2),/指紋/);
   const preview=await api.prepareChapterImport(compact);
@@ -127,4 +128,5 @@ async function main(){
   console.log('PASS: legacy version 1 + compact version 2, JS replay, duplicate and tamper protection, no nested history packet');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
+
 

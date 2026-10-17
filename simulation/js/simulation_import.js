@@ -26,14 +26,13 @@
       try {
         if(file.size > 10 * 1024 * 1024) throw new Error('ファイルが大きすぎます。1章分のJSONを選んでください。');
         const data = JSON.parse(await file.text());
-        // An old cached simulation_save.js only accepts version 1. Reload the
-        // actual v2 import implementation before validating a compact bundle.
+        // Reload stale import code before using the strict standard v2 check.
         if(data.characterId != null && data.version === 2 &&
-           typeof window.RenaiGameSave?.compactChapterBundle !== 'function'){
-          await loadScript('js/simulation_save.js?v=20261015-chapter-v2-cache-repair');
+           typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
+          await loadScript('js/simulation_save.js?v=20261017-standard-v2');
         }
         if(data.characterId != null && data.version === 2 &&
-           typeof window.RenaiGameSave?.compactChapterBundle !== 'function'){
+           typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
           throw new Error('旧版の取り込み処理が残っています。画面を再読み込みしてからJSONを選び直してください。');
         }
         if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
@@ -71,4 +70,5 @@
   }
   window.RenaiGameImport = Object.freeze({ open });
 })();
+
 

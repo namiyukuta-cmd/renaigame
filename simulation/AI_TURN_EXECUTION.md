@@ -61,3 +61,25 @@ evidenceは、変化した項目それぞれについて主人公の今回入力
 証跡は packet.execution.invoked、packet.fingerprint、replay.ok、inspection.ok。
 fingerprintは照合値であり暗号署名ではない。
 この仕組みは、実際に呼び出したターンの計算を照合するものであり、外部ChatGPTアプリにツール利用を強制するものではない。
+
+## 保存JSONの出力
+
+出力形式の正本は[CHAPTER_SAVE_FORMAT.md](CHAPTER_SAVE_FORMAT.md)。通常の保存指示と全文保持の要求には標準version 2を使う。パケット内部のversion:1を章JSONのversionとしてコピーしない。
+
+取得済みの`simulation/js/simulation_save.js`も同じscopeへ評価した後、確定した本文・パケット・元の検証結果から組み立てる。以下の変数は実際の値を使う。
+
+```js
+const bundle = scope.RenaiGameSave.createChapterBundleV2({
+  args, packet, verification: replay, validation: inspection,
+  chapter: actualChapter, date: actualDate, partner: generatedStory,
+  savedRecords: allRecordsFromThisSave,
+  recordIndices: actualRecordIndices,
+  storyActions: actualStoryActions
+});
+const filename = `${bundle.saveId}_${bundle.characterId}_${String(bundle.chapter).padStart(4, '0')}.json`;
+scope.RenaiGameSave.assertChapterBundleV2(bundle, filename);
+// JSON.stringify(bundle, null, 2)をUTF-8のファイルとして書く。
+```
+
+`inspection`は同じ`actualStoryActions`をvalidateStoryに渡して取得する。形式だけのファイル検査は`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`。このコマンド自体は心理JSの再実行やGitHub保存を行わない。
+

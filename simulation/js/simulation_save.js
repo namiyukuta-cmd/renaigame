@@ -713,6 +713,81 @@
     return bundle;
   }
 
+  // The AI's standard download is v2. This checks the original object before
+  // any legacy normalization, so an expanded packet cannot slip through.
+  const CHAPTER_V2_HISTORY_FIELDS = ['turn','scene','changes','evidence','stageTransition','yoinomaContext','fingerprint','verification','validation'];
+  function assertChapterBundleV2(bundle, filename){
+    const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+    function fields(value, names, path){
+      if(!object(value)) importError(path + 'はオブジェクトで指定してください。');
+      const missing = names.filter(key => !Object.prototype.hasOwnProperty.call(value,key));
+      const extra = Object.keys(value).filter(key => !names.includes(key));
+      if(missing.length || extra.length) importError(path + 'の項目が標準version 2と異なります。必須不足：' + missing.join(',') + '／追加禁止：' + extra.join(','));
+    }
+    fields(bundle, ['version','saveId','characterId','chapter','records','stateHistory','replayContext'], '章JSON');
+    if(bundle.version !== 2) importError('標準の章JSONはversion 2です。');
+    if(typeof bundle.saveId !== 'string' || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId) ||
+       typeof bundle.characterId !== 'string' || !/^char_\d{3}$/.test(bundle.characterId) ||
+       !Number.isSafeInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
+    for(const key of ['records','stateHistory']){
+      if(!Array.isArray(bundle[key]) || bundle[key].length !== 1) importError(key + 'は今回1章分だけ指定してください。');
+      fields(bundle[key][0], ['index','entry'], key + '[0]');
+      if(!Number.isSafeInteger(bundle[key][0].index) || bundle[key][0].index < 0) importError(key + 'の配列位置が不正です。');
+    }
+    const scene = 'Chapter ' + bundle.chapter;
+    const record = bundle.records[0].entry, history = bundle.stateHistory[0].entry;
+    fields(record, ['scene','date','protagonist','partner'], 'records.entry');
+    for(const key of ['scene','date','protagonist','partner']) if(typeof record[key] !== 'string' || !record[key].trim()) importError('本文の' + key + 'がありません。');
+    fields(history, CHAPTER_V2_HISTORY_FIELDS, 'stateHistory.entry');
+    if(record.scene !== scene || history.scene !== scene || history.turn !== bundle.chapter) importError('本文・心理履歴のChapter番号が一致しません。');
+    for(const key of ['changes','evidence','yoinomaContext']) if(!object(history[key])) importError('心理履歴の' + key + 'が不正です。');
+    if(Object.values(history.changes).some(value => typeof value !== 'number' || !Number.isFinite(value)) ||
+       Object.values(history.evidence).some(value => typeof value !== 'string' || !value.trim()) ||
+       !equal(Object.keys(history.changes).sort(),Object.keys(history.evidence).sort())) importError('心理変化と根拠の項目・値が一致しません。');
+    if(history.stageTransition !== null && !object(history.stageTransition)) importError('stageTransitionが不正です。');
+    if(typeof history.fingerprint !== 'string' || !/^[0-9a-f]{8}$/.test(history.fingerprint)) importError('心理履歴の指紋が不正です。');
+    for(const key of ['verification','validation']){
+      const result = history[key];
+      if(!object(result) || result.ok !== true || !Array.isArray(result.errors) || result.errors.length) importError(key + 'の検証成功記録がありません。');
+      if(result.replayFingerprint !== history.fingerprint) importError('検証記録の指紋が一致しません。');
+    }
+    if(!Array.isArray(history.validation.warnings) || history.validation.warnings.some(value => typeof value !== 'string') || history.validation.requiresSemanticReview !== true) importError('本文の検証記録が不正です。');
+    fields(bundle.replayContext, ['recordIndices','storyActions'], 'replayContext');
+    if(!Array.isArray(bundle.replayContext.recordIndices) || bundle.replayContext.recordIndices.some(index => !Number.isSafeInteger(index) || index < 0) ||
+       (bundle.chapter === 1 && bundle.replayContext.recordIndices.length)) importError('再検証用の過去ログ参照番号が不正です。');
+    if(!object(bundle.replayContext.storyActions)) importError('storyActionsが不正です。');
+    const expected = bundle.saveId + '_' + bundle.characterId + '_' + String(bundle.chapter).padStart(4,'0') + '.json';
+    if(filename !== undefined && filename !== expected) importError('標準のファイル名は' + expected + 'です。');
+    return true;
+  }
+
+  // Use the already generated story, packet and measured verification results.
+  // The producer has no version/verbosity switch and never writes to GitHub.
+  function createChapterBundleV2({args, packet, verification, validation, chapter, date, partner, savedRecords, recordIndices, storyActions}){
+    const engine = window.RenaiGameTurnEngine;
+    if(!engine) importError('検証用JSを読み込めません。');
+    if(!args || !Array.isArray(savedRecords) || !Array.isArray(recordIndices) || !Array.isArray(args.records) ||
+       recordIndices.length !== args.records.length || recordIndices.some((index,i) => !Number.isSafeInteger(index) || index < 0 || index >= savedRecords.length || !equal(savedRecords[index],args.records[i]))) importError('計算に使った過去ログと正本の参照番号が一致しません。');
+    if(chapter !== Math.max(0,...savedRecords.map((entry,index) => chapterNumber(entry,index))) + 1) importError('正本の次のChapterだけ出力できます。');
+    const replay = engine.verifyTurn(args,packet);
+    if(!replay.ok || !equal(replay,verification)) importError('元の心理パケットと検証記録が一致しません。');
+    const inspection = engine.validateStory(args,packet,partner,storyActions);
+    if(!inspection.ok || !equal(inspection,validation)) importError('確定本文と元の本文検証記録が一致しません。');
+    const scene = 'Chapter ' + chapter;
+    const bundle = {
+      version: 2, saveId: args.saveId, characterId: args.characterId, chapter,
+      records: [{index: savedRecords.length, entry: {scene,date,protagonist: args.protagonistInput,partner}}],
+      stateHistory: [{index: (args.stateEntry.stateHistory || []).length, entry: {
+        turn: chapter, scene,
+        ...Object.fromEntries(['changes','evidence','stageTransition','yoinomaContext','fingerprint'].map(key => [key,packet[key]])),
+        verification, validation
+      }}],
+      replayContext: {recordIndices,storyActions}
+    };
+    assertChapterBundleV2(bundle);
+    return clone(bundle);
+  }
+
 
   // Unassigned story records have no partner psychology to calculate.
   // Retain the original bundle and explicitly keep it unverified.
@@ -756,6 +831,7 @@
 
   async function prepareChapterImport(value){
     if(value && value.characterId == null) return prepareUnassignedImport(value);
+    if(value && value.version === 2) assertChapterBundleV2(value);
     const bundle = compactChapterBundle(value);
     if(![1,2].includes(bundle.version) || !/^[A-Za-z0-9_-]{1,120}$/.test(bundle.saveId || '') || !/^char_\d{3}$/.test(bundle.characterId || '') || !Number.isInteger(bundle.chapter) || bundle.chapter < 1) importError('保存先またはChapter番号が不正です。');
     if(bundle.records?.length !== 1 || bundle.stateHistory?.length !== 1) importError('1章分の本文と心理履歴を入れてください。');
@@ -911,9 +987,11 @@
     hydrateSave,
     isSplit,
     pairKey, groupSlots, numberSlots, getPartnerName,
+    assertChapterBundleV2, createChapterBundleV2,
     compactChapterBundle, prepareChapterImport, commitChapterImport
   };
 })();
+
 
 
 

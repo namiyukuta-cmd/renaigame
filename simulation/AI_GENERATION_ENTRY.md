@@ -23,11 +23,11 @@
 
 ユーザーが「保存して」と指示したら、標準では本文生成時に確定した本文・心理パケット・検証記録から1章分のJSONファイルを出力する。ゲームの「セーブ → 章データを取り込んで保存」でユーザー自身が最後の保存操作を行う。明示的にChatGPTからGitHubへ直接保存するよう指定された場合だけ、従来の直接保存手順を使う。ファイルを出しただけではGitHub保存済みと報告しない。
 
-ファイルはCHAPTER_SAVE_FORMAT.mdの**version=2（重複排除）**を使用。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]を含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに重複収録しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込みにも対応する。
+ファイルはCHAPTER_SAVE_FORMAT.mdの**標準version=2**を使用。「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」でも形式を変更しない。ユーザー自身が今回のファイルをversion 1で出すと明示した場合だけ例外とする。標準を「軽量版」と呼び分けず、_light・_full等の派生名を付けない。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]、replayContextを含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに展開しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込み互換性は出力形式を独断で選ぶ許可ではない。
 
 追加のreplayContext.recordIndicesには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの保存済み配列における0始まりの添字を使用順に入れる（Chapter 1は空配列）。過去本文をreplayContext.recordsへ重複収録しない。ゲームが正本から取得し指紋一致とJS再検証を行う。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
 
-既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
+既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。simulation/js/simulation_save.jsのcreateChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査してから渡す。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 
 
 **保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
@@ -215,9 +215,9 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - 固定character / behavior / 心理計算基盤は通常会話で書き換えない。
 - 過去心理は消さず、保存時にstateHistoryへTurn単位で追記する。
 - JS計算後に、ChatGPTが独自判断で「やっぱり身を引く」「やっぱり愛情を下げる」「やっぱり何もしない」等へ上書きしてはいけない。
-- 生成用パケットは生成条件として使い、明示保存時には心理パケット全文を章ファイルに保持する。
-- GitHubへの保存操作はChatGPTが行う。GitHubが自動でChatGPTへ送信したり、自動で会話生成したりするものではない。
-- 保存時は、確定した実ログと更新後stateだけを現在saveIdへ書き戻す。
+- 生成用パケット全文は生成条件・検証証跡として保持する。章取り込みJSONは標準version 2とし、ゲームが正本から全文を再計算・指紋検証して正本セーブへ保持する。
+- 標準ではChatGPTが章JSONを出力し、ユーザーがゲーム画面から保存する。ChatGPTによるGitHub直接保存は明示指定時だけ。GitHub自身が会話を生成するものではない。
+- 正本保存時は、確定した実ログと更新後stateだけを現在saveIdへ書き戻す。
 
 ### 生成用パケットに最低限含めるもの
 
@@ -510,9 +510,9 @@ Chapter実ログ：
 
 入力の引用を許可することは、相手役に同じ残酷な台詞を新たに発言させる許可ではない。本文に過去の文言を出す必要がある場合も、話者・引用・実ログの根拠を確認する。JSは意味や話者の全てを保証するものではない。
 
-## 心理パケット全文の指定がある場合
+## 全文保持と形式選択を混同しない
 
-before・changes・evidence・after・evaluations・execution・sources・verification等の全文保持を求められた場合は、省略型version 2にせず、CHAPTER_SAVE_FORMAT.mdの「version 1、重複なし」を使う。history.entry直下へpacketの全項目を1回だけ展開し、verification・validationを保持する。packetオブジェクトをもう一度入れない。beforeとafterを両方残し、値や指紋を変更しない。
+全文・全項目の保持を求められても、標準version 2の章JSONを出力する。心理パケット全文の保持先は正本セーブであり、取り込みJSONへの全文展開を意味しない。ユーザー自身が今回の出力ファイルをversion 1と明示した場合だけ、CHAPTER_SAVE_FORMAT.mdの出力例外に従う。心理パケット内部のversion:1や、古い「AIに渡す」の全文保持指示を例外の根拠にしない。
 
 
 ### char_013 維郷親王（瑞梛国・架空王朝）
@@ -522,3 +522,4 @@ before・changes・evidence・after・evaluations・execution・sources・verifi
 7. 初期心理テンプレート：`simulation/state/templates/char_013_initial_state.json`
 
 この相手役の正本は上記人物JS・behaviorと、同一saveIdの実ログ・心理state。綾羽内親王の母弟の失脚から入内までの政治的計画を主導した本人であり、藤原氏相当の冬篠氏の無知な被害者として書かない。主人公の発話・心理・行動・同意・結末はユーザーのみが決める。璃暦・瑞梛国は架空設定であり現実の史実によって置き換えない。
+

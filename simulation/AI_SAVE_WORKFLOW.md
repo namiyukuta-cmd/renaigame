@@ -2,6 +2,8 @@
 
 **保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
 
+**章JSONは標準version 2。**「保存して」「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」から別形式を選ばない。ユーザー自身が今回のファイルをversion 1と明示した場合だけ例外とする。形式決定が他の説明と食い違う場合はCHAPTER_SAVE_FORMAT.mdに従う。createChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で検査する。ファイル名は`<saveId>_<characterId>_<4桁chapter>.json`。_light・_full等の派生名を作らない。
+
 このファイルは、別スレッドを含むChatGPTが恋愛シミュレーションを継続するときの共通運用仕様。
 
 **文章生成、Chapter記録、恋愛度・感情・フラグ更新を行う前に必ず読む。**
@@ -43,8 +45,12 @@ ChatGPTがパケットどおりに文章だけ生成
 ↓
 ユーザーが保存を指示
 ↓
-ChatGPTがChapter実ログ＋更新stateを現在saveIdへ保存
+ChatGPTが標準version 2の1章JSONを出力・形式検査
+↓
+ユーザーがゲームで取り込み、JS再計算・指紋検証後に現在saveIdへ保存
 ```
+
+以下の正本更新手順はゲームの取り込み処理、または明示されたGitHub直接保存に適用する。通常の「保存して」を直接保存の指定に読み替えない。
 
 ### ChatGPTが生成前に必ず確定するもの
 
@@ -649,6 +655,7 @@ currentStateの更新対象例：
 
 
 
-## 心理パケット全文を指定された場合の互換形式
+## version 1は互換形式であり標準出力ではない
 
-CHAPTER_SAVE_FORMAT.mdの「version 1、重複なし」に対応する。before・after等を省略せず、history.entry直下にpacket全項目を1回だけ展開し、verification・validationを保持する。同じpacketオブジェクトを重ねない。新規取り込み時には旧二重形式も全項目を保持した単一履歴に整理する。過去の保存済み履歴は一括改変しない。
+全文保持の要求だけでは標準version 2を変更しない。心理パケット全文は取り込み時に正本へ保持する。ユーザー自身が今回のファイルをversion 1で出力すると明示した場合だけ、CHAPTER_SAVE_FORMAT.mdの出力例外に従う。既存version 1の取り込みでは二重packetの全項目一致を確認して各値を1回保持し、過去の保存済み履歴は一括改変しない。
+

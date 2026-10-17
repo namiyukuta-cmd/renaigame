@@ -24,7 +24,7 @@
     "simulation_character_017.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261017-male-romance";
+  const CHARACTER_ASSET_VERSION = "20261017-char017-refresh";
   let loadPromise = null;
 
   function loadScript(fileName) {

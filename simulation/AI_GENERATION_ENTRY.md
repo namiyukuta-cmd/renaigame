@@ -81,6 +81,14 @@
 この開始・再開情報だけで主人公の次の入力を作らない。設定と記録の確認後、ユーザーの入力を待つ。GitHubへの保存はユーザーの明示指示時のみ行う。
 
 
+## char_016 アーサー・ペンローズの初期設定（新規開始時の必須読込）
+
+攻略対象 `char_016` の開始時には `simulation/js/simulation_character_016.js`、`simulation/js/simulation_character_016_behavior.js`、`simulation/state/templates/char_016_initial_state.json` を読む。38歳、オックスフォードの架空のアシュコム大学に勤める理論物理学教授。交際経験・性的経験ともに0、研究中心の生活で、固定恋愛積極度は1。職場で予想外の誘惑を受けると戸惑うが、恋を望む心や自発的な求愛を禁止する人物ではない。
+
+主人公についてユーザーが指定した事実：22歳、ミルクティー色に染めた金髪、榛色の瞳、鼻のそばかす、左右対称のドール的美貌と露出の多いキャミソール型ミニワンピース、高いピンヒール、チュッパチャプス。ジェントルメンズクラブのウェイトレスで性的に奔放。最近「パパ」との愛人契約が切れ、新しい相手を探している。大学の一般公開講義の後に偶然彼と出会い、「ねぇ。この後さ。仕事終わったら私といけないことして遊ばない？」と声を掛けるのはユーザー提示の導入案。主人公の名前、現在の動作・発言、同意、心理と次章への進行は本人入力だけを正本とする。
+
+主人公の奔放さや仕事を侮辱・嫌悪の理由にしない。男性の内気さと恋愛経験0を恒久的な停滞へ変換しない。最初は恋愛度0で、実際の言動と心理計算・実ログに基づいて関係を進行する。職務と勤務外の区別、相互の同意は保持する。自動で本文・セーブを作らない。
+
 ## char_015 セオドア・グラントのMMORPGでの既往と初期状態（新規開始時の必須読込）
 
 攻略対象 `char_015` の開始時には `simulation/js/simulation_character_015.js`、`simulation/js/simulation_character_015_behavior.js`、`simulation/state/templates/char_015_initial_state.json` を読む。
@@ -312,6 +320,12 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 5. `simulation/js/simulation_character_008.js`
 6. `simulation/js/simulation_character_008_behavior.js`
 
+### char_016 アーサー・ペンローズ
+
+5. `simulation/js/simulation_character_016.js`
+6. `simulation/js/simulation_character_016_behavior.js`
+7. `simulation/state/templates/char_016_initial_state.json`
+
 ### char_011 オリヴァー・ウェストブルック
 
 5. `simulation/js/simulation_character_011.js`
@@ -348,6 +362,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - char_010: `simulation/state/templates/char_010_initial_state.json`
 - char_011: `simulation/state/templates/char_011_initial_state.json`
 - char_012: `simulation/state/templates/char_012_initial_state.json`
+- char_016: `simulation/state/templates/char_016_initial_state.json`
 
 テンプレートは新規周回の初期値専用。
 プレイ中の状態を書き戻さない。

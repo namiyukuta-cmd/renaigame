@@ -1,6 +1,6 @@
 # AIターン実行手順（実コード）
 
-本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが5軸を実際に照合して`storyActions.semanticReview`へ記録する。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
+本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。小説は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従い、**下書きの文学的推敲を終えてから**意味確認票を作る。形式のために文章を説明調へ戻さない。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが5軸を実際に照合して`storyActions.semanticReview`へ記録する。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
 
 Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt>`は未完了の確認票を返す。確認記録を入力ファイルのstoryActionsへ保持した後、同じ引数で`release`を使うと、検証成功時だけ本文が出力される。`run`や`review`の段階は本文出力の許可ではない。
 

@@ -6,6 +6,14 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'simulation/js/simulation_import.js'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'simulation/simulation_new.html'), 'utf8');
+for(const name of ['../js/renaigame_policy.js','js/ai_turn_engine.js','js/simulation_save.js']){
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pageVersion=html.match(new RegExp(escaped+'\\?v=([^"\\s]+)'))?.[1];
+  const fallbackVersion=source.match(new RegExp(escaped+'\\?v=([^\'\\s]+)'))?.[1];
+  assert.ok(pageVersion&&fallbackVersion);
+  assert.equal(pageVersion,fallbackVersion,'initial and fallback loaders must fetch the same source revision');
+}
 class Element {
   constructor(tag) {
     this.tag = tag; this.textContent = ''; this.value = ''; this.disabled = tag === '.import-save';
@@ -56,6 +64,10 @@ async function main() {
   vm.runInNewContext(source,context);
   window.RenaiGameImport.open();
   assert.match(dialog.html,/章JSONを貼り付け/);
+  assert.ok(dialog.html.indexOf('type="file"')<dialog.html.indexOf('<textarea'),'file import must be visible before the paste field');
+  assert.match(dialog.html,/<input[^>]*type="file"[^>]*autofocus/,'initial focus must not open the text keyboard');
+  assert.match(dialog.html,/<details[^>]*class="import-paste-options"[^>]*>/,'paste remains an optional collapsed section');
+  assert.doesNotMatch(dialog.html,/<details[^>]*class="import-paste-options"[^>]*\sopen(?:\s|>)/);
   const paste = dialog.querySelector('.import-json');
   const check = dialog.querySelector('.import-paste');
   const save = dialog.querySelector('.import-save');

@@ -32,11 +32,14 @@
         select(id ? { id } : null, !id);
       });
       const note = document.createElement('p');
-      note.textContent = '始めたばかりでも保存できます。章データのJSONは不要です。';
+      note.textContent = 'プロフィールなど、現在のゲーム内容を保存します。AIから受け取った章JSONは、下のボタンから取り込んでください。';
       dialog.insertBefore(note, status);
       const importButton = document.createElement('button'); importButton.type = 'button'; importButton.className = 'simulation-slot-card'; importButton.textContent = '章データを取り込んで保存';
       dialog.insertBefore(importButton, status);
       importButton.addEventListener('click', () => { if(busy) return; dismiss(); window.dispatchEvent(new Event('renaigame:import-chapter')); });
+      const importNote = document.createElement('p');
+      importNote.textContent = '章JSONの保存先はファイルから自動で選ばれます。下の組やスロットを選ぶ必要はありません。';
+      dialog.insertBefore(importNote, status);
     }
     dialog.showModal();
     const disabledBeforeBusy = new WeakMap();
@@ -81,6 +84,10 @@
         partnerName: RenaiGameSave.getPartnerName(currentState.selectedCharacterId)
       } : null;
       const currentPair = currentMeta ? RenaiGameSave.pairKey(currentMeta) : '';
+      const currentId = RenaiGameSave.getCurrentSaveId();
+      const sameCurrentSlot = slot => currentMeta && slot.id === currentId &&
+        (slot.selectedCharacterId || '') === currentMeta.selectedCharacterId;
+      const canSaveToSlot = slot => RenaiGameSave.pairKey(slot) === currentPair || sameCurrentSlot(slot);
       if(currentMeta && !groups.some(group => group.key === currentPair)) groups.unshift({ key: currentPair, ...currentMeta, slots: [] });
       function card(label, detail, action){
         const button = document.createElement('button'); button.type = 'button'; button.className = 'simulation-slot-card';
@@ -95,7 +102,10 @@
         groups.forEach(group => {
           const label = group.protagonistName + ' ＋ ' + group.partnerName;
           const button = card(label, group.slots.length + '個のスロット', () => showSlots(group));
-          if(mode === 'save' && group.key !== currentPair){ button.disabled = true; button.children[1].textContent += '（別の組）'; }
+          if(mode === 'save' && group.key !== currentPair){
+            if(group.slots.some(sameCurrentSlot)) button.children[1].textContent += '（現在のスロット・名前の変更あり）';
+            else { button.disabled = true; button.children[1].textContent += '（別の組・ロードから切り替え）'; }
+          }
         });
       }
       async function removeSlot(slot, group){
@@ -125,7 +135,10 @@
           let detail = Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ja-JP');
           const current = slot.id === RenaiGameSave.getCurrentSaveId();
           if(current) detail = '現在のスロット　' + detail;
+          const writable = mode !== 'save' || canSaveToSlot(slot);
+          if(!writable) detail += '（別の組）';
           const button = card('スロット ' + slot.slotNumber, detail, () => select(slot, false));
+          button.disabled = !writable;
           if(current) button.classList.add('current');
           const row = document.createElement('div'); row.className = 'simulation-slot-row';
           list.replaceChild(row,button); row.appendChild(button);

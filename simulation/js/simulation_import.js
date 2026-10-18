@@ -13,7 +13,7 @@
   function open(){
     if(active) return;
     const dialog = document.createElement('dialog'); dialog.className = 'simulation-slot-dialog';
-    dialog.innerHTML = '<h2>章データを取り込んで保存</h2><p>AIが出した1章分のJSONを貼り付けるか、ファイルを選んでください。</p><label>章JSONを貼り付け<textarea class="import-json" rows="5" spellcheck="false" autocomplete="off" placeholder="ここにJSONを貼り付け"></textarea></label><button type="button" class="import-paste">貼り付けたJSONを確認</button><p>またはJSONファイルを選択</p><input type="file" accept=".json,application/json" aria-label="章データJSON"><p class="import-status" role="status"></p><div class="import-preview"></div><button type="button" class="import-save" disabled>この章をGitHubへ保存</button><button type="button" class="simulation-slot-close">閉じる</button>';
+    dialog.innerHTML = '<h2>章データを取り込んで保存</h2><p>AIから受け取ったJSONファイルを選んでください。保存先のスロットはファイルから自動で選ばれます。</p><label class="import-file-label">JSONファイルを選択<input type="file" accept=".json,application/json" aria-label="章データJSON" autofocus></label><details class="import-paste-options"><summary>JSON本文を貼り付けて取り込む</summary><label>章JSONを貼り付け<textarea class="import-json" rows="5" spellcheck="false" autocomplete="off" placeholder="ここにJSONを貼り付け"></textarea></label><button type="button" class="import-paste">貼り付けたJSONを確認</button></details><p class="import-status" role="status"></p><div class="import-preview"></div><button type="button" class="import-save" disabled>この章をGitHubへ保存</button><button type="button" class="simulation-slot-close">閉じる</button>';
     document.body.appendChild(dialog); active = dialog; dialog.showModal();
     const input = dialog.querySelector('input'), pasteInput = dialog.querySelector('.import-json'), pasteButton = dialog.querySelector('.import-paste'), status = dialog.querySelector('.import-status'), details = dialog.querySelector('.import-preview'), save = dialog.querySelector('.import-save'), close = dialog.querySelector('.simulation-slot-close');
     let preview = null, busy = false, request = 0, savedResult = null;
@@ -30,11 +30,11 @@
         const raw = source.trim();
         const fence = /^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i.exec(raw);
         const data = JSON.parse(fence ? fence[1] : raw);
-        if(!window.RenaiGamePolicy) await loadScript('../js/renaigame_policy.js?v=20261018-policy');
+        if(!window.RenaiGamePolicy) await loadScript('../js/renaigame_policy.js?v=20261018-file-import');
         // Reload stale import code before using the strict standard v2 check.
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
-          await loadScript('js/simulation_save.js?v=20261017-standard-v2');
+          await loadScript('js/simulation_save.js?v=20261018-file-import');
         }
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
@@ -43,7 +43,7 @@
         if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') await loadScript('js/character_settings_validator.js?v=20261015-validator-bootstrap-v2');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') throw new Error('人物設定の検証JSが有効になっていません。最新版のゲーム画面を開いてください。');
-        if(!window.RenaiGameTurnEngine || window.RenaiGameTurnEngine.policy !== window.RenaiGamePolicy) await loadScript('js/ai_turn_engine.js?v=20261018-policy');
+        if(!window.RenaiGameTurnEngine || window.RenaiGameTurnEngine.policy !== window.RenaiGamePolicy) await loadScript('js/ai_turn_engine.js?v=20261018-file-import');
         if(!window.RenaiGameTurnEngine || typeof window.RenaiGameTurnEngine.verifyTurn !== 'function') throw new Error('心理JSの実行器が有効になっていません。最新版のゲーム画面を開いてください。');
         if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js')]);
         if(!window.RenaiGameCharacters?.getById(data.characterId)) await window.RenaiGameCharacters?.loadAll();

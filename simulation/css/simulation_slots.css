@@ -16,3 +16,9 @@
     .simulation-slot-delete { min-height: 48px; padding: 10px 8px; border: 1px solid #cbbdc4; border-radius: 10px; background: #fff; color: #982e46; font: inherit; font-size: 14px; cursor: pointer; }
     .simulation-slot-delete:disabled { opacity: .6; cursor: wait; }
     .simulation-slot-delete:focus-visible { outline: 2px solid #982e46; outline-offset: 2px; }
+
+    .simulation-slot-dialog .import-file-label { display: grid; gap: 10px; font-size: 16px; font-weight: bold; }
+    .simulation-slot-dialog input[type="file"] { display: block; width: 100%; max-width: 100%; min-height: 48px; font: inherit; font-size: 16px; box-sizing: border-box; }
+    .simulation-slot-dialog .import-paste-options { margin: 16px 0; }
+    .simulation-slot-dialog .import-paste-options summary { padding: 12px 0; font-size: 16px; cursor: pointer; }
+    .simulation-slot-dialog .import-json { width: 100%; min-height: 7rem; box-sizing: border-box; font-size: 16px; }

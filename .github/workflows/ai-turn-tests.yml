@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "simulation/js/**"
+      - "simulation/css/**"
       - "simulation/state/templates/**"
       - "simulation/tests/**"
       - "simulation/scripts/**"
@@ -24,6 +25,7 @@ on:
   pull_request:
     paths:
       - "simulation/js/**"
+      - "simulation/css/**"
       - "simulation/state/templates/**"
       - "simulation/tests/**"
       - "simulation/scripts/**"
@@ -74,6 +76,8 @@ jobs:
       - run: node simulation/tests/handoff_ui.test.cjs
       - run: node simulation/tests/chapter_import.test.cjs
       - run: node simulation/tests/chapter_paste_ui.test.cjs
+      - run: node simulation/tests/slots.test.cjs
+      - run: node tests/simulation-delete-slot-ui.test.cjs
       - run: node simulation/tests/chapter_save.test.cjs
 
 

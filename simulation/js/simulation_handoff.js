@@ -85,13 +85,14 @@
       'JSの読込手順はsimulation/AI_TURN_EXECUTION.mdです。simulation/js/ai_turn_runtime.jsで設定検証JSを含む依存ファイルを同じwindowへ読み込むか、Nodeのsimulation/scripts/run_ai_turn.cjsを使ってください。GitHub取得ツールのAction completed.はソースではありません。structuredContent.contentの本物のJSを使ってください。読込ミスは保持中の入力で修正・再実行し、解消できない場合は試した実行ツール・コマンド、失敗したJSのパス、元のエラー全文を報告してください。環境へ読み込めないという結論だけで終了しないでください。',
       '今回入力の原文を使ったchangesとevidenceを作り、RenaiGameTurnEngine.runTurnで生成用パケットを作成し、verifyTurnのok=trueを確認してから本文を生成してください。',
       'runTurnとverifyTurnの成功後に本文を下書きし、生成後にvalidateStoryを実行してください。ok=falseなら本文を修正・再検査してください。本文がまだない段階でvalidateStoryの成功を求めて停止しないでください。意味・設定の整合性は実ログ・個別behaviorとも照合してください。',
+      '小説としての仕上げ：simulation/AI_NOVEL_GENERATION_RULES.mdに従い、下書き後・意味確認の前に、相手役固有の台詞・所作、場面の情緒、関係の実際の変化を文学的に推敲してください。説明口調や同じ沈黙・世話の反復にせず、毎章の主人公入力にふさわしい文章を書いてください。推敲後の本文で意味確認と検証を行い、主人公の未入力行動・心理は加えないでください。',
       '本文出力の必須手順はsimulation/STORY_REVIEW_GATE.mdです。下書き後にprepareStoryReviewで未完了の確認票を作り、今回入力との整合・正本出典・主人公の操作権・男性の具体的な動機・実際の境遇の変化を別工程で確認し、根拠付きでstoryActions.semanticReviewへ記録してください。機械検査のmechanicalOk:trueだけでは出力できません。NPCの台詞による主人公の意思の代弁も今回入力の根拠が必要です。実ログ0件なら以前の未保存の展開を流用せず、新しい開始として扱ってください。releaseStoryが成功して返した本文だけを出してください。確認票を自動で全てpassにしないでください。',
       '実行器、対象JS、現在saveId、心理state、実ログが取得できない時、または検証失敗時は小説を捏造せず処理を停止してください。',
       '旧セーブの主要心理値が不足する場合は0で補完して恋愛を後退させず、過去の実ログから整合するstateへの移行が必要だと報告してください。旧セーブを勝手に書き換えないでください。',
       '実行器の証跡fingerprint、invoked、okと検証エラーは確認できるよう保持し、求められた場合に提示してください。本文には内部計算を混ぜないでください。',
-      '保存して・保存JSONを出して・記録と情報更新は、simulation/CHAPTER_SAVE_FORMAT.mdを正本とする標準version 2の章JSONを1ファイル出力する指示です。全文・全項目保持という文言だけでversion 1へ変更しないでください。今回のファイルをversion 1で出力するとユーザーが明示した場合だけ例外です。標準を軽量版と呼び分けず、_light・_full等の別名を付けないでください。ファイル名は<saveId>_<characterId>_<4桁chapter>.jsonです。',
+      '保存して・記録と情報更新・GitHubに保存は、接続と実測検証が可能なら現在saveIdへ直接GitHub保存する依頼です。最新の正本・indexを確認し、同一コミットで今回章だけ反映して再読込照合してください。失敗したら未保存と理由を明示し、検証済み標準version 2の章JSONを代替出力してください。保存JSONを出して・JSONファイルにしては標準version 2ファイル出力だけの依頼であり、GitHub正本を更新しません。完全保存や心理パケット全項目保持はversion 1を選ぶ理由になりません。版は今回のユーザー明示でのみ変更し、標準を軽量版と呼び分けず、_light・_full等の別名を付けません。ファイル名は<saveId>_<characterId>_<4桁chapter>.jsonです。',
       '標準version 2のstateHistory.entryはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけです。packet・before・after・evaluations・execution・sources・protagonistInputを章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。',
-      '出力時はsimulation/js/simulation_save.jsのcreateChapterBundleV2で確定済みデータから組み立て、assertChapterBundleV2で形式とファイル名を検査してください。検証コマンドはnode simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>です。本文・数値・指紋・検証記録を作り直さず、欠けた実データを推測で埋めないでください。ゲームのセーブ→章データを取り込んで保存を使います。ファイル出力だけでGitHub保存済みと報告しないでください。直接GitHubへ保存するよう明示された場合だけGitHubの記録・状態更新を行ってください。',
+      '出力時はsimulation/js/simulation_save.jsのcreateChapterBundleV2で確定済みデータから組み立て、assertChapterBundleV2で形式とファイル名を検査してください。検証コマンドはnode simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>です。本文・数値・指紋・検証記録を作り直さず、欠けた実データを推測で埋めないでください。保存JSONが指定された場合はゲームのセーブ→章データを取り込んで保存を使います。「保存して」ならAIが直接GitHub保存を実行してください。ファイル出力だけでGitHub保存済みと報告しないでください。',
       '保存JSONの出力・GitHub更新は、ユーザーが明示したときだけ行ってください。'
     );
     else lines.push(

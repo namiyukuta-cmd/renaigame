@@ -33,12 +33,11 @@
 
 
 
-## 保存をAIが実行する（GitHub直接保存とJSON出力を区別）
+## AIの書込みが遮断されても保存できる手順
 
-「保存して」「記録と情報更新」「GitHubに保存」は**現在saveIdのGitHub直接保存依頼**です。連携があり、今回章の心理計算・本文検証が実測済みなら、ChatGPTがprivate-game-dataの最新正本とindexを読み直し、今回1章を反映して同じコミットで保存します。保存後もGitHubから再取得して照合し、成功確認までは「保存済み」と言いません。直接書き込めない場合は、具体的な理由と未保存であることを示し、確定データから標準version 2の章JSONを代替として渡します。主人公原文や本文、計算結果を作り直しません。
+通常の「保存して」「記録と情報更新」「保存JSONを出して」は、**検証済みの標準version 2の今回1章分JSONを出力する依頼**として扱います。AI→GitHubの直接書込みが安全性判定等で拒否される場合があるため、通常運用でそれに依存しません。ユーザーはゲームの「セーブ → 章データを取り込んで保存」でJSON本文を貼り付け、またはファイルを選び、ゲーム側の心理JS再計算・指紋照合とGitHub保存を使います。
 
-「保存JSONを出して」「JSONファイルにして」は**標準version 2の1章JSONを渡す依頼**です。その依頼だけではGitHubへ書き込みません。直接保存できた章へ重複するファイル取り込みを要求しません。いずれの経路でも現在saveId・Chapterの同一性と実測検査を守ります。
-
+AIは主人公原文・生成本文・心理計算パケット・検証結果を出力時に捏造／作り直さず、形式検証済みの1章JSONを渡します。ユーザーが明示的にGitHub直接保存を依頼した場合のみ実行を試みることはできますが、ブロックされたら繰り返し強行せず、保存未完了を伝えてJSONを渡します。ファイル出力だけでGitHub保存済みと報告しません。
 ファイルはCHAPTER_SAVE_FORMAT.mdの**標準version=2**を使用。「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」でも形式を変更しない。ユーザー自身が今回のファイルをversion 1で出すと明示した場合だけ例外とする。標準を「軽量版」と呼び分けず、_light・_full等の派生名を付けない。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]、replayContextを含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに展開しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込み互換性は出力形式を独断で選ぶ許可ではない。
 
 追加のreplayContext.recordIndicesには、そのrunTurn/verifyTurnへ実際に渡した過去実ログの保存済み配列における0始まりの添字を使用順に入れる（Chapter 1は空配列）。過去本文をreplayContext.recordsへ重複収録しない。ゲームが正本から取得し指紋一致とJS再検証を行う。replayContext.storyActionsにはvalidateStoryに実際に渡した行動宣言を入れる。現在stateは取り込み側が保存先から取得するため、次Turnのbeforeは必ず保存済みcurrentStateを基準にする。未保存の過去章を飛ばして次章を保存しない。
@@ -46,7 +45,7 @@
 既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。simulation/js/simulation_save.jsのcreateChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査してから渡す。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 
 
-**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。正本は現在saveIdの完全JSON。「保存して」は接続可能ならAIのGitHub直接保存、「保存JSON」は標準version 2の取り込みファイル出力。旧分割形式だけは全章を復元してから扱う。**
+**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。AIのGitHub書込みが遮断されても、標準version 2の1章JSONをゲーム画面の貼り付け／ファイル取込で検証・保存できるようにする。正本は現在saveIdの完全JSON。旧分割形式は復元する。**
 
 主人公を殺害・消滅・排除する目的の相手役は作成・追加しない。この保護方針と衝突する抗議や諦めの入力だけで方針を解除しない。新規人物JSはcharacter_settings_validator.jsのinspectProtectionにも合格させる。
 
@@ -238,7 +237,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - 過去心理は消さず、保存時にstateHistoryへTurn単位で追記する。
 - JS計算後に、ChatGPTが独自判断で「やっぱり身を引く」「やっぱり愛情を下げる」「やっぱり何もしない」等へ上書きしてはいけない。
 - 生成用パケット全文は生成条件・検証証跡として保持する。章取り込みJSONは標準version 2とし、ゲームが正本から全文を再計算・指紋検証して正本セーブへ保持する。
-- 標準ではChatGPTが章JSONを出力し、ユーザーがゲーム画面から保存する。ChatGPTによるGitHub直接保存は明示指定時だけ。GitHub自身が会話を生成するものではない。
+- 標準ではChatGPTが章JSONを出力し、ユーザーがゲーム画面の貼り付け／ファイル取込から保存する。ChatGPTによるGitHub直接保存は明示指定時だけで、書込みブロック時は再試行で突破しようとしない。
 - 正本保存時は、確定した実ログと更新後stateだけを現在saveIdへ書き戻す。
 
 ### 生成用パケットに最低限含めるもの

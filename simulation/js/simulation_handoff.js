@@ -90,9 +90,9 @@
       '実行器、対象JS、現在saveId、心理state、実ログが取得できない時、または検証失敗時は小説を捏造せず処理を停止してください。',
       '旧セーブの主要心理値が不足する場合は0で補完して恋愛を後退させず、過去の実ログから整合するstateへの移行が必要だと報告してください。旧セーブを勝手に書き換えないでください。',
       '実行器の証跡fingerprint、invoked、okと検証エラーは確認できるよう保持し、求められた場合に提示してください。本文には内部計算を混ぜないでください。',
-      '保存して・記録と情報更新・GitHubに保存は、接続と実測検証が可能なら現在saveIdへ直接GitHub保存する依頼です。最新の正本・indexを確認し、同一コミットで今回章だけ反映して再読込照合してください。失敗したら未保存と理由を明示し、検証済み標準version 2の章JSONを代替出力してください。保存JSONを出して・JSONファイルにしては標準version 2ファイル出力だけの依頼であり、GitHub正本を更新しません。完全保存や心理パケット全項目保持はversion 1を選ぶ理由になりません。版は今回のユーザー明示でのみ変更し、標準を軽量版と呼び分けず、_light・_full等の別名を付けません。ファイル名は<saveId>_<characterId>_<4桁chapter>.jsonです。',
+      '保存して・記録と情報更新・保存JSONを出しては、標準version 2の今回1章JSONを出力する依頼です。AI→GitHubの書込みは安全性判定等で遮断され得るため、直接保存を前提にせず、ゲームのセーブ→章データを取り込んで保存でJSONを貼り付け／ファイル選択して保存します。ゲーム側で心理JSを再計算して指紋検証します。完全保存や心理パケット全項目保持でもversion 1へ切り替えず、_light・_full等の別名を付けません。ファイル名は<saveId>_<characterId>_<4桁chapter>.jsonです。GitHub直接保存はユーザーが明示した場合のみ試し、遮断されたら強行せずJSONを出力してください。',
       '標準version 2のstateHistory.entryはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけです。packet・before・after・evaluations・execution・sources・protagonistInputを章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。',
-      '出力時はsimulation/js/simulation_save.jsのcreateChapterBundleV2で確定済みデータから組み立て、assertChapterBundleV2で形式とファイル名を検査してください。検証コマンドはnode simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>です。本文・数値・指紋・検証記録を作り直さず、欠けた実データを推測で埋めないでください。保存JSONが指定された場合はゲームのセーブ→章データを取り込んで保存を使います。「保存して」ならAIが直接GitHub保存を実行してください。ファイル出力だけでGitHub保存済みと報告しないでください。',
+      '出力時はsimulation/js/simulation_save.jsのcreateChapterBundleV2で確定済みデータから組み立て、assertChapterBundleV2で形式とファイル名を検査してください。検証コマンドはnode simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>です。本文・数値・指紋・検証記録を作り直さず、欠けた実データを推測で埋めないでください。通常の保存指示はゲームのセーブ→章データを取り込んで保存で貼り付け／ファイル選択を使います。AIからGitHubへの直接保存に依存しないでください。ファイル出力だけでGitHub保存済みと報告しないでください。',
       '保存JSONの出力・GitHub更新は、ユーザーが明示したときだけ行ってください。'
     );
     else lines.push(

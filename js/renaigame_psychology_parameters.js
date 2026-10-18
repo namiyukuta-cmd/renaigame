@@ -1,5 +1,7 @@
 (() => {
   "use strict";
+  const policy = window.RenaiGamePolicy;
+  if(!policy) throw new Error("js/renaigame_policy.jsを先に読み込んでください。");
 
   const clamp = (value, min = 0, max = 100) => {
     const n = Number(value);
@@ -756,24 +758,12 @@
       }
     },
 
-    seekHeroineFloorByStageName: {
-      "他人": 0,
-      "警戒": 0,
-      // 興味は歌や会話への関心でも成立し、恋愛欲求の発生を意味しない。
-      "興味": 0,
-      "親しみ": 25,
-      "親しさ": 25,
-      "特別": 35,
-      "意識": 45,
-      "恋愛自覚前": 45,
-      "恋愛自覚": 60,
-      "欲求": 60,
-      "恋愛緊張": 70,
-      "告白前": 75,
-      "告白・合意": 75,
-      "交際": 80,
-      "交際後": 80
-    },
+    seekHeroineFloorByStageName: Object.freeze({
+      // 旧段階名は保存済み値の読み取り互換として保持する。
+      "他人":0,"特別":35,"恋愛自覚前":45,"恋愛自覚":60,"恋愛緊張":70,"告白・合意":75,
+      ...Object.fromEntries(policy.stages.flatMap(stage =>
+        [stage.name,...stage.aliases].map(name => [name,stage.seekHeroineFloor])))
+    }),
 
     romanceOnsetModel: {
       principle: [

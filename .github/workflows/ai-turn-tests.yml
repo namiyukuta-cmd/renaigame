@@ -19,6 +19,7 @@ on:
       - "tests/unassigned-continuity-import.test.cjs"
       - "js/renaigame_psychology_parameters.js"
       - "js/renaigame_romance_rules.js"
+      - "js/renaigame_policy.js"
       - ".github/workflows/ai-turn-tests.yml"
   pull_request:
     paths:
@@ -38,6 +39,7 @@ on:
       - "tests/unassigned-continuity-import.test.cjs"
       - "js/renaigame_psychology_parameters.js"
       - "js/renaigame_romance_rules.js"
+      - "js/renaigame_policy.js"
       - ".github/workflows/ai-turn-tests.yml"
 
 # Superseded commits need not finish another copy of the same test suite.
@@ -55,6 +57,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - run: node simulation/scripts/generate_policy_reference.cjs --check
+      - run: node simulation/tests/policy_consistency.test.cjs
       - run: node simulation/tests/world_mizunagi.test.cjs
       - run: node simulation/tests/character_settings.test.cjs
       - run: node simulation/tests/ai_turn_engine.test.cjs

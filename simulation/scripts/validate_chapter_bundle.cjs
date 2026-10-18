@@ -11,6 +11,7 @@ function main(argv) {
   const filename = argv[0];
   const bundle = JSON.parse(fs.readFileSync(filename, 'utf8'));
   const scope = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../js/renaigame_policy.js'), 'utf8'), scope);
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../js/simulation_save.js'), 'utf8'), scope);
   scope.window.RenaiGameSave.assertChapterBundleV2(bundle, path.basename(filename));
   console.log('PASS: 標準version 2の形式・ファイル名が一致しました。心理JS・正本との照合は別途必要です。');

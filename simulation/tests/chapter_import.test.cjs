@@ -33,7 +33,7 @@ const sandbox = { window: {}, TextEncoder, TextDecoder, Date,
     throw Error('Unexpected route '+route);
   }
 };
-for(const file of ['js/renaigame_psychology_parameters.js','simulation/js/ai_turn_engine.js','simulation/js/simulation_character_007.js','simulation/js/simulation_character_007_behavior.js','simulation/js/simulation_save.js']) vm.runInNewContext(fs.readFileSync(root+'/'+file,'utf8'),sandbox);
+for(const file of ['js/renaigame_policy.js','js/renaigame_psychology_parameters.js','simulation/js/ai_turn_engine.js','simulation/js/simulation_character_007.js','simulation/js/simulation_character_007_behavior.js','simulation/js/simulation_save.js']) vm.runInNewContext(fs.readFileSync(root+'/'+file,'utf8'),sandbox);
 const api=sandbox.window.RenaiGameSave, engine=sandbox.window.RenaiGameTurnEngine, psychology=sandbox.window.RenaiGamePsychologyParameters;
 const initial=JSON.parse(fs.readFileSync(root+'/simulation/state/templates/char_007_initial_state.json'));
 const prefix='renaigame/simulation/saves/', id='run_import_test', characterId='char_007', profile={name:'取込テスト',age:'41',free:''};

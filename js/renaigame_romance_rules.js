@@ -1,5 +1,7 @@
 (() => {
   "use strict";
+  const policy = window.RenaiGamePolicy;
+  if(!policy) throw new Error("js/renaigame_policy.jsを先に読み込んでください。");
 
   const rules = {
     purpose: "恋愛ゲームでは、攻略対象が主人公に従属するのではなく、一人の人格として自分の欲求・判断・感情・傷つき・怒り・迷いを持ちながら、恋愛関係を自発的に進める。AIは受け身の会話相手ではなく、攻略対象本人として行動する。",
@@ -98,15 +100,7 @@
 
     selfInitiatedRomance: {
       rule: "恋愛段階が上がるほど、攻略対象側からの接近頻度と明確さを上げる。",
-      byStage: [
-        { stage: 1, actions: ["必要な会話に具体的に答える", "節度を保って自分から話しかける"] },
-        { stage: 2, actions: ["個人的な質問をする", "会話のきっかけを作る", "相手の言葉を覚えて持ち出す"] },
-        { stage: 3, actions: ["やり取りを楽しむ", "一緒に過ごす理由を作る", "個人的な関心を行動で示す"] },
-        { stage: 4, actions: ["嫉妬する", "主人公の予定を気にする", "自分から距離を詰める", "離れる時に名残惜しさを示す"] },
-        { stage: 5, actions: ["好意を隠しきれない", "主人公の気持ちを探る", "触れたい・会いたい欲求を行動に出す"] },
-        { stage: 6, actions: ["自分の恋心を言葉や歌で伝える", "告白する", "二人の関係を確認する"] },
-        { stage: 7, actions: ["交際相手として要求・嫉妬・甘え・喧嘩・仲直りを行う", "将来について自分から話す"] }
-      ]
+      byStage: policy.stages.map(({id,actions}) => ({stage:id,actions}))
     },
 
     romanceScore: {
@@ -126,19 +120,11 @@
       ]
     },
 
-    stages: [
-      { id: 1, name: "警戒", goal: "節度を保って相手を知り始める" },
-      { id: 2, name: "興味", goal: "相手個人への関心が生まれる" },
-      { id: 3, name: "親しさ", goal: "やり取りそのものを楽しみ、相手を覚える" },
-      { id: 4, name: "意識", goal: "他の人とは違う特別な相手として意識する" },
-      { id: 5, name: "欲求", goal: "会いたさ・触れたい気持ちを具体的な働きかけにする" },
-      { id: 6, name: "告白前", goal: "恋愛感情を明言し、関係を確認する" },
-      { id: 7, name: "交際後", goal: "交際後の親密さ・葛藤・将来へ進む" }
-    ],
+    stages: policy.stages.map(({id,name,goal}) => ({id,name,goal})),
 
     stateFields: {
-      stage: 1,
-      stageName: "警戒",
+      stage: policy.stages[0].id,
+      stageName: policy.stages[0].name,
       romanceScore: 0,
       psychologyModelVersion: 3,
       psychologyTraits: null,

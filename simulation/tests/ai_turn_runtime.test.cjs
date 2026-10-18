@@ -20,7 +20,7 @@ const setup = overrides=>runtime.createRuntime({sources,save,saveId,characterId,
 
 // Regression: the former documented loader omits the settings validator.
 const oldScope={};
-for(const file of ['js/renaigame_psychology_parameters.js','simulation/js/ai_turn_engine.js','simulation/js/simulation_character_016.js','simulation/js/simulation_character_016_behavior.js']) new Function('window','module','require',sources[file])(oldScope,undefined,undefined);
+for(const file of ['js/renaigame_policy.js','js/renaigame_psychology_parameters.js','simulation/js/ai_turn_engine.js','simulation/js/simulation_character_016.js','simulation/js/simulation_character_016_behavior.js']) new Function('window','module','require',sources[file])(oldScope,undefined,undefined);
 assert.throws(()=>oldScope.RenaiGameTurnEngine.runTurn({...input,character:oldScope.SimulationCharacters[characterId],behavior:oldScope.SimulationCharacter016Behavior,psychology:oldScope.RenaiGamePsychologyParameters,stateEntry:initial,records:[]}),/character_settings_validator.js/);
 
 const original=JSON.stringify({save,input});
@@ -90,6 +90,7 @@ try{
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
 
 const promptScope={window:{},document:{addEventListener(){}}};
+vm.runInNewContext(read('js/renaigame_policy.js'),promptScope);
 vm.runInNewContext(read('simulation/js/simulation_handoff.js'),promptScope);
 const prompt=promptScope.window.RenaiGameHandoff.buildPrompt({character:runner.scope.SimulationCharacters[characterId],profile:save.state.profile,saveId,session:save.state.session});
 assert.match(prompt,/ai_turn_runtime.js/);assert.match(prompt,/元のエラー全文/);

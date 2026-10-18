@@ -1,5 +1,7 @@
 # 恋愛シミュレーション AI生成入口
 
+共通の機械規則の正本は`js/renaigame_policy.js`、説明は自動生成の`simulation/AI_POLICY_REFERENCE.md`。心理項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`から取得する。段階・補正・保存形式・意味確認軸を推測で再定義しない。読込順序は実行ローダーの`sourcePaths`に従う。
+
 本文を返す前に[本文の意味確認と出力条件](STORY_REVIEW_GATE.md)を適用する。入力整合・正本出典・主人公の操作権・男性の動機・実際の境遇の変化を下書き後の別工程で確認し、根拠付きの`storyActions.semanticReview`を渡す。機械検査のみ成功した`mechanicalOk:true`は出力許可ではない。`releaseStory`が成功して返す本文を使い、未確認の本文を先に出さない。未保存の旧展開を今回の実ログ0件の開始へ持ち込まない。
 
 ## 恋愛相手未選択の「AIに渡す」
@@ -174,7 +176,7 @@ AIは主人公原文・生成本文・心理計算パケット・検証結果を
 
 毎Turn、**本文を書く前に実際のJS実行結果を得る**こと。必要ファイルを取得できない場合は本文を生成しません。
 
-読込・実行の正本手順は[AI_TURN_EXECUTION.md](AI_TURN_EXECUTION.md)。`simulation/js/ai_turn_runtime.js`で設定検証JSを含む6依存ファイルを同じwindowへ読み込む。コードモードでの実行と`simulation/scripts/run_ai_turn.cjs`のNode実行を用意している。「JSを読み込めない」だけで停止せず、利用できる実行ツールで実際に試して読込ミスを修正する。解消できない場合は試したコマンド・失敗ファイル・元のエラー全文・実行できた段階を報告する。正本・心理数値・今回入力を変更して回避しない。
+読込・実行の正本手順は[AI_TURN_EXECUTION.md](AI_TURN_EXECUTION.md)。`simulation/js/ai_turn_runtime.js`で共通規則・設定検証JSを含むsourcePathsの全依存ファイルを同じwindowへ読み込む。コードモードでの実行と`simulation/scripts/run_ai_turn.cjs`のNode実行を用意している。「JSを読み込めない」だけで停止せず、利用できる実行ツールで実際に試して読込ミスを修正する。解消できない場合は試したコマンド・失敗ファイル・元のエラー全文・実行できた段階を報告する。正本・心理数値・今回入力を変更して回避しない。
 
 1. `simulation/js/character_settings_validator.js`を取得・評価し、相手役の設定検査を実行する。新規形式の設定不足は補完・検査に戻し、主人公の未指定情報は埋めない。今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
 2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。

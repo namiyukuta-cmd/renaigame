@@ -51,6 +51,8 @@ async function main() {
   };
   const context = {window,document,RenaiGameSave:api,TextEncoder,
     localStorage:{setItem(){}}, location:{reload(){}},queueMicrotask};
+  vm.runInNewContext(fs.readFileSync(path.join(root,'js/renaigame_policy.js'),'utf8'),context);
+  window.RenaiGameTurnEngine.policy=window.RenaiGamePolicy;
   vm.runInNewContext(source,context);
   window.RenaiGameImport.open();
   assert.match(dialog.html,/章JSONを貼り付け/);

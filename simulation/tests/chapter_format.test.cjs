@@ -11,7 +11,7 @@ const read = file => fs.readFileSync(path.join(root,file), 'utf8');
 const copy = value => JSON.parse(JSON.stringify(value));
 const scope = { window: {}, document: { addEventListener() {} } };
 for(const file of [
-  'js/renaigame_psychology_parameters.js', 'simulation/js/character_settings_validator.js',
+  'js/renaigame_policy.js', 'js/renaigame_psychology_parameters.js', 'simulation/js/character_settings_validator.js',
   'simulation/js/ai_turn_engine.js', 'simulation/js/simulation_character_016.js',
   'simulation/js/simulation_character_016_behavior.js', 'simulation/js/simulation_save.js',
   'simulation/js/simulation_handoff.js'

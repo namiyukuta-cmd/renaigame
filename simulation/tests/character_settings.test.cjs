@@ -64,6 +64,7 @@ invalid(c=>c.common.setting.residence="別の住居",/一致/);
 invalid(c=>c.common.baseRomanticInitiative=0,/baseRomanticInitiative/);
 const future=clone(character);future.id="char_009";delete future.settingsVersion;
 assert.equal(validator.inspect(future).ok,false);
+run("js/renaigame_policy.js");
 run("js/renaigame_psychology_parameters.js");
 run("simulation/js/simulation_character_008_behavior.js");
 const initial=JSON.parse(read("simulation/state/templates/char_008_initial_state.json"));

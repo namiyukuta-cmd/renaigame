@@ -67,7 +67,7 @@ assert.equal(engine.validateContinuity(args, relationStory, actions(relation)).m
 
 // The same guard runs after actual psychology and replay verification.
 const root = path.resolve(__dirname, "../.."), window = {};
-for (const file of ["js/renaigame_psychology_parameters.js", "simulation/js/simulation_character_003.js",
+for (const file of ["js/renaigame_policy.js","js/renaigame_psychology_parameters.js", "simulation/js/simulation_character_003.js",
   "simulation/js/simulation_character_003_behavior.js"]) {
   vm.runInNewContext(fs.readFileSync(path.join(root, file), "utf8"), {window});
 }
@@ -84,6 +84,7 @@ assert.equal(JSON.stringify(packet), packetBefore, "progress checks do not adjus
 
 // AI handoffs carry the outcome rule; no dependency on a browser DOM.
 const scope = {window: {}, document: {addEventListener() {}}};
+vm.runInNewContext(fs.readFileSync(path.join(root, "js/renaigame_policy.js"), "utf8"), scope);
 vm.runInNewContext(fs.readFileSync(path.join(root, "simulation/js/simulation_handoff.js"), "utf8"), scope);
 const prompt = scope.window.RenaiGameHandoff.buildPrompt({
   character: {id: "char_003", name: "テスト相手"}, profile: {}, saveId: "run_support_test"

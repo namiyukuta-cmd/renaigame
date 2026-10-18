@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const engine = require('../js/ai_turn_engine.js');
 const reviewed = require('./helpers/review_fixture.cjs');
 const window = {};
-for (const path of ['../../js/renaigame_psychology_parameters.js','../js/simulation_character_003.js','../js/simulation_character_003_behavior.js']) {
+for (const path of ['../../js/renaigame_policy.js','../../js/renaigame_psychology_parameters.js','../js/simulation_character_003.js','../js/simulation_character_003_behavior.js']) {
   vm.runInNewContext(fs.readFileSync(require.resolve(path),'utf8'),{window});
 }
 const args = {saveId:'run_header',characterId:'char_003',character:window.SimulationCharacter003,

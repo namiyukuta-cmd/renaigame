@@ -84,7 +84,7 @@ assert.equal(engine.validateRomanceProgress({...repeated, protagonistInput: "今
 
 // Check the selected partner's identity and gender with real psychology sources.
 const window = {};
-for (const file of ["js/renaigame_psychology_parameters.js", "simulation/js/simulation_character_003.js",
+for (const file of ["js/renaigame_policy.js","js/renaigame_psychology_parameters.js", "simulation/js/simulation_character_003.js",
   "simulation/js/simulation_character_003_behavior.js", "simulation/js/simulation_character_016.js"]) {
   vm.runInNewContext(read(file), {window});
 }
@@ -117,6 +117,7 @@ authored.common.gender = "male";
 assert.equal(validator.inspect(authored).complete, true);
 
 const scope = {window: {}, document: {addEventListener() {}}};
+vm.runInNewContext(read("js/renaigame_policy.js"), scope);
 vm.runInNewContext(read("simulation/js/simulation_handoff.js"), scope);
 const prompt = scope.window.RenaiGameHandoff.buildPrompt({character, profile: {}, saveId: "run_romance_test"});
 assert.match(prompt, /主人公の恋愛相手は男性限定/);

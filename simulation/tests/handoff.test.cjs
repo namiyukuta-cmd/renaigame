@@ -5,6 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const scope = {window: {}, document: {addEventListener() {}}};
+vm.runInNewContext(fs.readFileSync(path.join(root, "js/renaigame_policy.js"), "utf8"), scope);
 vm.runInNewContext(fs.readFileSync(path.join(root, "simulation/js/simulation_handoff.js"), "utf8"), scope);
 const build = scope.window.RenaiGameHandoff.buildPrompt;
 const profile = {name: "引き継ぎ確認", age: "", free: "架空の古都で暮らしています。\n設定の改行も保持します。"};

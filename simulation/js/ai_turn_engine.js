@@ -6,6 +6,8 @@
  */
 (function (root) {
   "use strict";
+  const policy = root.RenaiGamePolicy || (typeof require === 'function' ? require('../../js/renaigame_policy.js') : null);
+  if(!policy) throw new Error('js/renaigame_policy.jsを実行器より先に読み込んでください。');
 
   const FUNCTION_NAMES = Object.freeze([
     "normalizeState",
@@ -17,11 +19,7 @@
     "evaluateIntimacyInitiative",
     "evaluateYoinomaInvitation"
   ]);
-  const ROMANCE_POLICY = Object.freeze({
-    partnerGender: "male",
-    bloodRelativesAllowed: false,
-    supportCountsAsRomance: false
-  });
+  const ROMANCE_POLICY = policy.romance;
 
   function fail(message) {
     throw new Error("AIターン検証失敗: " + message);
@@ -109,7 +107,7 @@
     const raw = getCurrentState(args.stateEntry);
     // Missing persisted emotions are not evidence of zero affection or trust.
     // Check every numeric state field before normalizeState can supply defaults.
-    const critical = ["romanceScore", ...Object.keys(args.psychology.stateDefaults)];
+    const critical = policy.requiredPsychologyFields(args.psychology);
     const missing = critical.filter(key => typeof raw[key] !== "number" || !Number.isFinite(raw[key]));
     if (missing.length) {
       fail("旧セーブで主要心理項目が不足しています: " + missing.join(", ") + "。0として補完せず、実ログに基づいて移行したstateを渡してください");
@@ -147,11 +145,11 @@
     if (!record(transition)) fail("stageTransitionが不正です");
     const from = Number(raw.stage);
     if (!Number.isInteger(from) || !Number.isInteger(transition.to) ||
-        transition.to < 1 || transition.to > 7 || transition.to !== from + 1) {
+        !policy.stages.some(stage => stage.id === transition.to) || transition.to !== from + 1) {
       fail("恋愛段階は現在段階から1段階ずつ進行してください");
     }
-    const stageNames = {1: ["警戒"], 2: ["興味"], 3: ["親しさ", "親しみ"], 4: ["意識"], 5: ["欲求"], 6: ["告白前"], 7: ["交際", "交際後"]};
-    if (!stageNames[transition.to].includes(transition.stageName)) {
+    const stage = policy.stages.find(stage => stage.id === transition.to);
+    if (![stage.name,...stage.aliases].includes(transition.stageName)) {
       fail("stageとstageNameが一致しません");
     }
     if (typeof transition.evidence !== "string" || !transition.evidence.trim() ||
@@ -309,7 +307,7 @@
     };
   }
 
-  const REVIEW_AXES = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange'];
+  const REVIEW_AXES = policy.reviewAxes;
   function reviewSource(args, cite){
     if(!record(cite) || typeof cite.quote !== 'string' || !cite.quote.trim()) return null;
     let value;
@@ -651,6 +649,7 @@
     validateSemanticReview,
     releaseStory,
     romancePolicy: ROMANCE_POLICY,
+    policy,
     fingerprint
   });
   root.RenaiGameTurnEngine = api;

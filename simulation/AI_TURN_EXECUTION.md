@@ -1,5 +1,7 @@
 # AIターン実行手順（実コード）
 
+共通の段階・補正・保存形式・意味確認軸の正本は`js/renaigame_policy.js`。説明は自動生成の[AI_POLICY_REFERENCE.md](AI_POLICY_REFERENCE.md)を使う。各ファイルで定義を複製せず、変更後は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を実行する。
+
 本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。小説は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従い、**下書きの文学的推敲を終えてから**意味確認票を作る。形式のために文章を説明調へ戻さない。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが5軸を実際に照合して`storyActions.semanticReview`へ記録する。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
 
 Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt>`は未完了の確認票を返す。確認記録を入力ファイルのstoryActionsへ保持した後、同じ引数で`release`を使うと、検証成功時だけ本文が出力される。`run`や`review`の段階は本文出力の許可ではない。
@@ -10,7 +12,8 @@ GitHubから取得した本物のJSを実行し、現在saveIdの正本から計
 ## 必須ファイルと読込順
 
 1. `simulation/js/ai_turn_runtime.js`（取得済みソースを同じwindowへ読み込む共通ローダー）
-2. ローダーの`sourcePaths(characterId)`が返す6ファイルを、同じリポジトリの同じコミットから取得する。
+2. ローダーの`sourcePaths(characterId)`が返すすべてのファイルを、同じリポジトリの同じコミットから取得する。ファイル数や順序を別途固定しない。
+   - `js/renaigame_policy.js`（共通の機械規則。最初に読み込む）
    - `simulation/js/character_settings_validator.js`
    - `js/renaigame_romance_rules.js`
    - `js/renaigame_psychology_parameters.js`

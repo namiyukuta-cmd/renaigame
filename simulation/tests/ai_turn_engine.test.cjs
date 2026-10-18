@@ -13,6 +13,7 @@ function loadBrowserScript(relativePath, window) {
     { window }, { filename: relativePath });
 }
 const window = {};
+loadBrowserScript("js/renaigame_policy.js", window);
 loadBrowserScript("js/renaigame_romance_rules.js", window);
 loadBrowserScript("js/renaigame_psychology_parameters.js", window);
 loadBrowserScript("simulation/js/simulation_character_003.js", window);

@@ -1,5 +1,7 @@
 # 恋愛シミュレーションのAI作業規定
 
+- 共通の機械規則は`js/renaigame_policy.js`、心理数値項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`を正本とする。段階・補正・保存形式・意味確認軸を別ファイルへ手で複製しない。自動生成の`simulation/AI_POLICY_REFERENCE.md`は`node simulation/scripts/generate_policy_reference.cjs`で更新する。公開前は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を行う。新しい不具合は修正前に再現し、回帰検査を追加する。検査成功を本文の意味全体の保証と報告しない。
+
 - 公開前に`.github/workflows/ai-turn-tests.yml`の全検査をローカルで実行する。設定・実装・関連テストを整えてから、1作業の複数ファイルを`create_tree`→`create_commit`→`update_ref`の1コミットにまとめて反映する。ファイルごとの途中コミットでmainへ公開しない。反映後は最新コミットのActionsの成功を確認し、失敗時は原因を修正してから完了を報告する。
 
 - Chapterヘッダは`simulation/AI_NOVEL_GENERATION_RULES.md`に従い全章で具体的な場所・年月日（曜）・HH:MM・数値℃を設定する。実ログ0件の開始環境はAIが設定する。「不明」で済ませない。本文検査を変更したら`node simulation/tests/chapter_header.test.cjs`も実行する。

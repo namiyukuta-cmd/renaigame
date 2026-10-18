@@ -87,6 +87,7 @@ async function main() {
   selectSlot("run_ui_slot_a");
   const pageScript = [...read("simulation/simulation_new.html").matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
   vm.runInContext(pageScript, context);
+  vm.runInContext(read("js/renaigame_policy.js"), context);
   vm.runInContext(read("simulation/js/simulation_handoff.js"), context);
   for(const init of document.listeners.DOMContentLoaded || []) init();
   const flush = () => new Promise(resolve => setImmediate(resolve));

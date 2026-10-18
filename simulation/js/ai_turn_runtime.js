@@ -8,6 +8,7 @@
     if(typeof characterId !== 'string' || !/^char_\d{3}$/.test(characterId)) fail('characterIdが不正です。');
     const number = characterId.slice(5);
     return [
+      'js/renaigame_policy.js',
       'simulation/js/character_settings_validator.js',
       'js/renaigame_romance_rules.js',
       'js/renaigame_psychology_parameters.js',
@@ -60,7 +61,7 @@
     const engine = scope.RenaiGameTurnEngine, psychology = scope.RenaiGamePsychologyParameters;
     const character = scope.SimulationCharacters?.[characterId] || scope['SimulationCharacter' + characterId.slice(5)];
     const behavior = scope['SimulationCharacter' + characterId.slice(5) + 'Behavior'];
-    if(!scope.RenaiGameCharacterSettings || !scope.RenaiGameRomanceRules || !engine || !psychology || !character || behavior?.characterId !== characterId) fail('必要なJSが同じwindowへ登録されていません。');
+    if(!scope.RenaiGamePolicy || !scope.RenaiGameCharacterSettings || !scope.RenaiGameRomanceRules || !engine || !psychology || !character || behavior?.characterId !== characterId) fail('必要なJSが同じwindowへ登録されていません。');
     const settings = scope.RenaiGameCharacterSettings.inspect(character);
     if(!settings.ok) fail('人物設定の検査失敗: ' + settings.errors.join('／'));
     const context = {saveId,characterId,recordIndices:indices,recordCount:savedRecords.length,stateHistoryCount:(state.stateHistory || []).length};

@@ -13,6 +13,7 @@ function loadBrowserScript(relativePath, window) {
     { window }, { filename: relativePath });
 }
 const window = {};
+loadBrowserScript("js/renaigame_romance_rules.js", window);
 loadBrowserScript("js/renaigame_psychology_parameters.js", window);
 loadBrowserScript("simulation/js/simulation_character_003.js", window);
 loadBrowserScript("simulation/js/simulation_character_003_behavior.js", window);
@@ -71,6 +72,28 @@ function test() {
     stageTransition: { to: 3, stageName: "親しさ", evidence: "また会いたい" }
   }));
   assert.equal(stage.after.stage, 3);
+
+  // 共通ルールの段階名を、そのまま実行器へ渡して進行できることを確認する。
+  // 旧0〜8段階では「1=興味」「7=告白・合意」が実行器に拒否されていた。
+  const rules = window.RenaiGameRomanceRules;
+  assert.equal(rules.stages.length, 7);
+  assert.equal(rules.stateFields.stage, rules.stages[0].id);
+  assert.equal(rules.stateFields.stageName, rules.stages[0].name);
+  for (let index = 0; index < rules.stages.length; index++) {
+    const next = rules.stages[index];
+    const previous = rules.stages[index - 1];
+    assert.equal(next.id, index + 1);
+    const transitionArgs = options({
+      stateEntry: { ...initial, stage: next.id - 1, stageName: previous?.name || "開始前" },
+      changes: {}, evidence: {},
+      stageTransition: { to: next.id, stageName: next.name, evidence: "また会いたい" }
+    });
+    const advanced = engine.runTurn(transitionArgs);
+    assert.equal(engine.verifyTurn(transitionArgs, advanced).ok, true);
+    assert.equal(advanced.after.stageName, next.name);
+    assert.equal(rules.selfInitiatedRomance.byStage.filter(entry => entry.stage === next.id).length, 1);
+  }
+  assert.equal(rules.selfInitiatedRomance.byStage.length, rules.stages.length);
   assert.throws(() => engine.runTurn(options({
     stateEntry: { ...initial, stage: 2, stageName: "興味" },
     changes: {},

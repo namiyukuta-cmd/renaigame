@@ -21,10 +21,11 @@
     "simulation_character_014.js",
     "simulation_character_015.js",
     "simulation_character_016.js",
-    "simulation_character_017.js"
+    "simulation_character_017.js",
+    "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261017-char017-refresh";
+  const CHARACTER_ASSET_VERSION = "20261018-char018-kiyozane";
   let loadPromise = null;
 
   function loadScript(fileName) {

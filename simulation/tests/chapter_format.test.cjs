@@ -106,11 +106,13 @@ async function main(){
   for(const saveId of ['run_format_test',null]){
     const prompt=scope.window.RenaiGameHandoff.buildPrompt({character:args.character,profile:args.protagonistProfile,saveId,session:{}});
     assert.match(prompt,/標準version 2/);
-    assert.match(prompt,/全文・全項目保持という文言だけでversion 1へ変更しない/);
+    // Check the format policy, not one exact phrasing of the handoff text.
+    assert.match(prompt,/(?:全文|全項目|完全保存)[^\n]*version 1[^\n]*(?:変更しない|切り替えず)/);
     assert.match(prompt,/assertChapterBundleV2/);
     assert.doesNotMatch(prompt,/心理パケットの値はstateHistoryのentry直下に1回だけ展開/);
   }
-  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=20261017-chapter-header/);
+  // New releases update this cache key without changing the required policy.
+  assert.match(read('simulation/simulation_new.html'),/simulation_handoff\.js\?v=[^"\s]+/);
 
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'chapter-format-'));
   try{

@@ -1,5 +1,7 @@
 # 恋愛シミュレーションのAI作業規定
 
+- 公開前に`.github/workflows/ai-turn-tests.yml`の全検査をローカルで実行する。設定・実装・関連テストを整えてから、1作業の複数ファイルを`create_tree`→`create_commit`→`update_ref`の1コミットにまとめて反映する。ファイルごとの途中コミットでmainへ公開しない。反映後は最新コミットのActionsの成功を確認し、失敗時は原因を修正してから完了を報告する。
+
 - Chapterヘッダは`simulation/AI_NOVEL_GENERATION_RULES.md`に従い全章で具体的な場所・年月日（曜）・HH:MM・数値℃を設定する。実ログ0件の開始環境はAIが設定する。「不明」で済ませない。本文検査を変更したら`node simulation/tests/chapter_header.test.cjs`も実行する。
 
 - 本文生成・検証では`simulation/STORY_REVIEW_GATE.md`を読む。入力整合・正本出典・主人公の操作権・男性の動機・境遇の変化を下書き後に別工程で確認する。`semanticReview`未完了なら本文は出力不可。`mechanicalOk:true`だけで合格と報告しない。`releaseStory`の成功した本文を使う。確認票を自動で全てpassにしない。

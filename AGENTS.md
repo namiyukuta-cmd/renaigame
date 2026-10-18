@@ -12,6 +12,7 @@
 - 章の保存JSONを扱う前に`simulation/CHAPTER_SAVE_FORMAT.md`を読む。保存形式の正本はこの文書。
 - AIのGitHub書込みは安全性判定等で拒否される場合があるため、通常の「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章JSONを作る。ゲーム画面で貼り付け／ファイル取込し、ゲーム自身の検証・GitHub保存を実行する。AIの書込み成功を前提にしない。書込み拒否を理由に既存データを推測して作り直さない。
 - 小説本文は形式・意味の検証前にAI_NOVEL_GENERATION_RULES.mdの「小説としての仕上げ」に従い、情緒・相手役の固有性・前進が乏しい下書きを書き直す。
+- `semanticReview.checks.literaryQuality`は全章必須。人物固有性・場面の情緒・実際の前進・説明の釣り合いを最終本文の引用と個別の理由で確認し、`revisionNote`へ改稿内容または修正不要の具体的な理由を記す。語句の一律禁止や主人公の補完で仕上げを代用しない。変更時は`node simulation/tests/literary_review.test.cjs`も実行する。
 - 「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章取り込みJSONの依頼。「完全保存」「心理パケット全項目を保持」もversion 1へ切り替える根拠にならない。
 - 標準ファイル名は`<saveId>_<characterId>_<4桁chapter>.json`。`_light`・`_full`等の別名を独断で作らない。
 - 心理パケット内部のversionと章JSONのversionを混同しない。取り込みJSONと完全な正本セーブも混同しない。

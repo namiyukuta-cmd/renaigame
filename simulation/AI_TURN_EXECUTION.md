@@ -2,7 +2,7 @@
 
 共通の段階・補正・保存形式・意味確認軸の正本は`js/renaigame_policy.js`。説明は自動生成の[AI_POLICY_REFERENCE.md](AI_POLICY_REFERENCE.md)を使う。各ファイルで定義を複製せず、変更後は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を実行する。
 
-本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。小説は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従い、**下書きの文学的推敲を終えてから**意味確認票を作る。形式のために文章を説明調へ戻さない。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが5軸を実際に照合して`storyActions.semanticReview`へ記録する。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
+本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。小説は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従い、**下書きの文学的推敲を終えてから**意味確認票を作る。形式のために文章を説明調へ戻さない。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが仕上げを含む全確認軸を実際に照合して`storyActions.semanticReview`へ記録する。`checks.literaryQuality`の各観点は本文引用と理由、`revisionNote`を必須とする。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
 
 Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt>`は未完了の確認票を返す。確認記録を入力ファイルのstoryActionsへ保持した後、同じ引数で`release`を使うと、検証成功時だけ本文が出力される。`run`や`review`の段階は本文出力の許可ではない。
 
@@ -26,6 +26,8 @@ GitHubから取得した本物のJSを実行し、現在saveIdの正本から計
 設定検証JSは、特にchar_008以降のrunTurnに必要。取得しただけで読み込みを省略しない。全ソースを同じwindowへ登録し、同じセーブのプロフィール・currentState・実ログを渡す。
 
 GitHubツールの`content[0].text`が`Action completed.`の場合、それは完了通知でありJSではない。fetch_fileをUTF-8で取得し、`structuredContent.content`のソース本文を使う。ローダーはこのツール応答オブジェクトを直接受け取ることもできる。base64は先にUTF-8へデコードする。
+
+取得済みソースをコードモードのローダーへ直接渡せる場合、実行のためだけにローカルファイルを再作成しない。Nodeでファイルが必要な場合は内容またはblob SHAを比較し、同一なら変更しない。更新は1回の置換とし、同じパッチで同一路径を削除・追加する重複操作は使わない。ファイル操作に失敗しても保持中の入力・計算結果を作り直さず、操作だけを修正する。
 
 ## 実行方法A：コードモード等で取得済みソースを実行する
 

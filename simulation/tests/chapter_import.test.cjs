@@ -69,6 +69,8 @@ async function main(){
   assert.equal(nestedPreview.chapter,1,'nested-only packet compatibility');
   const v2Preview=await api.prepareChapterImport(v2Bundle(bundle));
   assert.equal(v2Preview.chapter,1,'standard v2 format stays compatible');
+  const missingLiterary=v2Bundle(bundle);delete missingLiterary.replayContext.storyActions.semanticReview.checks.literaryQuality;
+  await assert.rejects(api.prepareChapterImport(missingLiterary),/literaryQuality/,'a new chapter cannot import without its finishing review');
   const corruptV2=v2Bundle(bundle);corruptV2.stateHistory[0].entry.fingerprint='invalid';corruptV2.stateHistory[0].entry.verification.replayFingerprint='invalid';
   await assert.rejects(api.prepareChapterImport(corruptV2),/指紋/);
   const unknown=copy(bundle);
@@ -104,6 +106,14 @@ async function main(){
   assert.equal(JSON.stringify(saved.state.session.statesByCharacter.char_007.currentState),JSON.stringify(packet.after));
   assert.equal(files.get(prefix+'index.json').saves[1].updatedAt,'unchanged');
   const duplicate=await api.prepareChapterImport(bundle);assert.equal(duplicate.alreadySaved,true);
+  const savedPath=prefix+id+'.json',originalSaved=copy(files.get(savedPath)),legacySaved=copy(originalSaved);
+  delete legacySaved.state.session.statesByCharacter.char_007.stateHistory[0].validation.checks.literaryQuality;
+  delete legacySaved.chapterImportMetadataByCharacter.char_007[1].replayContext.storyActions.semanticReview.checks.literaryQuality;
+  files.set(savedPath,legacySaved);
+  const legacySnapshot=JSON.stringify(legacySaved);
+  assert.equal((await api.prepareChapterImport(missingLiterary)).alreadySaved,true,'an identical saved chapter with the former receipt remains readable');
+  assert.equal(JSON.stringify(files.get(savedPath)),legacySnapshot,'historical literary reviews are never fabricated or retrofitted');
+  files.set(savedPath,originalSaved);
   await assert.rejects(api.commitChapterImport(duplicate));
   const conflict=copy(bundle);conflict.records[0].entry.partner+='違う本文';await assert.rejects(api.prepareChapterImport(conflict),/異なる記録/);
   for(const chapter of [2,3,4]){

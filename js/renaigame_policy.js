@@ -27,7 +27,11 @@
     historyForbidden:['packet','before','after','evaluations','execution','sources','protagonistInput'],
     filenamePattern:'<saveId>_<characterId>_<4桁chapter>.json'
   };
-  const reviewAxes = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange'];
+  const literaryReview = {
+    axis:'literaryQuality',
+    aspects:['characterSpecificity','sceneEmotion','concreteProgress','expositionBalance']
+  };
+  const reviewAxes = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange',literaryReview.axis];
   function requiredPsychologyFields(psychology){
     if(!psychology || !psychology.stateDefaults) throw new Error('心理項目の正本がありません。');
     return ['romanceScore',...Object.keys(psychology.stateDefaults)];
@@ -39,7 +43,7 @@
     return '標準version '+chapter.version+'のstateHistory.entryは'+chapter.historyFields.join('/')+'だけです。'+chapter.historyForbidden.join('・')+'を章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。';
   }
   const policy = freeze({
-    version:1,stages,chapter,reviewAxes,
+    version:1,stages,chapter,reviewAxes,literaryReview,
     romance:{partnerGender:'male',bloodRelativesAllowed:false,supportCountsAsRomance:false},
     requiredPsychologyFields,chapterFilename,chapterInstruction
   });

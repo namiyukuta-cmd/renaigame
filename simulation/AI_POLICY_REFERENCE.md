@@ -47,6 +47,13 @@
 - `protagonistAgency`
 - `romanceMotivation`
 - `circumstanceChange`
+- `literaryQuality`
+
+小説としての仕上げは`literaryQuality`で全章必須。`revisionNote`に改稿内容または修正不要の理由、`aspects`に次の各項目のpass・理由・最終本文の引用を記録する。
+- `characterSpecificity`
+- `sceneEmotion`
+- `concreteProgress`
+- `expositionBalance`
 
 原文と正本を下書き後に別工程で照合し、根拠を記録する。確認票を自動で全passにしない。機械検査だけを意味の保証にせず、releaseStoryが返した本文だけを出す。
 未検証・指示違反の誤生成を、出力済みという理由で確定した出来事にしない。保存済み実ログは無断で変更しない。

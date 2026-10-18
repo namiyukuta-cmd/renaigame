@@ -45,6 +45,7 @@ assert.match(selected, /標準version 2/);
 assert.match(selected, /AI→GitHubの書込みは安全性判定等で遮断され得る/);
 assert.match(selected, /ゲームのセーブ→章データを取り込んで保存でJSONを貼り付け/);
 assert.match(selected, /小説としての仕上げ/);
+assert.match(selected, /checks\.literaryQuality/);
 assert.match(selected, /下書き後・意味確認の前/);
 assert.match(selected, /runTurnで生成用パケットを作成/);
 assert.doesNotMatch(selected, /未選択の専用version 1/);

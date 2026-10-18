@@ -55,4 +55,4 @@ assert.equal(engine.validateContinuity(noHistory,meeting,reviewed(engine,noHisto
 const careIntent='「膳と灯火を整えました」',careStory=action+careIntent;
 const fakeRomance={romanceProgress:{...progress,romanticIntentQuote:careIntent}};
 assert.equal(engine.validateContinuity(args,careStory,reviewed(engine,args,careStory,fakeRomance)).ok,false,'care is not automatically romantic interest');
-console.log('PASS: five-axis review gate, exact draft/input/canon binding, proxy volition, mortality input, motivation provenance and no care-only romance');
+console.log('PASS: complete review gate, exact draft/input/canon binding, proxy volition, mortality input, motivation provenance and no care-only romance');

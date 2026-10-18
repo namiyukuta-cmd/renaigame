@@ -29,6 +29,8 @@ const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,runner.buildArgs(
 assert.equal(turn.verification.ok,true);
 assert.equal(turn.packet.execution.invoked.length,7);
 assert.equal(runner.validateStory(input,turn.packet,story,actions).validation.ok,true);
+const fiveAxis=copy(actions);delete fiveAxis.semanticReview.checks.literaryQuality;
+assert.throws(()=>runner.validateStory(input,turn.packet,story,fiveAxis),/literaryQuality/,'selected-character turns also require the finishing review');
 assert.equal(turn.packet.sources.protagonistProfile,runner.scope.RenaiGameTurnEngine.fingerprint(save.state.profile));
 assert.equal(JSON.stringify({save,input}),original,'loading, running and validation do not mutate the save or input');
 
@@ -82,6 +84,9 @@ try{
   const release=run('release',saveFile,inputFile,packetFile,storyFile);assert.equal(release.status,0,release.stderr);assert.equal(release.stdout.trim(),story);
   const unreviewed=path.join(dir,'unreviewed.json');fs.writeFileSync(unreviewed,JSON.stringify(input));
   const blocked=run('release',saveFile,unreviewed,packetFile,storyFile);assert.equal(blocked.status,1);assert.equal(blocked.stdout,'','unreviewed prose is never printed by the release command');
+  const oldReceiptFile=path.join(dir,'five-axis.json');fs.writeFileSync(oldReceiptFile,JSON.stringify({...input,storyActions:fiveAxis}));
+  const unfinished=run('release',saveFile,oldReceiptFile,packetFile,storyFile);
+  assert.equal(unfinished.status,1);assert.equal(unfinished.stdout,'','a five-axis-only receipt never leaks the unrevised story');
   const validation=run('validate',saveFile,inputFile,packetFile,storyFile);assert.equal(validation.status,0,validation.stderr);
   assert.equal(JSON.parse(validation.stdout).validation.ok,true);
   fs.writeFileSync(packetFile,JSON.stringify(corrupt));

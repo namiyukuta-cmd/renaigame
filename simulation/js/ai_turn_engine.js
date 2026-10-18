@@ -335,7 +335,9 @@
   function prepareStoryReview(args, story, storyActions = {}){
     return {version:1,binding:storyReviewBinding(args,story,storyActions),pass:'after_draft',
       freshStart:!(args?.records || []).length,usedUnsavedDraft:false,
-      checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[]}]))};
+      checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[],
+        ...(axis === policy.literaryReview.axis ? {revisionNote:'',aspects:Object.fromEntries(
+          policy.literaryReview.aspects.map(name=>[name,{status:'pending',reason:'',quotes:[]}]))} : {})}]))};
   }
   // This is a separate check of current protagonist acts and proxy decisions.
   // A generic semantic "pass" cannot override missing source evidence.
@@ -361,7 +363,7 @@
     const romance = validateRomanceProgress(args,story,storyActions), support = validateSupportProgress(args,story,storyActions);
     if(!record(review) || review.version !== 1 || review.pass !== 'after_draft' || review.binding !== binding ||
        review.usedUnsavedDraft !== false || review.freshStart !== !(args?.records || []).length){
-      return {ok:false,binding,errors:['確定本文・今回入力・正本資料に一致する、下書き後の意味確認記録がありません。']};
+      return {ok:false,binding,literaryQuality:{ok:false},errors:['確定本文・今回入力・正本資料に一致する、下書き後の意味確認記録がありません。']};
     }
     for(const axis of REVIEW_AXES){
       const check = review.checks?.[axis];
@@ -371,6 +373,18 @@
       }
       if(check.quotes.some(quote=>typeof quote !== 'string' || !quote.trim() || !story.includes(quote)) || check.sources.some(cite=>reviewSource(args,cite) === null)) errors.push(axis + ': 根拠が今回本文または正本資料にありません。');
       if(applicable && !check.sources.length) errors.push(axis + ': 今回入力または正本資料の原文参照が必要です。');
+      if(axis === policy.literaryReview.axis){
+        if(!check.quotes.length || typeof check.revisionNote !== 'string' || check.revisionNote.trim().length < 8){
+          errors.push(axis + ': 仕上げを確認した本文引用と、改稿内容または修正不要と判断した具体的な理由が必要です。');
+        }
+        for(const name of policy.literaryReview.aspects){
+          const aspect = check.aspects?.[name];
+          if(!record(aspect) || aspect.status !== 'pass' || typeof aspect.reason !== 'string' || aspect.reason.trim().length < 8 ||
+             !Array.isArray(aspect.quotes) || !aspect.quotes.length || aspect.quotes.some(quote=>typeof quote !== 'string' || !quote.trim() || !story.includes(quote))){
+            errors.push(axis + '.' + name + ': 小説としての仕上げを個別に確認し、理由と最終本文の原文引用を記録してください。');
+          }
+        }
+      }
       if(['inputConsistency','protagonistAgency'].includes(axis) && !check.sources.some(cite=>cite.source === 'input' && reviewSource(args,cite) !== null)) errors.push(axis + ': 今回入力そのものの原文を照合してください。');
       if(applicable && ['romanceMotivation','circumstanceChange'].includes(axis)){
         const progress = axis === 'romanceMotivation' ? storyActions.romanceProgress : storyActions.continuity?.supportProgress;
@@ -389,7 +403,7 @@
                (!args?.characterId && !reviewSource(args,motive)?.includes(progress.actor))) errors.push('男性の訪問・求愛の動機を正本の人物・今回入力・実ログに結び付けてください。');
       if(/御膳|膳|粥|食事|火桶|灯火|炭/.test(progress.romanticIntentQuote || '') && !/会いた|一緒|好き|惹かれ|知りたい|愛し|そばに/.test(progress.romanticIntentQuote || '')) errors.push('生活支援だけを男性自身の恋愛的な関心の代用にしないでください。');
     }
-    return {ok:!errors.length,binding,errors};
+    return {ok:!errors.length,binding,errors,literaryQuality:{ok:!errors.some(error=>error.startsWith(policy.literaryReview.axis + ':') || error.startsWith(policy.literaryReview.axis + '.'))}};
   }
 
   function needsSupport(text) {
@@ -579,7 +593,8 @@
     return { ok: mechanicalOk && semanticReview.ok, mechanicalOk, readyForOutput:mechanicalOk && semanticReview.ok,
       errors: [...new Set([...errors,...semanticReview.errors])], warnings, requiresSemanticReview: true,
       checks:{chapterHeader:{ok:headerCheck.ok},inputConsistency:{ok:inputCheck.ok},protagonistAgency:{ok:agencyCheck.ok},
-        romanceProgress:{ok:romanceCheck.ok,required:romanceCheck.required},circumstanceChange:{ok:supportCheck.ok,required:supportCheck.required}},
+        romanceProgress:{ok:romanceCheck.ok,required:romanceCheck.required},circumstanceChange:{ok:supportCheck.ok,required:supportCheck.required},
+        literaryQuality:{ok:semanticReview.literaryQuality?.ok === true}},
       semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
   }
 

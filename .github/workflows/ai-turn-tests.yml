@@ -3,7 +3,6 @@ name: Romance turn engine tests
 on:
   push:
     paths:
-      - "simulation-lite/**"
       - "simulation/js/**"
       - "simulation/css/**"
       - "simulation/state/templates/**"
@@ -25,7 +24,6 @@ on:
       - ".github/workflows/ai-turn-tests.yml"
   pull_request:
     paths:
-      - "simulation-lite/**"
       - "simulation/js/**"
       - "simulation/css/**"
       - "simulation/state/templates/**"

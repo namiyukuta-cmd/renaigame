@@ -22,7 +22,8 @@ class Element{
 function storage(){const map=new Map();return {getItem:key=>map.has(key)?map.get(key):null,setItem:(key,value)=>map.set(key,String(value)),removeItem:key=>map.delete(key),map};}
 function cloud(){return {files:new Map(),trees:new Map(),commits:new Map(),requests:[],head:'original',counter:0,failPublish:false,failSources:false};}
 async function ui(local=storage(),remote=cloud()){
-  const document={elements:{},anchors:[],activeElement:null},html=read('simulation-lite/index.html');
+  const document={elements:{},anchors:[],activeElement:null,listeners:{},visibilityState:'visible'},html=read('simulation-lite/index.html');
+  document.addEventListener=(type,fn)=>(document.listeners[type]||=[]).push(fn);
   document.createElement=tag=>new Element(tag,document);document.getElementById=id=>document.elements[id];
   for(const [,tag,attrs,id]of html.matchAll(/<([a-z][\w-]*)([^>]*\bid="([^"]+)"[^>]*)>/g)){
     const e=new Element(tag,document);e.id=id;e.hidden=/\bhidden\b/.test(attrs);e.disabled=/\bdisabled\b/.test(attrs);document.elements[id]=e;
@@ -62,7 +63,7 @@ async function ui(local=storage(),remote=cloud()){
   for(const file of ['js/renaigame_policy.js','simulation/js/simulation_save.js','simulation/js/ai_turn_runtime.js','simulation-lite/core.js','simulation-lite/app.js'])vm.runInContext(read(file),context,{filename:file});
   for(let turn=0;turn<80&&document.elements.workspace.disabled;turn++)await new Promise(resolve=>setImmediate(resolve));
   assert.equal(document.elements.workspace.disabled,false,'initialization finishes');
-  return {scope,local,remote,$:id=>document.elements[id],anchors:document.anchors,get copied(){return copied;}};
+  return {scope,context,local,remote,$:id=>document.elements[id],anchors:document.anchors,get copied(){return copied;},show:async()=>{for(const fn of document.listeners.visibilitychange||[])await fn();}};
 }
 function chapter(api,save,number){
   const characterId=save.state.selectedCharacterId,snapshot=api.createCompactHandoff(save),all=snapshot.state.session.recordsByCharacter[characterId];
@@ -106,6 +107,12 @@ function chapter(api,save,number){
   $('chapterJson').value=secondText;await $('chapterJson').trigger('input');await $('saveChapter').click();assert.match($('status').textContent,/保存済み/);assert.equal(remote.files.get(key).state.session.recordsByCharacter.char_016.length,2);
   const oldHistory=copy(remote.files.get(key).state.session.statesByCharacter.char_016.stateHistory);
   $('editFree').value='更新したテスト設定';await $('saveProfile').click();assert.deepEqual(remote.files.get(key).state.session.statesByCharacter.char_016.stateHistory,oldHistory,'profile save retains complete packets');
+  const third=chapter(api,remote.files.get(key),3);
+  for(const file of runtime.sourcePaths('char_016'))vm.runInContext(read(file),app.context,{filename:file});
+  const plan=await api.createChapterWritePlan(third.bundle,{head:'a'.repeat(40),save:copy(remote.files.get(key)),index:copy(remote.files.get('renaigame/simulation/saves/index.json'))});
+  for(const file of plan.files)remote.files.set(file.path,copy(file.data));
+  $('draft').value='Chapter4\n次の入力';await $('draft').trigger('input');$('editFree').value='未保存のプロフィール編集';
+  await app.show();assert.ok($('records').textContent.includes(third.story),'returning from ChatGPT automatically reads the AI-saved canon');assert.equal($('draft').value,'Chapter4\n次の入力');assert.equal($('editFree').value,'未保存のプロフィール編集');
   $('character').value='';$('name').value='未選択テスト';await $('start').click();const other=api.getCurrentSaveId();assert.notEqual(other,id);assert.equal($('draft').value,'');
   const unassigned=remote.files.get('renaigame/simulation/saves/'+other+'.json');assert.deepEqual(unassigned.state.session.statesByCharacter,{});
   $('chapterJson').value=secondText;await $('chapterJson').trigger('input');const untouched=JSON.stringify([...remote.files]);await $('saveChapter').click();assert.match($('status').textContent,/現在開いている物語/);assert.equal(JSON.stringify([...remote.files]),untouched);

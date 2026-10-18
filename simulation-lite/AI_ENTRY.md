@@ -2,6 +2,8 @@
 
 この版は、生成時の転送量と保存操作を減らすための画面です。主人公の保護、人物設定、心理計算、原文の保持、意味確認を省略しません。正本セーブの保存先は **namiyukuta-cmd/private-game-data** の `renaigame/simulation/saves/<saveId>.json`。通常版と同じ非公開セーブを使います。
 
+**軽量版の保存担当はAIです。**「保存して」「記録と情報更新」で接続済みGitHubツールから非公開正本へ直接保存します。共通文書の画面取り込みの説明は通常版の手順です。ユーザーへ貼り付けや保存ボタンを要求する手順へ戻しません。[AI_SAVE.md](AI_SAVE.md)を読み、実装済みの保存処理を使います。
+
 ## 引き継ぎを読む
 
 ゲームの引き継ぎ文には、非公開セーブからロードした現在スロットのプロフィール、実ログ本文全文、現在心理の全項目があります。過去の心理履歴だけが `turn/scene/fingerprint` の参照です。完全な計算履歴は非公開正本に保持しています。`handoffOnly:true` は転送用であり、完全セーブへの上書きや復元に使えません。未収録の過去数値を推測しません。
@@ -22,6 +24,6 @@
 
 ## 保存
 
-[CHAPTER_SAVE_FORMAT.md](../simulation/CHAPTER_SAVE_FORMAT.md)が保存形式の正本です。「保存JSON」には、確定済み本文と実測結果から `createChapterBundleV2` と `assertChapterBundleV2` で標準version 2の今回1章JSONを作り、JSONコードブロックで返してください。過去の本文・心理計算をやり直さず、心理付き章の `replayContext.storyActions` に上記handoffViewと実施済みsemanticReviewを保持します。ファイル名を示す場合は共通の標準名です。未選択章だけは同文書の専用規定に従います。
+[CHAPTER_SAVE_FORMAT.md](../simulation/CHAPTER_SAVE_FORMAT.md)が保存形式の正本です。「保存して」では、確定済み本文と実測結果から `createChapterBundleV2` と `assertChapterBundleV2` で標準version 2の今回1章JSONを内部で作り、[AI_SAVE.md](AI_SAVE.md)の `RenaiGameAISave.saveChapter` でAIが直接保存します。過去の本文・心理計算をやり直さず、心理付き章の `replayContext.storyActions` に上記handoffViewと実施済みsemanticReviewを保持します。未選択章だけは同文書の専用規定に従います。「保存JSONを出して」と出力を求められた場合だけJSONコードブロックを返します。ファイル名を示す場合は共通の標準名です。
 
-ユーザーはゲーム画面へJSONを貼り付け、「検証して非公開に保存」を1回押します。ゲームが非公開正本から検証し、完全な本文・心理履歴・現在stateと一覧を同じコミットに保存し、そのコミットを再取得して確認します。AI自身のGitHub書込みやファイル作成を必須手順にしません。AIへ直接の書込みが明示された場合は既存の規定に従い、失敗したときは保存済みと報告しません。公開のrenaigameリポジトリへ本文や主人公設定を置きません。
+保存担当はAIです。共通保存処理で非公開正本から検証し、完全な本文・心理履歴・現在stateと一覧を同じコミットに保存し、そのコミットを再取得して確認します。画面の手動取り込みは必要な場合の補助手段です。拒否された書込みを強行・回避せず、失敗や保存確認未完了を成功と報告しません。公開のrenaigameリポジトリへ本文や主人公設定を置きません。

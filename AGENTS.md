@@ -1,5 +1,7 @@
 # 恋愛シミュレーションのAI作業規定
 
+- **軽量版（simulation-lite）の保存はAIが直接行う。**「保存して」「記録と情報更新」「GitHubに保存」で、`simulation-lite/AI_SAVE.md`と`ai_save.js`を使い、現在saveIdの非公開`private-game-data`へ検証後に保存・再取得確認する。「保存JSONを出して」は出力依頼。以下の画面取り込みを前提とした保存手順は通常版のもの。標準version 2・心理計算・本文と意味の検査は共用し、拒否された書込みを回避・強行しない。
+
 - 共通の機械規則は`js/renaigame_policy.js`、心理数値項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`を正本とする。段階・補正・保存形式・意味確認軸を別ファイルへ手で複製しない。自動生成の`simulation/AI_POLICY_REFERENCE.md`は`node simulation/scripts/generate_policy_reference.cjs`で更新する。公開前は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を行う。新しい不具合は修正前に再現し、回帰検査を追加する。検査成功を本文の意味全体の保証と報告しない。
 
 - 公開前に`.github/workflows/ai-turn-tests.yml`の全検査をローカルで実行する。設定・実装・関連テストを整えてから、1作業の複数ファイルを`create_tree`→`create_commit`→`update_ref`の1コミットにまとめて反映する。ファイルごとの途中コミットでmainへ公開しない。反映後は最新コミットのActionsの成功を確認し、失敗時は原因を修正してから完了を報告する。
@@ -10,10 +12,10 @@
 - 本文検証を変更したら`node simulation/tests/story_review.test.cjs`も実行する。
 - **主人公の恋愛相手は男性限定。** このリポジトリは男性の相手との恋愛を進めるゲームであり、女性NPCや実父・祖父・実兄弟を恋愛相手にしない。家族・世話役の支援で恋愛の進展を代用しない。生成・規定・検査を扱う前に`simulation/ROMANCE_PREFERENCES.md`を読む。
 - 章の保存JSONを扱う前に`simulation/CHAPTER_SAVE_FORMAT.md`を読む。保存形式の正本はこの文書。
-- AIのGitHub書込みは安全性判定等で拒否される場合があるため、通常の「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章JSONを作る。ゲーム画面で貼り付け／ファイル取込し、ゲーム自身の検証・GitHub保存を実行する。AIの書込み成功を前提にしない。書込み拒否を理由に既存データを推測して作り直さない。
+- AIのGitHub書込みは安全性判定等で拒否される場合があるため、通常版の「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章JSONを作る。ゲーム画面で貼り付け／ファイル取込し、ゲーム自身の検証・GitHub保存を実行する。AIの書込み成功を前提にしない。書込み拒否を理由に既存データを推測して作り直さない。
 - 小説本文は形式・意味の検証前にAI_NOVEL_GENERATION_RULES.mdの「小説としての仕上げ」に従い、情緒・相手役の固有性・前進が乏しい下書きを書き直す。
 - `semanticReview.checks.literaryQuality`は全章必須。人物固有性・場面の情緒・実際の前進・説明の釣り合いを最終本文の引用と個別の理由で確認し、`revisionNote`へ改稿内容または修正不要の具体的な理由を記す。語句の一律禁止や主人公の補完で仕上げを代用しない。変更時は`node simulation/tests/literary_review.test.cjs`も実行する。
-- 「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章取り込みJSONの依頼。「完全保存」「心理パケット全項目を保持」もversion 1へ切り替える根拠にならない。
+- 通常版の「保存して」「記録と情報更新」「保存JSON」は標準version 2の1章取り込みJSONの依頼。「完全保存」「心理パケット全項目を保持」もversion 1へ切り替える根拠にならない。
 - 標準ファイル名は`<saveId>_<characterId>_<4桁chapter>.json`。`_light`・`_full`等の別名を独断で作らない。
 - 心理パケット内部のversionと章JSONのversionを混同しない。取り込みJSONと完全な正本セーブも混同しない。
 - `createChapterBundleV2`で確定済みデータから組み立て、`assertChapterBundleV2`または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査する。本文・数値・指紋・検証記録を作り直さない。

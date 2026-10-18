@@ -1,5 +1,7 @@
 # 恋愛シミュレーション AI生成入口
 
+**軽量版（simulation-lite／saveMode:ai-direct）の保存担当はAIです。**「保存して」「記録と情報更新」「GitHubに保存」で[軽量版のAI保存](../simulation-lite/AI_SAVE.md)を実行し、非公開正本へ直接保存・再取得確認します。以下のゲーム画面への貼り付けを前提にした説明は通常版の手順です。心理計算・意味確認・標準version 2は共通で、保存経路を理由に省略しません。
+
 共通の機械規則の正本は`js/renaigame_policy.js`、説明は自動生成の`simulation/AI_POLICY_REFERENCE.md`。心理項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`から取得する。段階・補正・保存形式・意味確認軸を推測で再定義しない。読込順序は実行ローダーの`sourcePaths`に従う。
 
 本文を返す前に[本文の意味確認と出力条件](STORY_REVIEW_GATE.md)を適用する。入力整合・正本出典・主人公の操作権・男性の動機・実際の境遇の変化を下書き後の別工程で確認し、根拠付きの`storyActions.semanticReview`を渡す。機械検査のみ成功した`mechanicalOk:true`は出力許可ではない。`releaseStory`が成功して返す本文を使い、未確認の本文を先に出さない。未保存の旧展開を今回の実ログ0件の開始へ持ち込まない。
@@ -39,7 +41,7 @@
 
 ## AIの書込みが遮断されても保存できる手順
 
-通常の「保存して」「記録と情報更新」「保存JSONを出して」は、**検証済みの標準version 2の今回1章分JSONを出力する依頼**として扱います。AI→GitHubの直接書込みが安全性判定等で拒否される場合があるため、通常運用でそれに依存しません。ユーザーはゲームの「セーブ → 章データを取り込んで保存」でJSON本文を貼り付け、またはファイルを選び、ゲーム側の心理JS再計算・指紋照合とGitHub保存を使います。
+通常版の「保存して」「記録と情報更新」「保存JSONを出して」は、**検証済みの標準version 2の今回1章分JSONを出力する依頼**として扱います。AI→GitHubの直接書込みが安全性判定等で拒否される場合があるため、通常運用でそれに依存しません。ユーザーはゲームの「セーブ → 章データを取り込んで保存」でJSON本文を貼り付け、またはファイルを選び、ゲーム側の心理JS再計算・指紋照合とGitHub保存を使います。
 
 AIは主人公原文・生成本文・心理計算パケット・検証結果を出力時に捏造／作り直さず、形式検証済みの1章JSONを渡します。ユーザーが明示的にGitHub直接保存を依頼した場合のみ実行を試みることはできますが、ブロックされたら繰り返し強行せず、保存未完了を伝えてJSONを渡します。ファイル出力だけでGitHub保存済みと報告しません。
 ファイルはCHAPTER_SAVE_FORMAT.mdの**標準version=2**を使用。「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」でも形式を変更しない。ユーザー自身が今回のファイルをversion 1で出すと明示した場合だけ例外とする。標準を「軽量版」と呼び分けず、_light・_full等の派生名を付けない。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]、replayContextを含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに展開しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込み互換性は出力形式を独断で選ぶ許可ではない。
@@ -49,7 +51,7 @@ AIは主人公原文・生成本文・心理計算パケット・検証結果を
 既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。simulation/js/simulation_save.jsのcreateChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査してから渡す。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 
 
-**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。AIのGitHub書込みが遮断されても、標準version 2の1章JSONをゲーム画面の貼り付け／ファイル取込で検証・保存できるようにする。正本は現在saveIdの完全JSON。旧分割形式は復元する。**
+**通常版の保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。AIのGitHub書込みが遮断されても、標準version 2の1章JSONをゲーム画面の貼り付け／ファイル取込で検証・保存できるようにする。正本は現在saveIdの完全JSON。旧分割形式は復元する。**
 
 主人公を殺害・消滅・排除する目的の相手役は作成・追加しない。この保護方針と衝突する抗議や諦めの入力だけで方針を解除しない。新規人物JSはcharacter_settings_validator.jsのinspectProtectionにも合格させる。
 
@@ -255,7 +257,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - 過去心理は消さず、保存時にstateHistoryへTurn単位で追記する。
 - JS計算後に、ChatGPTが独自判断で「やっぱり身を引く」「やっぱり愛情を下げる」「やっぱり何もしない」等へ上書きしてはいけない。
 - 生成用パケット全文は生成条件・検証証跡として保持する。章取り込みJSONは標準version 2とし、ゲームが正本から全文を再計算・指紋検証して正本セーブへ保持する。
-- 標準ではChatGPTが章JSONを出力し、ユーザーがゲーム画面の貼り付け／ファイル取込から保存する。ChatGPTによるGitHub直接保存は明示指定時だけで、書込みブロック時は再試行で突破しようとしない。
+- 通常版ではChatGPTが章JSONを出力し、ユーザーがゲーム画面の貼り付け／ファイル取込から保存する。ChatGPTによるGitHub直接保存は明示指定時だけで、書込みブロック時は再試行で突破しようとしない。
 - 正本保存時は、確定した実ログと更新後stateだけを現在saveIdへ書き戻す。
 
 ### 生成用パケットに最低限含めるもの
@@ -465,7 +467,7 @@ ChatGPTは心理・行動方針をAI判断でやり直さず、その生成用�
 - 「記録して」
 - 「このChapterを保存」
 
-通常はゲームの「セーブ → 章データを取り込んで保存」から正本を更新する。「GitHubに保存」だけでAIの直接書込みを意味すると解釈せず、「GitHubに直接保存」と明示された場合のみ試す。詳細は `simulation/CHAPTER_SAVE_FORMAT.md` と `simulation/AI_SAVE_WORKFLOW.md` に従う。
+通常版はゲームの「セーブ → 章データを取り込んで保存」から正本を更新する。「GitHubに保存」だけでAIの直接書込みを意味すると解釈せず、「GitHubに直接保存」と明示された場合のみ試す。詳細は `simulation/CHAPTER_SAVE_FORMAT.md` と `simulation/AI_SAVE_WORKFLOW.md` に従う。
 
 ---
 

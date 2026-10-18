@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#f4eff1">
   <base href="../simulation/">
   <title>恋愛シミュレーション 軽量版</title>
-  <link rel="stylesheet" href="../simulation-lite/style.css?v=20261018-private">
-  <script src="../js/renaigame_policy.js?v=20261018-private" defer></script>
-  <script src="js/simulation_save.js?v=20261018-private" defer></script>
-  <script src="js/ai_turn_runtime.js?v=20261018-private" defer></script>
-  <script src="../simulation-lite/core.js?v=20261018-private" defer></script>
-  <script src="../simulation-lite/app.js?v=20261018-private" defer></script>
+  <link rel="stylesheet" href="../simulation-lite/style.css?v=20261018-ai-save">
+  <script src="../js/renaigame_policy.js?v=20261018-ai-save" defer></script>
+  <script src="js/simulation_save.js?v=20261018-ai-save" defer></script>
+  <script src="js/ai_turn_runtime.js?v=20261018-ai-save" defer></script>
+  <script src="../simulation-lite/core.js?v=20261018-ai-save" defer></script>
+  <script src="../simulation-lite/app.js?v=20261018-ai-save" defer></script>
 </head>
 <body>
 <main id="home">
@@ -41,14 +41,18 @@
       <h2 id="pairName"></h2>
       <label for="draft">主人公の台詞・行動</label><textarea id="draft" rows="7" spellcheck="false"></textarea>
       <button id="copy" class="primary" type="button">AIに渡す文章をコピー</button>
-      <p class="note">ChatGPTへ貼り付けて遊びます。章を残すときは「保存JSON」と伝えてください。</p>
+      <p class="note">ChatGPTへ貼り付けて遊びます。「保存して」と伝えると、AIが非公開セーブに保存します。</p>
       <details id="handoff"><summary>AIに渡す文章を表示</summary><textarea id="prompt" rows="7" readonly aria-label="AIへの引き継ぎ文"></textarea></details>
     </section>
     <section id="savePanel" class="panel" hidden>
-      <h2>受け取った章を保存</h2>
+      <h2>AIによる保存</h2>
+      <p>ChatGPTで「保存して」と伝えてください。AIが本文と心理状態を非公開セーブに保存します。</p>
+      <button id="reloadSaved" type="button">AIが保存した物語を読み込む</button>
+      <details id="manualImport"><summary>章JSONを手動で取り込む</summary>
       <label for="chapterJson">章JSONを貼り付け</label><textarea id="chapterJson" rows="5" spellcheck="false" placeholder="JSONコードブロックも、そのまま貼り付けられます。"></textarea>
       <label for="chapterFile" class="note">JSONファイルからも取り込めます</label><input id="chapterFile" type="file" accept=".json,application/json">
       <button id="saveChapter" class="primary" type="button">検証して非公開に保存</button>
+      </details>
     </section>
     <details id="reader" class="panel"><summary>保存した物語を読む</summary>
       <label for="pages" class="note">10章ごとのページ</label><select id="pages"></select><div id="records"></div>

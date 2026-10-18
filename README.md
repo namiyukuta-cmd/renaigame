@@ -4,7 +4,7 @@
 
 ## 恋愛シミュレーションで遊ぶ
 
-[軽量版を開く](https://namiyukuta-cmd.github.io/renaigame/simulation-lite/)：通常版と同じ非公開の`private-game-data`に保存する、画像なしの画面です。AIへの引き継ぎ量と、章を保存する操作を減らします。[使い方](simulation-lite/README.md)
+[軽量版を開く](https://namiyukuta-cmd.github.io/renaigame/simulation-lite/)：通常版と同じ非公開の`private-game-data`を使います。「保存して」でAIが直接保存・再取得確認します。AIへの引き継ぎ量を減らした画像なしの画面です。[使い方](simulation-lite/README.md)
 
 1. [恋愛シミュレーション](https://namiyukuta-cmd.github.io/renaigame/simulation/simulation.html)を開き、「始めから」または「続きから」を選びます。
 2. 「恋愛相手」で相手を選びます。新規周回では「プロフィール」に自分で設定を入力します。

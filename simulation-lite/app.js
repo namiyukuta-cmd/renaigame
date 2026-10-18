@@ -84,6 +84,19 @@
   }));
   $('refresh').addEventListener('click',()=>perform(async()=>{await refreshSlots();message('非公開セーブの一覧を更新しました。');}));
   $('loadButton').addEventListener('click',()=>perform(()=>load($('stories').value)));
+  $('reloadSaved').addEventListener('click',()=>perform(()=>load(active?.saveId)));
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible'||!active||busy||!api.getToken())return;
+    return perform(async()=>{
+      const id=active.saveId,count=records().length,keys=[['editName','name'],['editAge','age'],['editFree','free']];
+      const edits=keys.filter(([field,key])=>$(field).value!==(active.state.profile[key]||'')).map(([field])=>[field,$(field).value]);
+      const saved=await api.loadSaveById(id),all=saved.state.session.recordsByCharacter[recordId(saved)]||[];
+      const draft=localStorage.getItem(DRAFT+id);
+      if(draft&&all.slice(count).some(record=>record.protagonist===draft))localStorage.removeItem(DRAFT+id);
+      adopt(saved);for(const [field,value]of edits)$(field).value=value;
+      message(all.length>count?'AIが保存した最新の物語を読み込みました。':'非公開セーブを確認しました。');
+    });
+  });
   const formKeys=['name','age','free','character'];
   for(const id of formKeys)$(id).addEventListener('input',()=>{try{localStorage.setItem(FORM,JSON.stringify(Object.fromEntries(formKeys.map(key=>[key,$(key).value]))));}catch(error){message(error.message,true);}});
   $('character').addEventListener('change',()=>{const c=catalog.find(c=>c.id===$('character').value);$('characterInfo').textContent=c?[c.age?c.age+'歳':'',c.occupation].filter(Boolean).join(' ／ '):'世界設定に沿って始めます。相手未選択の章では心理数値を作りません。';});

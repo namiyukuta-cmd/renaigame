@@ -16,7 +16,7 @@ const sandbox = { window: {}, TextEncoder, TextDecoder, Date,
     if(route.startsWith('contents/')) {
       const key=decodeURIComponent(route.slice(9));
       const ref = new URL(url).searchParams.get('ref');
-      if(ref) verificationReads.push(ref);
+      if(ref && ref !== 'original') verificationReads.push(ref);
       // Model an old contents response after a successful publish. Only the
       // explicit commit can reliably identify the bytes just written.
       if(head !== 'original' && !ref && key.includes('/chapters/') && verificationReads.length === 0) return response({},404);

@@ -22,6 +22,7 @@
     "simulation_character_015.js",
     "simulation_character_016.js",
     "simulation_character_017.js",
+    "simulation_character_019.js",
     "simulation_character_018.js"
   ];
 

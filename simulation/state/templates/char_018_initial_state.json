@@ -17,7 +17,7 @@
   "desireForContact": 0,
   "vulnerability": 0,
   "futureThinking": 0,
-  "unresolvedEmotion": "清実は帝から女東宮の和歌指南役に任じられた。指南という職責への関心はあるが、姫本人への恋は始まっていない。姫の姿や現在の心理・反応は知り得ず、恋情は実際の言葉と心理JSで初めて育つ。",
+  "unresolvedEmotion": "清実は綴子内親王（つづこ）の和歌指南役に任じられた。綴子は兄帝より2歳年下で、11歳のとき兄の即位と同時に女東宮となった。現在、帝には女御3人と皇女2人がいるが皇子はまだいない。綴子は将来の廃太子を予想しているが、実際の廃太子は決まっていない。清実の恋は始まっておらず、姫の姿や未入力の反応は決めない。",
   "lastChangeReason": "",
   "lastProgress": "",
   "lastSceneSummary": "",
@@ -33,7 +33,15 @@
     "relationship_begins_tutor_and_student_not_lovers",
     "romantic_initiative_7",
     "no_preexisting_romance",
-    "protagonist_words_actions_agency_user_only"
+    "protagonist_words_actions_agency_user_only",
+    "protagonist_name_tsuzuko_naishinno",
+    "protagonist_already_knows_waka",
+    "female_heir_dislikes_role_but_not_publicly_rebellious",
+    "emperor_grants_few_sister_requests_almost_unconditionally",
+    "protagonist_2_years_younger_than_emperor",
+    "female_heir_appointed_at_age_11_emperor_age_13",
+    "emperor_currently_has_3_nyogo_and_2_daughters_no_son",
+    "protagonist_anticipates_future_disinheritance_not_decided"
   ],
   "history": [],
   "updatePolicy": {

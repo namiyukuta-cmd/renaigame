@@ -1,6 +1,6 @@
 # 恋愛シミュレーション AI生成・記録・状態更新 運用仕様
 
-**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
+**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。「保存して」「記録と情報更新」は、連携と実測検証が可能ならChatGPTが直接GitHubへ保存。「保存JSONを出して」は標準version 2ファイルを渡す。旧分割形式だけは全章を復元してから扱う。**
 
 **章JSONは標準version 2。**「保存して」「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」から別形式を選ばない。ユーザー自身が今回のファイルをversion 1と明示した場合だけ例外とする。形式決定が他の説明と食い違う場合はCHAPTER_SAVE_FORMAT.mdに従う。createChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で検査する。ファイル名は`<saveId>_<characterId>_<4桁chapter>.json`。_light・_full等の派生名を作らない。
 
@@ -45,12 +45,12 @@ ChatGPTがパケットどおりに文章だけ生成
 ↓
 ユーザーが保存を指示
 ↓
-ChatGPTが標準version 2の1章JSONを出力・形式検査
-↓
-ユーザーがゲームで取り込み、JS再計算・指紋検証後に現在saveIdへ保存
+「保存して」ならChatGPTが最新の正本・indexを取得し、検証済みの今回1章を直接GitHub保存・再取得確認
+（書込み不可の時のみ、未保存と明示して標準version 2章JSONを代替出力）
+「保存JSONを出して」なら標準version 2の1章JSONを出力・形式検査して渡す
 ```
 
-以下の正本更新手順はゲームの取り込み処理、または明示されたGitHub直接保存に適用する。通常の「保存して」を直接保存の指定に読み替えない。
+以下の正本更新手順はゲームの取り込み処理、または明示されたGitHub直接保存に適用する。通常の「保存して」「記録と情報更新」は直接保存の指定であり、「保存JSONを出して」はファイル出力の指定である。
 
 ### ChatGPTが生成前に必ず確定するもの
 
@@ -407,6 +407,15 @@ after と各evaluationを「今回の会話ステータス」として固定
 
 ---
 
+### GitHub直接保存の完了条件
+
+- 今回のsaveId・characterId・Chapterを確定し、private-game-dataの正本・index・最新HEADを保存直前に再取得する。旧分割形式は復元する。取得失敗を空の履歴と扱わない。
+- 生成時のargs・packet・verification・validation・storyActions・本文を使う。心理変化や本文を保存のために作り直さない。標準version 2取り込みと同様にrunTurn再計算・fingerprint・verifyTurn・validateStoryの一致を確かめる。未実行の検証を成功と偽らない。
+- recordsByCharacterに主人公原文と相手本文を1回記録し、currentStateをpacket.afterへ、stateHistoryにcanonicalな履歴を1回追記し、chapterImportMetadataByCharacterに参照情報を保持する。二重packetやprotagonistInputを増やさない。
+- 正本の次のChapterだけ追記し、既存章は同内容なら重複保存せず、異なる内容なら無断上書きしない。別saveId・別主人公・別攻略対象の記録に触れない。
+- **正本とindexを同一コミット**にし、最新HEADに基づいて競合を検出する（create_tree→create_commit→update_ref等）。失敗時にforce上書きしない。保存後は該当コミットの2ファイルを再取得し、本文・Chapter・fingerprint・indexを照合する。
+- 接続・権限・容量・競合等で保存不可なら、その箇所と未保存であることを短く伝え、実測検証済みの標準version 2章JSONを代替で渡す。ユーザーに原文の再送や数値の再創作を求めない。
+- 直接保存とJSON出力は経路の違いにすぎず、心理履歴・文章の質・主人公の操作権は変えない。
 ## 8. 「記録と情報更新」と言われた時の処理順
 
 ### Step 1. 現在saveIdを再確認

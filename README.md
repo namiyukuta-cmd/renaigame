@@ -4,6 +4,8 @@
 
 ## 恋愛シミュレーションで遊ぶ
 
+[軽量版を開く](https://namiyukuta-cmd.github.io/renaigame/simulation-lite/)：人物画像を省いた独立版です。主人公と男性の相手を設定して、AIに文章を渡し、返された章JSONを貼り付けて端末へ保存できます。GitHubトークンは不要です。[使い方](simulation-lite/README.md)
+
 1. [恋愛シミュレーション](https://namiyukuta-cmd.github.io/renaigame/simulation/simulation.html)を開き、「始めから」または「続きから」を選びます。
 2. 「恋愛相手」で相手を選びます。新規周回では「プロフィール」に自分で設定を入力します。
 3. 右下の「AIに渡す」を押し、「コピー」を押します。

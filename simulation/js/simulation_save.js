@@ -269,6 +269,28 @@
   // The manifest stays small. A chapter bundle retains original objects verbatim.
   function isSplit(save){ return !!(save && save.storage && save.storage.format === 'chapter-files-v1'); }
   function clone(value){ return JSON.parse(JSON.stringify(value)); }
+  // Only the transfer view is compact. Cloud canon and its full old packets
+  // remain unchanged. Replaying a marked chapter builds this same view again.
+  function compactStateEntry(entry){
+    const {stateHistory, ...rest} = entry, result = clone(rest);
+    if(stateHistory !== undefined){
+      if(!Array.isArray(stateHistory)) throw new Error('心理履歴の形式が正しくありません。');
+      result.stateHistory = stateHistory.map(history => ({turn:history.turn,scene:history.scene,fingerprint:history.fingerprint || history.packet?.fingerprint}));
+    }
+    return result;
+  }
+  function createCompactHandoff(save){
+    if(save?.game !== 'simulation' || !save.saveId || !save.state?.profile || !save.state.session) throw new Error('非公開セーブをロードしてから引き継いでください。');
+    if(isSplit(save) || save.state.session.archive) throw new Error('旧分割セーブは全章をロードしてから引き継いでください。');
+    const id = save.state.selectedCharacterId || '__unassigned__';
+    const records = save.state.session.recordsByCharacter?.[id] || [];
+    if(!Array.isArray(records) || records.some(entry => entry.__chapterRef)) throw new Error('本文の実ログをロードしてください。');
+    const state = save.state.session.statesByCharacter?.[id];
+    if(id !== '__unassigned__' && !state?.currentState) throw new Error('現在の心理状態がありません。初期値で代用せず、セーブを確認してください。');
+    return {version:save.version,game:'simulation',saveId:save.saveId,handoffOnly:true,
+      state:{profile:clone(save.state.profile),selectedCharacterId:save.state.selectedCharacterId || null,
+        session:{id:save.saveId,recordsByCharacter:{[id]:clone(records)},statesByCharacter:state ? {[id]:compactStateEntry(state)} : {}}}};
+  }
   function chapterNumber(entry, index){
     const match = String(entry.scene || '').match(/Chapter\s*(\d+)/i);
     return match ? Number(match[1]) : (Number(entry.turn) > 0 ? Number(entry.turn) : index + 1);
@@ -528,16 +550,20 @@
   }
 
   async function saveToGitHub(save, options = {}){
+    if(save?.handoffOnly) throw new Error('AI引き継ぎ用の短縮データで、完全な非公開セーブを置き換えることはできません。');
+    if(options.freshStart && options.newSlot !== true) throw new Error('新しい物語は新しいスロットに保存してください。');
     const token = getToken();
     if(!token) throw new Error('GitHubトークンが設定されていません。');
     await checkToken(token);
 
     const prepared = Object.assign({}, save);
     const state = Object.assign({}, prepared.state || {});
-    const localSession = ensureLocalSession();
+    // Starting a new run must not temporarily replace, or copy from, the
+    // session another page is using. Publish first, then update the cache.
+    const localSession = options.freshStart ? makeSession() : ensureLocalSession();
 
-    const sourceId = getCurrentSaveId();
-    let saveId = options.newSlot ? makeSession().id : (options.targetId || sourceId);
+    const sourceId = options.freshStart ? '' : getCurrentSaveId();
+    let saveId = options.newSlot ? (options.freshStart ? localSession.id : makeSession().id) : (options.targetId || sourceId);
     if(!saveId) saveId = localSession.id || makeSession().id;
     if(saveId !== LEGACY_SAVE_ID && !/^[A-Za-z0-9_-]{1,120}$/.test(saveId)) throw new Error('セーブ先が正しくありません。');
     const differentSlot = saveId !== sourceId && (options.newSlot || !!options.targetId);
@@ -907,6 +933,7 @@
     if(!compact && !equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
     const actualRecords = full.state.session.recordsByCharacter[id] || [];
     const context = bundle.replayContext || {};
+    if(context.storyActions?.handoffView === 'history-references-v1') stateEntry = compactStateEntry(stateEntry);
     if(context.records !== undefined && context.recordIndices !== undefined) importError('過去ログ本文と参照番号を同時に指定しないでください。');
     let records;
     if(context.recordIndices !== undefined){
@@ -1000,7 +1027,8 @@
     isSplit,
     pairKey, groupSlots, numberSlots, getPartnerName,
     assertChapterBundleV2, createChapterBundleV2,
-    compactChapterBundle, prepareChapterImport, commitChapterImport
+    compactChapterBundle, prepareChapterImport, commitChapterImport,
+    createCompactHandoff
   };
 })();
 

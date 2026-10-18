@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4eff1">
+  <base href="../simulation/">
+  <title>恋愛シミュレーション 軽量版</title>
+  <link rel="stylesheet" href="../simulation-lite/style.css?v=20261018-private">
+  <script src="../js/renaigame_policy.js?v=20261018-private" defer></script>
+  <script src="js/simulation_save.js?v=20261018-private" defer></script>
+  <script src="js/ai_turn_runtime.js?v=20261018-private" defer></script>
+  <script src="../simulation-lite/core.js?v=20261018-private" defer></script>
+  <script src="../simulation-lite/app.js?v=20261018-private" defer></script>
+</head>
+<body>
+<main id="home">
+  <header><a href="../index.html">恋愛ゲーム</a><span>軽量版</span><h1>恋愛シミュレーション</h1><p>物語の続きを、手軽に。</p></header>
+  <p id="status" role="status" aria-live="polite">読み込んでいます…</p>
+  <p class="note">保存先：非公開の private-game-data ／ 通常版のセーブを使えます。</p>
+  <fieldset id="workspace" disabled>
+    <details id="settings" class="panel"><summary>非公開セーブへの接続</summary>
+      <p class="note">通常版のGitHubトークンをそのまま使います。未設定の場合だけ入力してください。</p>
+      <label for="token">GitHubトークン</label><input id="token" type="password" autocomplete="off" spellcheck="false">
+      <button id="connect" type="button">接続してセーブを開く</button>
+    </details>
+    <section id="loadPanel" class="panel">
+      <label for="stories">保存した物語</label><select id="stories"><option value="">セーブを選んでください</option></select>
+      <button id="loadButton" type="button">この物語を開く</button><button id="refresh" type="button">一覧を更新</button>
+      <p id="storyInfo" class="note"></p>
+    </section>
+    <details id="setup" class="panel"><summary>新しい物語を作る</summary>
+      <label for="name">主人公の名前</label><input id="name" autocomplete="off">
+      <label for="age">年齢</label><input id="age" inputmode="numeric">
+      <label for="free">主人公の設定・世界・関係</label><textarea id="free" rows="5"></textarea>
+      <label for="character">男性の恋愛相手</label><select id="character"><option value="">未選択で始める</option></select>
+      <p id="characterInfo" class="note"></p>
+      <button id="start" class="primary" type="button">新しい物語を非公開で保存して始める</button>
+    </details>
+    <section id="play" class="panel" hidden>
+      <h2 id="pairName"></h2>
+      <label for="draft">主人公の台詞・行動</label><textarea id="draft" rows="7" spellcheck="false"></textarea>
+      <button id="copy" class="primary" type="button">AIに渡す文章をコピー</button>
+      <p class="note">ChatGPTへ貼り付けて遊びます。章を残すときは「保存JSON」と伝えてください。</p>
+      <details id="handoff"><summary>AIに渡す文章を表示</summary><textarea id="prompt" rows="7" readonly aria-label="AIへの引き継ぎ文"></textarea></details>
+    </section>
+    <section id="savePanel" class="panel" hidden>
+      <h2>受け取った章を保存</h2>
+      <label for="chapterJson">章JSONを貼り付け</label><textarea id="chapterJson" rows="5" spellcheck="false" placeholder="JSONコードブロックも、そのまま貼り付けられます。"></textarea>
+      <label for="chapterFile" class="note">JSONファイルからも取り込めます</label><input id="chapterFile" type="file" accept=".json,application/json">
+      <button id="saveChapter" class="primary" type="button">検証して非公開に保存</button>
+    </section>
+    <details id="reader" class="panel"><summary>保存した物語を読む</summary>
+      <label for="pages" class="note">10章ごとのページ</label><select id="pages"></select><div id="records"></div>
+    </details>
+    <details id="profilePanel" class="panel" hidden><summary>この物語のプロフィール</summary>
+      <label for="editName">主人公の名前</label><input id="editName" autocomplete="off">
+      <label for="editAge">年齢</label><input id="editAge" inputmode="numeric">
+      <label for="editFree">主人公の設定・世界・関係</label><textarea id="editFree" rows="5"></textarea>
+      <button id="saveProfile" type="button">プロフィールを非公開で保存</button>
+    </details>
+    <footer><a href="simulation.html">通常版を開く</a><a href="../simulation-lite/README.md">使い方</a></footer>
+  </fieldset>
+</main>
+<nav class="bottom-nav" aria-label="ゲームメニュー">
+  <a href="#home">ホーム</a><a href="#setup">恋愛相手</a><a href="#reader">記録</a><a href="#profilePanel">プロフィール</a><a href="#savePanel">セーブ</a><a href="#loadPanel">ロード</a><a href="#play">AIに渡す</a>
+</nav>
+</body>
+</html>

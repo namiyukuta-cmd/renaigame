@@ -118,6 +118,12 @@ node simulation/scripts/validate_chapter_bundle.cjs /path/to/<saveId>_<character
 
 ## 互換・移行
 
+### 軽量版の引き継ぎ
+
+`simulation-lite/`も正本と保存形式は同じです。`RenaiGameSave.createCompactHandoff(save)`は、本文全文・現在心理を保ち、過去の心理履歴をturn/scene/fingerprint参照にした転送専用ビューを返します。完全な心理履歴は非公開正本に残し、転送ビューで正本を置き換えません。
+
+このビューで心理付き章を生成するときは、意味確認の準備前から`storyActions.handoffView:"history-references-v1"`を付けます。取り込みも非公開正本から同じビューを再構成し、通常のJS計算・本文検証・意味確認bindingの照合を実施します。標準version 2のルートや必須項目は変えません。既存の標準章や過去の心理履歴は変換・削除しません。
+
 旧chapter-files-v1形式は読み込み時に全章と心理履歴を復元する。次の保存は単一ファイルにまとめる。既存の美奈／エミールとマリー／ニコラスは、全本文・心理履歴・currentStateの一致を確認して単一ファイルへ移行する。旧分割ファイルと移行前manifestはバックアップとして残し、現在stateの代用に使わない。
 
 記録の10章ごとのページと開閉目次は表示上の区切り。保存は分割しない。大きなセーブはContents APIのcontentが省略される場合も、指定されたGit blobから全文を取得する。

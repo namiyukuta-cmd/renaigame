@@ -3,6 +3,8 @@ name: Romance turn engine tests
 on:
   push:
     paths:
+      - "simulation-lite/**"
+      - "index.html"
       - "simulation/js/**"
       - "simulation/css/**"
       - "simulation/state/templates/**"
@@ -24,6 +26,8 @@ on:
       - ".github/workflows/ai-turn-tests.yml"
   pull_request:
     paths:
+      - "simulation-lite/**"
+      - "index.html"
       - "simulation/js/**"
       - "simulation/css/**"
       - "simulation/state/templates/**"
@@ -60,6 +64,9 @@ jobs:
         with:
           node-version: "22"
       - run: node simulation/scripts/generate_policy_reference.cjs --check
+      - run: node simulation/scripts/generate_lite_catalog.cjs --check
+      - run: node simulation/tests/lite_private.test.cjs
+      - run: node simulation/tests/lite_ui.test.cjs
       - run: node simulation/tests/policy_consistency.test.cjs
       - run: node simulation/tests/world_mizunagi.test.cjs
       - run: node simulation/tests/character_settings.test.cjs

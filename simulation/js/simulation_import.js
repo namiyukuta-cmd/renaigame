@@ -13,19 +13,23 @@
   function open(){
     if(active) return;
     const dialog = document.createElement('dialog'); dialog.className = 'simulation-slot-dialog';
-    dialog.innerHTML = '<h2>章データを取り込んで保存</h2><p>AIが出したJSONファイルを選んでください。</p><input type="file" accept=".json,application/json" aria-label="章データJSON"><p class="import-status" role="status"></p><div class="import-preview"></div><button type="button" class="import-save" disabled>この章をGitHubへ保存</button><button type="button" class="simulation-slot-close">閉じる</button>';
+    dialog.innerHTML = '<h2>章データを取り込んで保存</h2><p>AIが出した1章分のJSONを貼り付けるか、ファイルを選んでください。</p><label>章JSONを貼り付け<textarea class="import-json" rows="5" spellcheck="false" autocomplete="off" placeholder="ここにJSONを貼り付け"></textarea></label><button type="button" class="import-paste">貼り付けたJSONを確認</button><p>またはJSONファイルを選択</p><input type="file" accept=".json,application/json" aria-label="章データJSON"><p class="import-status" role="status"></p><div class="import-preview"></div><button type="button" class="import-save" disabled>この章をGitHubへ保存</button><button type="button" class="simulation-slot-close">閉じる</button>';
     document.body.appendChild(dialog); active = dialog; dialog.showModal();
-    const input = dialog.querySelector('input'), status = dialog.querySelector('.import-status'), details = dialog.querySelector('.import-preview'), save = dialog.querySelector('.import-save'), close = dialog.querySelector('.simulation-slot-close');
+    const input = dialog.querySelector('input'), pasteInput = dialog.querySelector('.import-json'), pasteButton = dialog.querySelector('.import-paste'), status = dialog.querySelector('.import-status'), details = dialog.querySelector('.import-preview'), save = dialog.querySelector('.import-save'), close = dialog.querySelector('.simulation-slot-close');
     let preview = null, busy = false, request = 0, savedResult = null;
     function dismiss(){ if(busy) return; ++request; dialog.close(); dialog.remove(); active = null; if(savedResult) location.reload(); }
     close.onclick = dismiss; dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
-    input.onchange = async () => {
-      const current = ++request; preview = null; save.disabled = true; details.replaceChildren();
-      const file = input.files[0]; if(!file) return;
-      status.textContent = 'ファイルと保存先を確認しています…';
+    const maxJsonBytes = 10 * 1024 * 1024;
+    async function inspectJson(source, current){
+      if(busy || current !== request || active !== dialog) return;
+      preview = null; save.disabled = true; details.replaceChildren();
+      status.textContent = 'JSONと保存先を確認しています…';
       try {
-        if(file.size > 10 * 1024 * 1024) throw new Error('ファイルが大きすぎます。1章分のJSONを選んでください。');
-        const data = JSON.parse(await file.text());
+        if(typeof source !== 'string' || !source.trim()) throw new Error('1章分のJSONを貼り付けるか、ファイルを選んでください。');
+        if(new TextEncoder().encode(source).byteLength > maxJsonBytes) throw new Error('JSONが大きすぎます。1章分だけを指定してください。');
+        const raw = source.trim();
+        const fence = /^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i.exec(raw);
+        const data = JSON.parse(fence ? fence[1] : raw);
         // Reload stale import code before using the strict standard v2 check.
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
@@ -54,8 +58,26 @@
         save.disabled = false;
       } catch(error){ if(current === request && active === dialog) status.textContent = error.message || 'JSONを読み込めません。'; }
     };
+
+    pasteButton.onclick = async () => {
+      if(busy) return;
+      await inspectJson(pasteInput.value, ++request);
+    };
+    input.onchange = async () => {
+      if(busy) return;
+      const current = ++request;
+      const file = input.files && input.files[0];
+      if(!file) return;
+      if(file.size > maxJsonBytes){
+        preview = null; save.disabled = true; details.replaceChildren();
+        status.textContent = 'JSONが大きすぎます。1章分だけを指定してください。';
+        return;
+      }
+      try { await inspectJson(await file.text(), current); }
+      catch(error){ if(current === request && active === dialog) status.textContent = error.message || 'ファイルを読めません。'; }
+    };
     save.onclick = async () => {
-      if(!preview || busy) return; busy = true; input.disabled = true; close.disabled = true; save.disabled = true;
+      if(!preview || busy) return; busy = true; input.disabled = true; pasteInput.disabled = true; pasteButton.disabled = true; close.disabled = true; save.disabled = true;
       status.textContent = 'GitHubへ保存しています…';
       try {
         savedResult = preview.alreadySaved ? await RenaiGameSave.loadSaveById(preview.saveId) : await RenaiGameSave.commitChapterImport(preview);
@@ -64,8 +86,8 @@
         else window.RenaiGameCharacters.clearSelected();
         status.textContent = preview.unverifiedDraft ? '本文を保存し、再取得して確認しました。心理状態は未作成です。閉じると記録に表示します。' : '本文・心理履歴・現在状態を保存し、再取得して確認しました。閉じるとこのセーブを表示します。'; preview = null;
       }
-      catch(error){ status.textContent = error.message || '保存できませんでした。'; preview = null; status.textContent += ' JSONはそのまま残ります。ファイルを選び直して再確認してください。'; }
-      finally { busy = false; input.disabled = false; input.value = ''; close.disabled = false; }
+      catch(error){ status.textContent = error.message || '保存できませんでした。'; preview = null; status.textContent += ' 貼り付けたJSONは残っています。保存前にもう一度確認してください。'; }
+      finally { busy = false; input.disabled = false; pasteInput.disabled = false; pasteButton.disabled = false; input.value = ''; close.disabled = false; }
     };
   }
   window.RenaiGameImport = Object.freeze({ open });

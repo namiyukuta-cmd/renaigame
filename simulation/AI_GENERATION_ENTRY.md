@@ -33,9 +33,11 @@
 
 
 
-## ゲーム画面で保存する標準運用（章JSON取り込み）
+## 保存をAIが実行する（GitHub直接保存とJSON出力を区別）
 
-ユーザーが「保存して」と指示したら、標準では本文生成時に確定した本文・心理パケット・検証記録から1章分のJSONファイルを出力する。ゲームの「セーブ → 章データを取り込んで保存」でユーザー自身が最後の保存操作を行う。明示的にChatGPTからGitHubへ直接保存するよう指定された場合だけ、従来の直接保存手順を使う。ファイルを出しただけではGitHub保存済みと報告しない。
+「保存して」「記録と情報更新」「GitHubに保存」は**現在saveIdのGitHub直接保存依頼**です。連携があり、今回章の心理計算・本文検証が実測済みなら、ChatGPTがprivate-game-dataの最新正本とindexを読み直し、今回1章を反映して同じコミットで保存します。保存後もGitHubから再取得して照合し、成功確認までは「保存済み」と言いません。直接書き込めない場合は、具体的な理由と未保存であることを示し、確定データから標準version 2の章JSONを代替として渡します。主人公原文や本文、計算結果を作り直しません。
+
+「保存JSONを出して」「JSONファイルにして」は**標準version 2の1章JSONを渡す依頼**です。その依頼だけではGitHubへ書き込みません。直接保存できた章へ重複するファイル取り込みを要求しません。いずれの経路でも現在saveId・Chapterの同一性と実測検査を守ります。
 
 ファイルはCHAPTER_SAVE_FORMAT.mdの**標準version=2**を使用。「保存JSONを出して」「記録と情報更新」「完全保存」「心理パケット全項目を保持」でも形式を変更しない。ユーザー自身が今回のファイルをversion 1で出すと明示した場合だけ例外とする。標準を「軽量版」と呼び分けず、_light・_full等の派生名を付けない。saveId、characterId、chapter、records:[{index,entry}]、stateHistory:[{index,entry}]、replayContextを含む。recordsのentryにscene/date/protagonist/partnerの原文全文を1回だけ保持する。stateHistoryのentryにはturn/scene/changes/evidence/stageTransition/yoinomaContext/fingerprint/verification/validationだけを保持する。**packet、before、after、evaluations、execution、sources、protagonistInputは取り込みJSONに展開しない**。ゲーム側がJSで再計算して同じfingerprintで検証し、正本の心理履歴に単一の完全結果として保存する。旧version=1の取り込み互換性は出力形式を独断で選ぶ許可ではない。
 
@@ -44,7 +46,7 @@
 既に生成・検証したpacketを保持し、出力のたびに心理変化や本文を作り直さない。ファイル名は<saveId>_<characterId>_<4桁chapter>.json。simulation/js/simulation_save.jsのcreateChapterBundleV2で組み立て、assertChapterBundleV2または`node simulation/scripts/validate_chapter_bundle.cjs <JSONファイル>`で形式・ファイル名を検査してから渡す。主人公入力と本文を要約へ置き換えない。ファイル出力不能なら理由を報告し、未保存の完全データを失わないよう保持する。
 
 
-**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。現在は1スロット＝1つの完全JSON。本文と心理履歴はセーブ内の配列が正本。保存指示の標準は取り込み用の1章JSONを出力し、ユーザーがゲームから保存する方式。旧分割形式だけは全章を復元してから扱う。**
+**保存仕様：`simulation/CHAPTER_SAVE_FORMAT.md`を必ず読む。正本は現在saveIdの完全JSON。「保存して」は接続可能ならAIのGitHub直接保存、「保存JSON」は標準version 2の取り込みファイル出力。旧分割形式だけは全章を復元してから扱う。**
 
 主人公を殺害・消滅・排除する目的の相手役は作成・追加しない。この保護方針と衝突する抗議や諦めの入力だけで方針を解除しない。新規人物JSはcharacter_settings_validator.jsのinspectProtectionにも合格させる。
 

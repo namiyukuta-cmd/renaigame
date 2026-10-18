@@ -102,6 +102,10 @@ AIは主人公原文・生成本文・心理計算パケット・検証結果を
 この開始・再開情報だけで主人公の次の入力を作らない。設定と記録の確認後、ユーザーの入力を待つ。GitHubへの保存はユーザーの明示指示時のみ行う。
 
 
+## char_020 源朝綱の既存Chapter1〜5と移行時初期設定
+
+攻略対象`char_020`は`simulation/js/simulation_character_020.js`、`simulation/js/simulation_character_020_behavior.js`、`simulation/state/templates/char_020_initial_state.json`を読み込む。源朝綱は27歳、従五位上・右近衛少将の独身の公達。固定恋愛積極度8。非公開saveId `run_1792331156969_qwjlfc` のChapter1〜5を正本として継続する。姫の塵・散り牡丹の浮舟・薄煙・逢坂の若鷺の和歌、朝綱による訪問、返歌、Chapter5の恋を告げる文を保持する。姫には第三親王という夫君がいる。移行以前は恋愛相手未選択で心理JS未実行のため過去5章の心理履歴を捏造せず、今後は移行時の初期心理基準点から計算する。姫の恋愛感情・身分上の婚姻解消・同意は確定しない。
+
 ## char_018 藤原清実（女東宮・綴子内親王の和歌指南役）の初期設定・世界背景（新規開始時必須）
 
 攻略対象 `char_018` では `simulation/js/simulation_character_018.js`、`simulation/js/simulation_character_018_behavior.js`、`simulation/state/templates/char_018_initial_state.json` を読む。藤原清実は32歳、従四位下・侍従。漢学に精通する当代第一の歌人で、自然・四季・旅の歌に卓越するが、経験していない恋を装って恋歌を作ることを潔しとせず、これまで自作の恋歌を詠まなかった。過去の妻・恋人・他の女性への恋情なし。固定恋愛積極度7。恋が育てば本人から歌・文・逢瀬の申し出を行う。

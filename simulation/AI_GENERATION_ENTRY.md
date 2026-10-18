@@ -4,6 +4,8 @@
 
 共通の機械規則の正本は`js/renaigame_policy.js`、説明は自動生成の`simulation/AI_POLICY_REFERENCE.md`。心理項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`から取得する。段階・補正・保存形式・意味確認軸を推測で再定義しない。読込順序は実行ローダーの`sourcePaths`に従う。
 
+恋愛相手自身の感情は[ROMANCE_PREFERENCES.md](ROMANCE_PREFERENCES.md)の「恋愛相手自身の感情と、主人公への異議」に従う。主人公の言葉や出来事に、本人が何を感じ、何を望み、どう応じるかを描く。傷つき・嘆き・怒り・理不尽への反論まで主人公の保護を理由に消さず、既存の`sceneEmotion`で本文を確認する。
+
 本文を返す前に[本文の意味確認と出力条件](STORY_REVIEW_GATE.md)を適用する。入力整合・正本出典・主人公の操作権・男性の動機・実際の境遇の変化を下書き後の別工程で確認し、根拠付きの`storyActions.semanticReview`を渡す。機械検査のみ成功した`mechanicalOk:true`は出力許可ではない。`releaseStory`が成功して返す本文を使い、未確認の本文を先に出さない。未保存の旧展開を今回の実ログ0件の開始へ持ち込まない。
 
 小説としての仕上げも`checks.literaryQuality`で全章確認する。人物固有の表現・情緒・実際の前進・説明の重複をそれぞれ最終本文の引用と理由で確認し、`revisionNote`へ改稿内容または修正不要の理由を記す。本文に問題があるなら出力後の自己批評で済ませず、同じ章を改稿・再検証してから出す。詳細な記録方法はSTORY_REVIEW_GATE.mdを使う。

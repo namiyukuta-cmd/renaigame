@@ -24,6 +24,8 @@ for (const character of [null, undefined]) {
   assert.ok(saved.includes(JSON.stringify(profile, null, 2)), "saved slots still include the full current profile");
   assert.ok(saved.endsWith(protagonistInput), "raw input survives with its original newlines");
   assert.match(saved, /男性限定/);
+  assert.match(saved, /恋愛相手自身の傷つき・悲しみ・怒り/);
+  assert.match(saved, /主人公への異議や反論/);
   assert.match(saved, /専用version 1/);
   assert.match(saved, /psychologyJsExecuted:false/);
   assert.doesNotMatch(saved, /simulation_character_null|char_null|char_undefined|runTurnで生成用パケットを作成/);
@@ -46,6 +48,8 @@ assert.match(selected, /AI→GitHubの書込みは安全性判定等で遮断さ
 assert.match(selected, /ゲームのセーブ→章データを取り込んで保存でJSONを貼り付け/);
 assert.match(selected, /小説としての仕上げ/);
 assert.match(selected, /checks\.literaryQuality/);
+assert.match(selected, /恋愛相手自身の傷つき・悲しみ・怒り/);
+assert.match(selected, /主人公への異議や反論/);
 assert.match(selected, /下書き後・意味確認の前/);
 assert.match(selected, /runTurnで生成用パケットを作成/);
 assert.doesNotMatch(selected, /未選択の専用version 1/);

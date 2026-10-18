@@ -337,7 +337,8 @@
       freshStart:!(args?.records || []).length,usedUnsavedDraft:false,
       checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[],
         ...(axis === policy.literaryReview.axis ? {revisionNote:'',aspects:Object.fromEntries(
-          policy.literaryReview.aspects.map(name=>[name,{status:'pending',reason:'',quotes:[]}]))} : {})}]))};
+          policy.literaryReview.aspects.map(name=>[name,{status:'pending',reason:'',quotes:[],
+            ...(policy.literaryReview.guidance?.[name] ? {guidance:policy.literaryReview.guidance[name]} : {})}]))} : {})}]))};
   }
   // This is a separate check of current protagonist acts and proxy decisions.
   // A generic semantic "pass" cannot override missing source evidence.

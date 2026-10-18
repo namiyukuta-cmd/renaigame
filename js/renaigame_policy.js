@@ -27,9 +27,14 @@
     historyForbidden:['packet','before','after','evaluations','execution','sources','protagonistInput'],
     filenamePattern:'<saveId>_<characterId>_<4桁chapter>.json'
   };
+  const partnerEmotion = {
+    instruction:'恋愛相手自身の傷つき・悲しみ・怒りを、主人公の言葉・行動、実ログ、現在心理に沿って台詞や行動へ表してください。主人公への異議や反論、理不尽への抗議も本人の感情として描けます。優しさや主人公の保護を理由に無反応・即時の許しへ置き換えず、喜びや会いたさも同様に表してください。毎章の衝突や主人公の落ち度を捏造せず、相手の感情から主人公の心理・謝罪・同意を決めないでください。',
+    reviewGuidance:'主人公のどの言葉・出来事を受け、相手本人が何を感じ、何を望み、どう応じたかを本文から確認する。傷つき・嘆き・怒りや理不尽への異議を、無反応・即時の許しや情景だけへ置き換えていないか。穏やかな場面に衝突を作らず、感情を抑える人物なら抑えた感情が伝わる選択や所作を確認する。相手が不在なら知り得ない反応を捏造せず、今回描く人物の感情と相手を描かない場面上の理由を確認する。'
+  };
   const literaryReview = {
     axis:'literaryQuality',
-    aspects:['characterSpecificity','sceneEmotion','concreteProgress','expositionBalance']
+    aspects:['characterSpecificity','sceneEmotion','concreteProgress','expositionBalance'],
+    guidance:{sceneEmotion:partnerEmotion.reviewGuidance}
   };
   const reviewAxes = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange',literaryReview.axis];
   function requiredPsychologyFields(psychology){
@@ -43,7 +48,7 @@
     return '標準version '+chapter.version+'のstateHistory.entryは'+chapter.historyFields.join('/')+'だけです。'+chapter.historyForbidden.join('・')+'を章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。';
   }
   const policy = freeze({
-    version:1,stages,chapter,reviewAxes,literaryReview,
+    version:1,stages,chapter,reviewAxes,literaryReview,partnerEmotion,
     romance:{partnerGender:'male',bloodRelativesAllowed:false,supportCountsAsRomance:false},
     requiredPsychologyFields,chapterFilename,chapterInstruction
   });

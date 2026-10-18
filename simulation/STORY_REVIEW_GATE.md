@@ -7,11 +7,13 @@
 1. 今回の原文と正本を保持する。実ログが0件なら新しい開始であり、以前の未保存の展開・人物関係を正史として引き継がない。
 2. continuityInputを実行する。保護方針と衝突する死亡入力は、死亡の確定にも別の事件への書換えにも使わない。質問・引用・抗議と区別する。再計算を通すために入力を変えない。
 3. 全章の場所・年月日（曜）・HH:MM・数値℃を具体的に設定する。実ログ0件の開始では世界・季節に沿ってAIが未指定の環境を決め、継続時は正本と経過に沿う。取得失敗を未設定と扱わず、主人公の意思を補完しない。`AI_NOVEL_GENERATION_RULES.md`の本文形式に従う。心理付き章はrunTurn/verifyTurnに成功してから下書きする。未選択章で別人物の心理計算を捏造しない。
-4. prepareStoryReview(args,story,storyActions)で今回専用の確認票を作る。初期状態は全軸pending。準備しただけでは合格しない。
+4. 下書き後、[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従って、男性固有の言動・情緒・関係の変化を推敲する。説明調や同じ沈黙・世話の反復を修正し、主人公の行動や心理は足さない。**推敲後の本文**に対しprepareStoryReview(args,story,storyActions)で今回専用の確認票を作る。初期状態は全軸pending。準備しただけでは合格しない。
 5. 下書きと今回原文・正本を改めて読み、下記の5軸をそれぞれ確認し、結論・具体的な理由・根拠を記録する。生成時の自己説明をそのまま確認理由に流用しない。問題があれば本文を直して確認票も作り直す。
 6. storyActions.semanticReviewへ完成した記録を渡す。validateStoryまたはvalidateContinuityのok:trueとreadyForOutput:trueを確認する。最後はreleaseStoryが返した本文だけをユーザーに返す。
 
 `validateChapterHeader`は両検証の共通機械検査で、欠落・不明値・非実在日付・曜日不一致・曖昧な時刻・非数値気温を拒否する。正本との意味上の整合はcanonProvenanceでも確認する。
+
+意味・形式の合格は、小説としての面白さを保証しない。説明で済ませず、相手役の個性・情緒・目に見える前進があるかをAIが執筆工程で確認する。推敲後に本文を変更したら、確認票のbindingが変わるため、旧票を流用せず再検証する。
 
 機械検査だけ通過した場合はmechanicalOk:trueでもok:false、readyForOutput:falseになる。意味確認の未実施を警告だけで済ませない。違反や未確認がある本文を一度提示してから訂正する運用にしない。
 

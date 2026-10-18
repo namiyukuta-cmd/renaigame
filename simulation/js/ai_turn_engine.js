@@ -107,7 +107,9 @@
     if (!continuity.ok) fail(continuity.errors.join("／"));
     requirePsychology(args.psychology);
     const raw = getCurrentState(args.stateEntry);
-    const critical = ["seekHeroine", "pursuitDrive", "physicalNeed", "passion", "reason", "selfControl", "ethics"];
+    // Missing persisted emotions are not evidence of zero affection or trust.
+    // Check every numeric state field before normalizeState can supply defaults.
+    const critical = ["romanceScore", ...Object.keys(args.psychology.stateDefaults)];
     const missing = critical.filter(key => typeof raw[key] !== "number" || !Number.isFinite(raw[key]));
     if (missing.length) {
       fail("旧セーブで主要心理項目が不足しています: " + missing.join(", ") + "。0として補完せず、実ログに基づいて移行したstateを渡してください");

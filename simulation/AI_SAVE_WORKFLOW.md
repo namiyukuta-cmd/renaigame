@@ -385,7 +385,9 @@ after と各evaluationを「今回の会話ステータス」として固定
 - emotionalActivation / calmness / courage / decisiveness / patience
 - lastPsychologyConflict / lastIntimacyInitiative / lastApproachAvoidance / lastRepairEvaluation / lastAttachmentTension
 
-既存セーブにこれらが無い場合は `RenaiGamePsychologyParameters.normalizeState` で不足項目だけ補完して生成判断する。明示的な保存指示があるまでは、補完しただけでGitHubへ書き戻さない。
+本文生成では、実行器が`romanceScore`と`RenaiGamePsychologyParameters.stateDefaults`の全数値項目を`normalizeState`より前に検査する。不足・null・数値文字列・非有限値があれば停止し、欠けた項目と、同じスロットの実ログに基づく移行が必要なことを報告する。0や既定値を補完して恋愛・信頼を後退させない。既存セーブは無断で書き換えない。新規開始はそのスロットに心理状態も実ログもない場合だけ対応テンプレートを使う。
+
+「興味」は会話や和歌などへの関心でも成立するため、`seekHeroine`の自動下限は0。清実の初期値0を恋愛欲求10へ自動増加させない。親しさ以降の段階補正は既存仕様として保持し、本文の新しい恋情は今回入力・実ログ・人物設定と照合する。
 
 キャラ固有state項目がある場合はそれも確認する。
 
@@ -465,9 +467,9 @@ GitHub書込みが安全性判定・権限その他の理由で遮断される�
 
 同じ `scene` / Chapter番号の記録がすでに存在する場合、新しい別エントリを無条件で追加しない。
 
-- 同じChapterの続きまで含めた完全版に更新する。
-- 既存全文を削らず、新しく確定したやりとりを統合する。
-- Chapter1が二つ、Chapter2が二つ、という重複状態を作らない。
+- 保存済みと本文・心理履歴が同じなら保存済みとして扱い、重複追加しない。
+- 同じChapterに異なる本文・心理履歴があれば取り込みを拒否し、上書き・追記統合しない。続きを進める場合は次のChapterとして入力・心理計算・本文検証・保存を行う。
+- 標準version 2の章JSONは正本の次のChapterだけを出力する。保存済み章の訂正依頼は標準取り込みで上書きできると案内せず、別途ユーザーの明示指示に基づく訂正として扱う。
 
 ### Step 5. 攻略対象stateを更新
 

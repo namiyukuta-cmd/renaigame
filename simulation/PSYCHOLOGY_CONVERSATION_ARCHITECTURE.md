@@ -230,12 +230,12 @@ ChatGPTが主人公について勝手に生成してはいけない：
 
 ## 11. 保存
 
-ユーザーが「記録と情報更新」「状態更新」「GitHubに保存」「記録して」「このChapterを保存」等を指示した時だけChatGPTが保存する。
+ユーザーが「記録と情報更新」「状態更新」「GitHubに保存」「記録して」「このChapterを保存」等を指示した時だけ、ChatGPTが確定済みの標準version 2の今回1章JSONを出力する。ゲームの取り込みで再計算・検証しGitHubへ保存する。AIの直接書込みはユーザーが明示した場合だけ試す。形式の正本は`CHAPTER_SAVE_FORMAT.md`。
 
 保存時：
 - `currentState` = 今回のafterへ更新
 - `stateHistory` = 今回Turnを追記
-- `recordsByCharacter[characterId]` = 主人公入力全文＋攻略対象返答全文を追記・統合
+- `recordsByCharacter[characterId]` = 主人公入力全文＋攻略対象返答全文を今回1章として末尾に追記。同じ内容の再取り込みは重複追加せず、内容の異なる保存済み同章は上書き・統合しない。
 - evaluate結果 = 今回Turnの履歴へ保存
 
 GitHub自身が自動で判断・生成・保存するのではない。

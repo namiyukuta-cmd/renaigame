@@ -759,7 +759,8 @@
     seekHeroineFloorByStageName: {
       "他人": 0,
       "警戒": 0,
-      "興味": 10,
+      // 興味は歌や会話への関心でも成立し、恋愛欲求の発生を意味しない。
+      "興味": 0,
       "親しみ": 25,
       "親しさ": 25,
       "特別": 35,
@@ -802,9 +803,9 @@
     },
 
     compatibility: {
-      rule: "既存セーブに新しい心理項目が無くても壊さない。不足項目だけをstateDefaultsで補完して生成に使い、既存値・実ログ・他フィールドは保持する。",
+      rule: "本文生成前に実行器がromanceScoreとstateDefaultsの全数値項目の存在・有限数値を検査する。不足は0や既定値で補完して生成せず、実ログに基づく移行が必要と報告する。normalizeStateの既定値は正本の欠落を埋める許可ではない。既存値・実ログ・他フィールドは保持する。",
       traitRule: "psychologyTraitsが無い場合はcharacterTraitFallbacks[characterId]を使う。そこにも無い項目だけtraitDefaultsを使う。",
-      persistenceRule: "補完値をGitHubへ書き戻すのは、通常のstate更新と同じくユーザーが記録・状態更新を明示した時だけ。"
+      persistenceRule: "traitsの互換読み込みだけでGitHubへ書き戻さない。数値stateの欠落は既定値で補完せず移行を報告する。通常は明示保存時に標準version 2の章JSONを出力し、ゲームが正本を検証・保存する。"
     },
 
     conflictModel: {

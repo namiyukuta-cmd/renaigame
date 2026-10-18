@@ -60,6 +60,47 @@ function test() {
   const legacy = { characterId: "char_003", stage: 6, stageName: "告白前", trust: 70 };
   assert.throws(() => engine.runTurn(options({ stateEntry: legacy })), /主要心理項目が不足/);
 
+  // Every persisted numeric emotion must survive intact, rather than be
+  // silently reset by normalization. Include the formerly unchecked trust.
+  for (const key of ["romanceScore", ...Object.keys(args.psychology.stateDefaults)]) {
+    const incomplete = JSON.parse(JSON.stringify(initial));
+    delete incomplete[key];
+    const snapshot = JSON.stringify(incomplete);
+    const incompleteArgs = options({ stateEntry: { currentState: incomplete, stateHistory: [] } });
+    assert.throws(() => engine.runTurn(incompleteArgs), error =>
+      /主要心理項目が不足/.test(error.message) && error.message.includes(key), key);
+    assert.equal(engine.verifyTurn(incompleteArgs, packet).ok, false, key);
+    assert.equal(JSON.stringify(incomplete), snapshot, "欠落の診断で正本を変更しない");
+  }
+  for (const value of [null, "8", NaN, Infinity]) {
+    assert.throws(() => engine.runTurn(options({ stateEntry: { ...initial, trust: value } })), /trust/);
+  }
+  const zeroTrustArgs = options({ stateEntry: { ...initial, trust: 0 }, changes: {}, evidence: {} });
+  assert.equal(engine.runTurn(zeroTrustArgs).after.trust, 0, "明示された0は欠落ではない");
+
+  loadBrowserScript("simulation/js/character_settings_validator.js", window);
+  loadBrowserScript("simulation/js/simulation_character_018.js", window);
+  loadBrowserScript("simulation/js/simulation_character_018_behavior.js", window);
+  const kiyozane = JSON.parse(fs.readFileSync(path.join(rootDir,
+    "simulation/state/templates/char_018_initial_state.json"), "utf8"));
+  const originalKiyozane = JSON.stringify(kiyozane);
+  const kiyozaneArgs = options({
+    characterId: "char_018", character: window.SimulationCharacter018,
+    behavior: window.SimulationCharacter018Behavior, stateEntry: kiyozane,
+    protagonistInput: "検査用の挨拶。", changes: {}, evidence: {}
+  });
+  const kiyozaneTurn = engine.runTurn(kiyozaneArgs);
+  assert.equal(kiyozaneTurn.before.seekHeroine, 0, "興味段階だけで恋愛欲求を作らない");
+  assert.equal(kiyozaneTurn.after.seekHeroine, 0);
+  assert.equal(engine.verifyTurn(kiyozaneArgs, kiyozaneTurn).ok, true);
+  assert.equal(JSON.stringify(kiyozane), originalKiyozane);
+  const interested = engine.runTurn({ ...kiyozaneArgs,
+    changes: { seekHeroine: 3 }, evidence: { seekHeroine: "挨拶" } });
+  assert.equal(interested.after.seekHeroine, 3, "原文に根拠のある変化は反映する");
+  assert.equal(args.psychology.normalizeState({ ...kiyozane, stage: 6,
+    stageName: "告白前", seekHeroine: 70 }, "char_018").seekHeroine, 75,
+    "進展済みの恋愛段階の下限は保持する");
+
   const goodStory = "Chapter 1\nカフェ／2026年10月17日（土）／15:00／15℃\n“Hello.”\n「こんにちは」";
   assert.equal(engine.validateStory(args, packet, goodStory).mechanicalOk, true);
   assert.equal(engine.validateStory(args, packet, "“Hello.”").mechanicalOk, false);

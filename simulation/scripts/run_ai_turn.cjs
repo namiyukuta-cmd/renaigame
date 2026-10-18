@@ -7,7 +7,7 @@ const repoRoot = path.resolve(__dirname,'../..');
 const readJson = file => JSON.parse(fs.readFileSync(file,'utf8'));
 function main(argv){
   const [command,saveFile,inputFile,packetFile,storyFile] = argv;
-  if(!['run','review','validate','release'].includes(command) || argv.length !== (command === 'run' ? 3 : 5)) throw new Error('使い方: node simulation/scripts/run_ai_turn.cjs run <save.json> <input.json> または review|validate|release <save.json> <input.json> <packet.json> <story.txt>');
+  if(!['run','review','validate','release','release-result'].includes(command) || argv.length !== (command === 'run' ? 3 : 5)) throw new Error('使い方: node simulation/scripts/run_ai_turn.cjs run <save.json> <input.json> または review|validate|release|release-result <save.json> <input.json> <packet.json> <story.txt>');
   const save = readJson(saveFile), input = readJson(inputFile);
   const sources = Object.fromEntries(runtime.sourcePaths(input.characterId).map(file=>[file,fs.readFileSync(path.join(repoRoot,file),'utf8')]));
   const savedState = save.state?.session?.statesByCharacter?.[input.characterId];
@@ -25,6 +25,7 @@ function main(argv){
     return {semanticReview:engine.prepareStoryReview(args,story,input.storyActions || {})};
   }
   if(command === 'release') return runner.releaseStory(input,packet,story,input.storyActions || {}).story;
+  if(command === 'release-result') return runner.releaseStory(input,packet,story,input.storyActions || {});
   const result = runner.validateStory(input,packet,story,input.storyActions || {});
   return {packet,...result};
 }

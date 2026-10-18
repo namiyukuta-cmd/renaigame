@@ -21,6 +21,7 @@
 - 未実行の心理計算・本文検証を成功として記録しない。ファイル出力だけでGitHub保存済みと報告しない。
 - JS読込は`simulation/AI_TURN_EXECUTION.md`に従い、`ai_turn_runtime.js`か`run_ai_turn.cjs`で設定検証JSを含む全依存を同じwindowへ読み込む。読込失敗時は実行したコマンド・失敗ファイル・元のエラーを残して修正・再実行する。ツールの完了通知をJSとして評価しない。
 - 実行ローダーを変更したら`node simulation/tests/ai_turn_runtime.test.cjs`を実行する。
+- 取得計画・キャッシュを変更したら`node simulation/tests/ai_turn_sources.test.cjs`も実行する。最新版の必須取得失敗時に旧資料を代用せず、同一commit SHAだけを再利用する。通常TurnはAI_TURN_EXECUTION.mdの最短手順を使い、runner.runTurn/releaseStoryの内部検査を外から重複実行しない。AIによる原文の読み取り・推敲・意味確認は省略しない。
 - このリポジトリのコード・規定の修正で、private-game-dataの既存セーブ・本文・心理履歴を変更しない。
 - 形式・取り込み・AI引き継ぎを変更したら`node simulation/tests/chapter_format.test.cjs`と`node simulation/tests/chapter_import.test.cjs`を実行する。
 - 生成規定・本文検査の修正時は`simulation/PROTAGONIST_CONTINUITY_RULES.md`を読み、`node simulation/tests/support_progress.test.cjs`と`node tests/unassigned-continuity-import.test.cjs`を実行する。支援の申し出や準備だけで対応を終えること、世話の反復だけを境遇・関係の改善と扱うことを防ぐ。

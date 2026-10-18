@@ -9,6 +9,34 @@ Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt
 GitHubから取得した本物のJSを実行し、現在saveIdの正本から計算する。読んだだけで実行済みと扱わない。
 本文生成前にrunTurnとverifyTurnを成功させ、下書き生成後にvalidateStoryを成功させてから本文を返す。まだ下書きがない段階でvalidateStoryの成功を求めて処理を止めない。
 
+## 通常Turnの最短手順（検査は省略しない）
+
+1. 現在saveIdの正本と今回原文を確認し、現在のmainの完全なcommit SHAを取得する。
+2. 下記の`loadSources`で必要資料をまとめて取得する。初回・コミット変更時は全文を読み、同一コミットで既に読んだ資料は保持した原文を再利用する。毎Turn必須の実行器・設定検証JS・継続方針・恋愛方針は再取得して適用する。変更確認のために同じ長文を何度もツール出力へ展開しない。キャッシュをプロフィールやセーブ内の文章から作らない。
+3. `createRuntime`を1回作り、`runner.runTurn(input)`を1回呼ぶ。人物検査結果は`runner.settings`にある。入力の`continuityInput`は実行器が心理計算前に実行し、`runTurn`と`verifyTurn`はローダーがまとめて実行する。これらを外側から再度呼ぶ必要はない。
+4. 更新後心理・今回原文・実ログ・人物像を踏まえて本文を執筆・推敲し、`prepareStoryReview`のpending票を作る。AIは各軸を別工程で意味確認し、根拠と判断を記入する。特に、声色・態度・問いの細部が男性自身の言動へ反映されているかを照合する。機械検査で代用したり、全passを自動生成したりしない。
+5. `runner.releaseStory(input,turn.packet,story,storyActions)`を1回呼ぶ。内部で`verifyTurn`、`validateStory`とその継続・男性恋愛・支援・主人公操作権・ヘッダ・意味確認を実行する。成功した`released.story`だけを出力し、`released.verification/validation/context`を保存用に保持する。同じ本文に対する`validateStory`→個別検査→`releaseStory`の連続呼出しは不要。本文や確認票を直した場合だけ再実行する。
+
+通常はこの生成前・確認票作成・出力の3工程を使う。直接engine APIを使う既存処理の検査も引き続き有効。未選択章は心理計算せず、`releaseStory(args,null,story,actions)`内の継続検査を使う。
+
+### 取得計画とキャッシュをJSへ任せる
+
+最新のruntimeを読み込んだ後、取得済みソースのキャッシュをデータとして渡す。`revision`はそのTurnで確認したHEADの40桁SHA。branch名をキャッシュのキーにしない。同じSHAの資料だけ再利用し、SHAが変われば全依存を再取得する。追加資料は`paths`に必要な文書・世界資料を列挙する。
+
+```js
+const loaded = await loader.RenaiGameTurnRuntime.loadSources({
+  characterId, revision: currentHeadSha, cache: retainedSourceCache,
+  paths: requiredRuleAndWorldPaths,
+  fetchSource: (path, ref) => githubFetchFile({repository_full_name: 'namiyukuta-cmd/renaigame', path, ref})
+});
+// githubFetchFileは利用環境の取得ツール。JS自身は通信方法や認証を仮定しない。
+retainedSourceCache = loaded.cache;
+// fetchPaths/reusePaths/changedPathsで取得結果を確認。sourcesに本物の全文がある。
+const runner = loader.RenaiGameTurnRuntime.createRuntime({sources: loaded.sources, save, saveId, characterId, recordIndices});
+```
+
+取得は独立パスをまとめて行い、必須再取得が失敗したら古いキャッシュで続行しない。sourceRequestPlanだけで取得・読了・検証済みとは扱わない。現在セーブ・主人公入力・心理計算・本文の意味確認はキャッシュで代用しない。
+
 ## 必須ファイルと読込順
 
 1. `simulation/js/ai_turn_runtime.js`（取得済みソースを同じwindowへ読み込む共通ローダー）
@@ -49,8 +77,9 @@ const input = {
 };
 const turn = runner.runTurn(input);
 // turn.packet.after/evaluations、人物設定・行動設定、実ログから本文を下書きする。
-const checked = runner.validateStory(input, turn.packet, generatedStory, actualStoryActions);
-// checked.validation.ok === trueを確認し、意味と主人公の未入力描写も照合してから本文を返す。
+// 推敲後にprepareStoryReviewの確認票へ実際の意味確認を記入する。
+const released = runner.releaseStory(input, turn.packet, generatedStory, actualStoryActions);
+// 成功したreleased.storyを返し、verification/validation/contextを保持する。
 ```
 
 recordIndicesは正本の全記録に対する0始まりの添字。省略時は全記録を保存順に使い、実際の選択はturn.context.recordIndicesに返る。Chapter 1は[]。
@@ -79,10 +108,12 @@ changes/evidenceは明示必須。根拠のある変化がない場合だけ両�
 
 ```sh
 node simulation/scripts/run_ai_turn.cjs run /path/to/save.json /path/to/input.json > /path/to/turn-result.json
-node simulation/scripts/run_ai_turn.cjs validate /path/to/save.json /path/to/input.json /path/to/turn-result.json /path/to/story.txt
+node simulation/scripts/run_ai_turn.cjs review /path/to/save.json /path/to/input.json /path/to/turn-result.json /path/to/story.txt
+# AIが確認票を記入しinput.jsonへ保持した後だけ実行する。
+node simulation/scripts/run_ai_turn.cjs release-result /path/to/save.json /path/to/input.json /path/to/turn-result.json /path/to/story.txt > /path/to/released.json
 ```
 
-最初のコマンドはpacket/verification/contextを標準出力へ返す。次のコマンドは元のpacketを読み込み、同じ入力・正本から照合して、本文を検証する。新しいpacketに差し替えて合格させない。これらの診断・計算結果は章取り込みJSONとは異なる。
+runはpacket/verification/contextを返す。その結果を確認してから本文を書き、reviewでpending票を作る。release-resultは元のpacketを照合し、全本文検査の成功時だけstory/verification/validation/contextをJSONで返す。本文だけを必要とする場合はreleaseを使う。validateは個別の診断用であり、通常のrelease前に重ねる必要はない。未完了の意味確認や検証失敗ではrelease/release-resultの標準出力は空になる。新しいpacketに差し替えて合格させない。これらの診断・計算結果は章取り込みJSONとは異なる。
 コマンド自体はネットワーク通信・正本保存を行わない。別の作業場所から実行する場合はスクリプトを絶対パスで指定する。
 
 ## 読込に失敗した場合
@@ -101,7 +132,7 @@ node simulation/scripts/run_ai_turn.cjs validate /path/to/save.json /path/to/inp
 ```js
 const bundle = runner.scope.RenaiGameSave.createChapterBundleV2({
   args: runner.buildArgs(input), packet: turn.packet,
-  verification: turn.verification, validation: checked.validation,
+  verification: released.verification, validation: released.validation,
   chapter: actualChapter, date: actualDate, partner: generatedStory,
   savedRecords: saved.state.session.recordsByCharacter[selectedCharacterId] || [],
   recordIndices: turn.context.recordIndices, storyActions: actualStoryActions

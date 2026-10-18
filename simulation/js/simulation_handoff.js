@@ -86,6 +86,7 @@
       '主人公の今回入力を受け取ってから、心理変化→更新後state→JS計算→攻略対象・NPC・環境の返答の順に進めてください。',
       '毎ターン必須：simulation/js/character_settings_validator.jsを取得・評価して人物設定を検査し、simulation/js/ai_turn_engine.js を取得し、js/renaigame_psychology_parameters.js の本物のJS関数を実行してください。読むだけ・計算したと宣言するだけは禁止です。',
       'JSの読込手順はsimulation/AI_TURN_EXECUTION.mdです。simulation/js/ai_turn_runtime.jsで設定検証JSを含む依存ファイルを同じwindowへ読み込むか、Nodeのsimulation/scripts/run_ai_turn.cjsを使ってください。GitHub取得ツールのAction completed.はソースではありません。structuredContent.contentの本物のJSを使ってください。読込ミスは保持中の入力で修正・再実行し、解消できない場合は試した実行ツール・コマンド、失敗したJSのパス、元のエラー全文を報告してください。環境へ読み込めないという結論だけで終了しないでください。',
+      '通常TurnはAI_TURN_EXECUTION.mdの最短手順を使ってください。runner.runTurnが入力継続・心理計算・再照合、runner.releaseStoryが本文の全検査をまとめて実行します。内包済みのverifyTurn/validateStory/validateContinuity/個別検査を外から繰り返す必要はありません。取得計画と同一コミットの資料再利用はloadSourcesを使い、原文の細部・執筆・推敲・意味確認へ集中してください。releaseStoryのverification/validation/contextを保持し、確認票を自動合格にしないでください。',
       '今回入力の原文を使ったchangesとevidenceを作り、RenaiGameTurnEngine.runTurnで生成用パケットを作成し、verifyTurnのok=trueを確認してから本文を生成してください。',
       'runTurnとverifyTurnの成功後に本文を下書きし、生成後にvalidateStoryを実行してください。ok=falseなら本文を修正・再検査してください。本文がまだない段階でvalidateStoryの成功を求めて停止しないでください。意味・設定の整合性は実ログ・個別behaviorとも照合してください。',
       '小説としての仕上げ：simulation/AI_NOVEL_GENERATION_RULES.mdに従い、下書き後・意味確認の前に、相手役固有の台詞・所作、場面の情緒、関係の実際の変化を文学的に推敲してください。説明口調や同じ沈黙・世話の反復にせず、毎章の主人公入力にふさわしい文章を書いてください。推敲後の本文で意味確認と検証を行い、主人公の未入力行動・心理は加えないでください。checks.literaryQualityの各観点に最終本文の引用と具体的な理由を記し、revisionNoteに改稿内容または修正不要と判断した理由を残してください。',

@@ -9,7 +9,7 @@
 3. 全章の場所・年月日（曜）・HH:MM・数値℃を具体的に設定する。実ログ0件の開始では世界・季節に沿ってAIが未指定の環境を決め、継続時は正本と経過に沿う。取得失敗を未設定と扱わず、主人公の意思を補完しない。`AI_NOVEL_GENERATION_RULES.md`の本文形式に従う。心理付き章はrunTurn/verifyTurnに成功してから下書きする。未選択章で別人物の心理計算を捏造しない。
 4. 下書き後、[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従って、男性固有の言動・情緒・関係の変化を推敲する。説明調や同じ沈黙・世話の反復を修正し、主人公の行動や心理は足さない。**推敲後の本文**に対しprepareStoryReview(args,story,storyActions)で今回専用の確認票を作る。初期状態は全軸pending。準備しただけでは合格しない。
 5. 下書きと今回原文・正本を改めて読み、正本の全確認軸をそれぞれ確認し、結論・具体的な理由・根拠を記録する。小説としての仕上げも独立した必須項目であり、省略・適用外にはできない。生成時の自己説明をそのまま確認理由に流用しない。問題があれば本文を直して確認票も作り直す。
-6. storyActions.semanticReviewへ完成した記録を渡す。validateStoryまたはvalidateContinuityのok:trueとreadyForOutput:trueを確認する。最後はreleaseStoryが返した本文だけをユーザーに返す。
+6. storyActions.semanticReviewへ完成した記録を渡し、releaseStoryを呼ぶ。内部のvalidateStory（未選択はvalidateContinuity）のok:trueとreadyForOutput:trueが確認された本文だけをユーザーに返す。通常は事前に同じvalidateStoryや個別検査を重ねない。心理付き章のrelease結果には実測のverificationも含まれる。詳しくはAI_TURN_EXECUTION.mdの最短手順を使う。
 
 `validateChapterHeader`は両検証の共通機械検査で、欠落・不明値・非実在日付・曜日不一致・曖昧な時刻・非数値気温を拒否する。正本との意味上の整合はcanonProvenanceでも確認する。
 
@@ -87,7 +87,7 @@ const released = engine.releaseStory(args, packet, draft, actions);
 // released.storyを返す。未選択章はpacketをnullにする。
 ```
 
-Nodeではrun_ai_turn.cjsのreviewコマンドが未完了の確認票を返す。AIが確認を実施してinput.jsonのstoryActions.semanticReviewへ記録した後、validateまたはreleaseを使う。releaseは不合格なら標準出力へ本文を一切出さずエラーで終了する。
+Nodeではrun_ai_turn.cjsのreviewコマンドが未完了の確認票を返す。AIが確認を実施してinput.jsonのstoryActions.semanticReviewへ記録した後、releaseまたはrelease-resultを使う。後者は本文と検証記録を一緒に返す。どちらも不合格なら標準出力へ本文を一切出さずエラーで終了する。validateは診断用で、release前の追加実行は不要。
 
 ## 保存と検査の限界
 

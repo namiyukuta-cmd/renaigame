@@ -178,14 +178,16 @@ AIは主人公原文・生成本文・心理計算パケット・検証結果を
 
 毎Turn、**本文を書く前に実際のJS実行結果を得る**こと。必要ファイルを取得できない場合は本文を生成しません。
 
+通常Turnは[AI_TURN_EXECUTION.mdの最短手順](AI_TURN_EXECUTION.md#通常turnの最短手順検査は省略しない)を使う。`runner.runTurn`が入力継続・心理計算・再照合を、`runner.releaseStory`が本文の全検査と最終出力をまとめて行う。内部実行済みの検査を外から繰り返さない。取得計画・同一コミットの資料の再利用は`loadSources`へ任せ、AIは原文の細部の読み取り・執筆・推敲・意味確認に集中する。意味確認の自動合格や古いセーブの流用は禁止。
+
 読込・実行の正本手順は[AI_TURN_EXECUTION.md](AI_TURN_EXECUTION.md)。`simulation/js/ai_turn_runtime.js`で共通規則・設定検証JSを含むsourcePathsの全依存ファイルを同じwindowへ読み込む。コードモードでの実行と`simulation/scripts/run_ai_turn.cjs`のNode実行を用意している。「JSを読み込めない」だけで停止せず、利用できる実行ツールで実際に試して読込ミスを修正する。解消できない場合は試したコマンド・失敗ファイル・元のエラー全文・実行できた段階を報告する。正本・心理数値・今回入力を変更して回避しない。
 
 1. `simulation/js/character_settings_validator.js`を取得・評価し、相手役の設定検査を実行する。新規形式の設定不足は補完・検査に戻し、主人公の未指定情報は埋めない。今回の確定saveIdのstate / records、該当character / behavior、`js/renaigame_psychology_parameters.js`、実行器を取得する。
 2. 今回の主人公入力の原文を保持し、その原文に根拠のある心理変化`changes`と、各変化の根拠となる原文抜粋`evidence`を用意する。根拠がない値は変化させない。
-3. 実行環境でJSを評価し、`RenaiGameTurnEngine.runTurn(args)`を呼ぶ。返り値に、更新後stateと8つの心理関数の実行証跡が含まれる。
-4. `RenaiGameTurnEngine.verifyTurn(args, packet)`で、同じ元データから**再計算**して`ok === true`を確認する。不一致・不足時は停止する。
+3. 同じwindowの実行環境を作り、`runner.runTurn(input)`を呼ぶ。内部で入力継続検査、心理計算、verifyTurnの再計算照合を実行し、更新後stateと心理関数の実行証跡を返す。
+4. 返り値の`verification.ok === true`を確認する。不一致・不足時は停止する。同じデータで外からverifyTurnを追加実行しない。
 5. packetのafterとevaluate結果、人物JS、実ログを固定条件にして本文を書く。心理結果をAIの好みで変更しない。
-6. `RenaiGameTurnEngine.validateStory(args, packet, text)`を呼び、`ok === true`まで出力前に修正する。機械検査の後にも、主人公の未入力行動・個別人物像・過去ログとの意味的整合性を確認する。
+6. 推敲と根拠付きの意味確認票を完成させ、`runner.releaseStory(input,packet,text,storyActions)`で本文検査と出力判定をまとめて実行する。内部のvalidateStory・validateContinuity・個別検査を外から重ねず、成功した本文と検証記録を保持する。失敗したら同じ章を修正・再検査する。
 7. 求められたらpacketのfingerprint、実行関数の一覧、verifyTurnとvalidateStoryの結果を提示する。通常の小説本文に計算値は表示しない。
 
 **旧セーブ対策：** 重要な心理値が存在しない旧stateは、自動で0に埋めて計算しません。実行器が停止した場合、過去ログに沿った心理stateの整合・移行が必要です。既存セーブを書き換えるのはユーザーが明示的に保存指示した時だけです。最新セーブの代用・別周回の混入も禁止です。

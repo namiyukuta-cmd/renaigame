@@ -27,6 +27,35 @@
     if(typeof value !== 'string' || !value.trim() || value.trim() === 'Action completed.') fail(path + ': JSソース本文がありません。ツールの完了メッセージは実行できません。');
     return value;
   }
+  // An immutable Git commit identifies reusable bytes. The engine, settings
+  // validator and per-turn rules are fetched again even at the same commit.
+  function sourceRequestPlan({characterId,revision,cache = {},paths = []}){
+    if(typeof revision !== 'string' || !/^[0-9a-f]{40}$/i.test(revision)) fail('取得元はbranch名ではなく現在HEADの完全なcommit SHAを指定してください。');
+    if(!object(cache) || !Array.isArray(paths)) fail('取得キャッシュまたは追加パスが不正です。');
+    const fresh = [
+      'simulation/js/ai_turn_engine.js',
+      'simulation/js/character_settings_validator.js',
+      'simulation/PROTAGONIST_CONTINUITY_RULES.md',
+      'simulation/ROMANCE_PREFERENCES.md'
+    ];
+    const required = [...new Set([...sourcePaths(characterId),...fresh,...paths])];
+    if(required.some(path=>typeof path !== 'string' || path.split('/').some(part=>!part || part === '.' || part === '..') || !/^[A-Za-z0-9_./-]+\.(?:js|md|json)$/.test(path))) fail('取得パスが不正です。');
+    const reusable = path=>!fresh.includes(path) && cache[path]?.revision === revision &&
+      typeof cache[path].source === 'string' && cache[path].source.trim() && cache[path].source.trim() !== 'Action completed.';
+    return {revision,fetchPaths:required.filter(path=>!reusable(path)),reusePaths:required.filter(reusable)};
+  }
+  async function loadSources(options){
+    const plan = sourceRequestPlan(options), {fetchSource,cache = {}} = options;
+    if(typeof fetchSource !== 'function') fail('取得ツールを呼ぶfetchSource(path,revision)が必要です。');
+    const fetched = await Promise.all(plan.fetchPaths.map(async path=>{
+      try { return [path,sourceText(await fetchSource(path,plan.revision),path)]; }
+      catch(error){ throw new Error('AI実行環境: ' + path + 'の取得失敗: ' + error.message); }
+    }));
+    const sources = Object.fromEntries([...plan.reusePaths.map(path=>[path,cache[path].source]),...fetched]);
+    const nextCache = {...cache};
+    for(const [path,source] of fetched) nextCache[path] = {revision:plan.revision,source};
+    return {sources,cache:nextCache,...plan,changedPaths:fetched.filter(([path,source])=>cache[path]?.source !== source).map(([path])=>path)};
+  }
   function createRuntime({sources,save,saveId,characterId,recordIndices,initialState}){
     const paths = sourcePaths(characterId);
     if(!object(sources)) fail('取得済みJSのsourcesがありません。');
@@ -82,18 +111,17 @@
       return {packet,verification,context:clone(context)};
     }
     function validateStory(input,packet,story,storyActions = {}){
-      const args = buildArgs(input), verification = engine.verifyTurn(args,packet);
+      const args = buildArgs(input), {verification,validation} = engine.inspectStory(args,packet,story,storyActions);
       if(!verification.ok) fail('元の心理パケットの照合失敗: ' + verification.errors.join('／'));
-      const validation = engine.validateStory(args,packet,story,storyActions);
       if(!validation.ok) fail('本文検証失敗: ' + validation.errors.join('／'));
       return {verification,validation,context:clone(context)};
     }
     function releaseStory(input,packet,story,storyActions = {}){
-      return engine.releaseStory(buildArgs(input),packet,story,storyActions);
+      return {...engine.releaseStory(buildArgs(input),packet,story,storyActions),context:clone(context)};
     }
-    return Object.freeze({scope,buildArgs,runTurn,validateStory,releaseStory,context:clone(context)});
+    return Object.freeze({scope,buildArgs,runTurn,validateStory,releaseStory,settings:clone(settings),context:clone(context)});
   }
-  const api = Object.freeze({version:1,sourcePaths,sourceText,createRuntime});
+  const api = Object.freeze({version:1,sourcePaths,sourceText,sourceRequestPlan,loadSources,createRuntime});
   root.RenaiGameTurnRuntime = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

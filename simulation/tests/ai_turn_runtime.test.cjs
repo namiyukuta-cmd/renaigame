@@ -55,6 +55,25 @@ const corrupt=copy(turn.packet);corrupt.after.gratitude++;
 assert.throws(()=>runner.validateStory(input,corrupt,story),/元の心理パケット/);
 assert.throws(()=>runner.validateStory(input,turn.packet,'invalid story'),/本文検証失敗/);
 
+// One validation request must replay psychology once, while still rejecting
+// changed packets. The old wrapper replayed before calling a second verifier.
+const countedSources={...sources};
+countedSources['js/renaigame_psychology_parameters.js'] += `
+const originalPsychology=window.RenaiGamePsychologyParameters;
+window.replayCalls=0;
+window.RenaiGamePsychologyParameters={...originalPsychology,
+  evaluateConflict(...args){window.replayCalls++;return originalPsychology.evaluateConflict(...args);}
+};`;
+const counted=setup({sources:countedSources});
+counted.validateStory(input,turn.packet,story,actions);
+assert.equal(counted.scope.replayCalls,1,'one validation must not replay the same packet twice');
+counted.scope.replayCalls=0;
+const released=counted.releaseStory(input,turn.packet,story,actions);
+assert.equal(counted.scope.replayCalls,1);
+assert.deepEqual(released.verification,turn.verification,'release returns the measured verification for saving');
+assert.deepEqual(released.context,turn.context);
+assert.equal(counted.settings.complete,true,'reuse the settings inspection already performed by the loader');
+
 const withLogs=copy(save);
 withLogs.state.session.recordsByCharacter[characterId]=[{scene:'Chapter 1',protagonist:'原文1',partner:'本文1'},{scene:'Chapter 2',protagonist:'原文2',partner:'本文2'}];
 withLogs.state.session.statesByCharacter[characterId]={currentState:initial,stateHistory:[{turn:1},{turn:2}]};
@@ -82,8 +101,15 @@ try{
   assert.equal(JSON.parse(result.stdout).packet.fingerprint,turn.packet.fingerprint);
   fs.writeFileSync(packetFile,result.stdout);
   const release=run('release',saveFile,inputFile,packetFile,storyFile);assert.equal(release.status,0,release.stderr);assert.equal(release.stdout.trim(),story);
+  const receipt=run('release-result',saveFile,inputFile,packetFile,storyFile);
+  assert.equal(receipt.status,0,receipt.stderr);
+  const measured=JSON.parse(receipt.stdout);
+  assert.equal(measured.story,story);assert.deepEqual(measured.verification,turn.verification);
+  assert.equal(measured.validation.readyForOutput,true);
   const unreviewed=path.join(dir,'unreviewed.json');fs.writeFileSync(unreviewed,JSON.stringify(input));
   const blocked=run('release',saveFile,unreviewed,packetFile,storyFile);assert.equal(blocked.status,1);assert.equal(blocked.stdout,'','unreviewed prose is never printed by the release command');
+  const blockedReceipt=run('release-result',saveFile,unreviewed,packetFile,storyFile);
+  assert.equal(blockedReceipt.status,1);assert.equal(blockedReceipt.stdout,'');
   const oldReceiptFile=path.join(dir,'five-axis.json');fs.writeFileSync(oldReceiptFile,JSON.stringify({...input,storyActions:fiveAxis}));
   const unfinished=run('release',saveFile,oldReceiptFile,packetFile,storyFile);
   assert.equal(unfinished.status,1);assert.equal(unfinished.stdout,'','a five-axis-only receipt never leaks the unrevised story');

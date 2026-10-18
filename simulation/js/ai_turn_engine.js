@@ -598,7 +598,9 @@
       semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
   }
 
-  function validateStory(args, packet, story, storyActions = {}) {
+  // Keep the measured replay result beside the unchanged validation contract.
+  // Callers do not need to run verifyTurn again merely to retain its receipt.
+  function inspectStory(args, packet, story, storyActions = {}) {
     const verified = verifyTurn(args, packet);
     const continuity = validateContinuity(args, story, storyActions);
     const errors = [...verified.errors, ...continuity.errors];
@@ -629,7 +631,7 @@
         warnings.push("物語末尾のメタ質問を確認してください");
       }
     }
-    return {
+    const validation = {
       ok: errors.length === 0,
       mechanicalOk: verified.ok && continuity.mechanicalOk && errors.length === continuity.errors.length,
       readyForOutput: errors.length === 0,
@@ -641,18 +643,25 @@
       semanticReview: continuity.semanticReview,
       checks:continuity.checks
     };
+    return {verification:verified,validation};
+  }
+
+  function validateStory(args,packet,story,storyActions = {}){
+    return inspectStory(args,packet,story,storyActions).validation;
   }
 
   function releaseStory(args,packet,story,storyActions = {}){
-    const validation = packet ? validateStory(args,packet,story,storyActions) : validateContinuity(args,story,storyActions);
+    const inspection = packet ? inspectStory(args,packet,story,storyActions) : {validation:validateContinuity(args,story,storyActions)};
+    const validation = inspection.validation;
     if(!validation.ok || !validation.readyForOutput) fail('本文を出力できません: ' + validation.errors.join('／'));
-    return {story,validation};
+    return {story,...inspection};
   }
   const api = Object.freeze({
     version: 1,
     functionNames: FUNCTION_NAMES,
     runTurn,
     verifyTurn,
+    inspectStory,
     validateStory,
     validateChapterHeader,
     continuityInput,

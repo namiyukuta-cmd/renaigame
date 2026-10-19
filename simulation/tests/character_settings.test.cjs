@@ -77,6 +77,39 @@ const args={
 };
 const packet=engine.runTurn(args);
 assert.equal(engine.verifyTurn(args,packet).ok,true);
+// The newly selected lightweight partner uses his own complete sources and
+// fresh state, rather than another Heian character's existing romance/history.
+const asazumi=window.SimulationCharacter021;
+assert.ok(asazumi,'藤原朝澄を人物一覧へ登録する');
+assert.equal(asazumi.name,'藤原朝澄');
+assert.equal(asazumi.nameKana,'ふじわらのあさずみ');
+assert.equal(asazumi.common.age,29);
+assert.equal(asazumi.common.gender,'male');
+assert.match(asazumi.common.occupation,/正五位下・右近衛少将/);
+assert.match(asazumi.common.residence,/左京二条、東洞院の邸/);
+assert.equal(asazumi.common.signatureLine,'歌は人を欺けても、恋する心までは欺けませぬ。');
+assert.match(asazumi.common.personality,/本気の恋.*余裕を失う/);
+assert.match(asazumi.common.changesAfterDating,/甘え/);
+assert.equal(asazumi.common.protagonist.name,null);
+assert.equal(asazumi.common.protagonist.age,null);
+run('simulation/js/simulation_character_021_behavior.js');
+const asazumiInitial=JSON.parse(read('simulation/state/templates/char_021_initial_state.json'));
+assert.equal(asazumiInitial.characterId,'char_021');
+assert.equal(asazumiInitial.romanceScore,0);
+assert.equal(asazumiInitial.seekHeroine,0);
+assert.equal(asazumiInitial.romanceOnsetEstablished,false);
+assert.deepEqual(asazumiInitial.history,[]);
+const asazumiSnapshot=JSON.stringify({asazumi,asazumiInitial});
+const asazumiArgs={...args,saveId:'asazumi-settings-regression',characterId:'char_021',character:asazumi,
+ behavior:window.SimulationCharacter021Behavior,stateEntry:{currentState:asazumiInitial,stateHistory:[]},
+ protagonistInput:'「あなたは私を待っていて当然でしょう。」',
+ changes:{hurt:4,anger:3},evidence:{hurt:'待っていて当然',anger:'待っていて当然'}};
+const asazumiTurn=engine.runTurn(asazumiArgs);
+assert.equal(engine.verifyTurn(asazumiArgs,asazumiTurn).ok,true);
+assert.equal(asazumiTurn.evaluations.evaluateYoinomaInvitation.baseRomanticInitiative,9);
+assert.equal(asazumiTurn.after.hurt,asazumiTurn.before.hurt+4);
+assert.equal(asazumiTurn.after.anger,asazumiTurn.before.anger+3);
+assert.equal(JSON.stringify({asazumi,asazumiInitial}),asazumiSnapshot,'新規相手の実行で固定設定と初期テンプレートを変更しない');
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
 const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";

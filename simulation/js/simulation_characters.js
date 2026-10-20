@@ -25,10 +25,11 @@
     "simulation_character_019.js",
     "simulation_character_020.js",
     "simulation_character_021.js",
+    "simulation_character_022.js",
     "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261019-char021-asazumi";
+  const CHARACTER_ASSET_VERSION = "20261020-char022-akimori";
   let loadPromise = null;
 
   function loadScript(fileName) {

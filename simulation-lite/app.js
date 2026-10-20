@@ -148,7 +148,7 @@
     render();
     try{
       const form=JSON.parse(localStorage.getItem(FORM)||'{}');for(const key of formKeys)if(typeof form[key]==='string')$(key).value=form[key];
-      const data=await json('../simulation-lite/characters.json?v=20261019-char021-asazumi');catalog=data.characters;
+      const data=await json('../simulation-lite/characters.json?v=20261020-char022-akimori');catalog=data.characters;
       for(const c of catalog)$('character').append(option(c.id,c.name));if(typeof form.character==='string')$('character').value=form.character;
     }catch(error){message('相手一覧を読み込めません。既存のセーブはロードできます。',true);}
     if(api.getToken()){

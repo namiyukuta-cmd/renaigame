@@ -110,6 +110,36 @@ assert.equal(asazumiTurn.evaluations.evaluateYoinomaInvitation.baseRomanticIniti
 assert.equal(asazumiTurn.after.hurt,asazumiTurn.before.hurt+4);
 assert.equal(asazumiTurn.after.anger,asazumiTurn.before.anger+3);
 assert.equal(JSON.stringify({asazumi,asazumiInitial}),asazumiSnapshot,'新規相手の実行で固定設定と初期テンプレートを変更しない');
+const akimori=window.SimulationCharacter022;
+assert.ok(akimori,'源顕守を人物一覧へ登録する');
+assert.equal(akimori.name,'源顕守');
+assert.equal(akimori.nameKana,'みなもとのあきもり');
+assert.equal(akimori.common.age,35);
+assert.equal(akimori.common.gender,'male');
+assert.match(akimori.common.occupation,/従四位下・左近衛中将/);
+assert.equal(akimori.common.signatureLine,'歌にせねば伝わらぬ思ひなど、浅いものと思うておりました。');
+assert.match(akimori.common.poetryStyle,/幽玄・余情/);
+assert.equal(akimori.common.protagonist.name,null);
+assert.equal(akimori.common.protagonist.age,null);
+run('simulation/js/simulation_character_022_behavior.js');
+const akimoriInitial=JSON.parse(read('simulation/state/templates/char_022_initial_state.json'));
+assert.equal(akimoriInitial.characterId,'char_022');
+assert.equal(akimoriInitial.romanceScore,0);
+assert.equal(akimoriInitial.seekHeroine,0);
+assert.equal(akimoriInitial.romanceOnsetEstablished,false);
+assert.deepEqual(akimoriInitial.history,[]);
+assert.ok(akimoriInitial.psychologyTraits.emotionalExpressiveness<asazumiInitial.psychologyTraits.emotionalExpressiveness);
+const akimoriSnapshot=JSON.stringify({akimori,akimoriInitial});
+const akimoriArgs={...args,saveId:'akimori-settings-regression',characterId:'char_022',character:akimori,
+ behavior:window.SimulationCharacter022Behavior,stateEntry:{currentState:akimoriInitial,stateHistory:[]},
+ protagonistInput:'「またお会いして、お話ししたいです。」',
+ changes:{trust:2,anticipation:3},evidence:{trust:'またお会いして',anticipation:'お話ししたい'}};
+const akimoriTurn=engine.runTurn(akimoriArgs);
+assert.equal(engine.verifyTurn(akimoriArgs,akimoriTurn).ok,true);
+assert.equal(akimoriTurn.evaluations.evaluateYoinomaInvitation.baseRomanticInitiative,8);
+assert.equal(akimoriTurn.after.trust,akimoriTurn.before.trust+2);
+assert.equal(akimoriTurn.after.anticipation,akimoriTurn.before.anticipation+3);
+assert.equal(JSON.stringify({akimori,akimoriInitial}),akimoriSnapshot,'顕守の実行で固定設定と初期心理を変更しない');
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
 const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";

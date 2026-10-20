@@ -129,20 +129,28 @@ function chapter(api,save,number){
   for(const request of remote.requests.filter(r=>r.method!=='GET'))assert.ok(request.url.startsWith('https://api.github.com/repos/namiyukuta-cmd/private-game-data/'));
   assert.equal(local.map.has('renaigame_lite_workspace_v1'),false);
   assert.ok(!/<img\b/i.test(read('simulation-lite/index.html')));
-  const asazumiOption=$('character').children.find(option=>option.value==='char_021');
-  assert.equal(asazumiOption?.textContent,'藤原朝澄','軽量版の恋愛相手一覧から朝澄を選べる');
-  const existingStory=JSON.stringify(remote.files.get(key));
-  $('character').value='char_021';await $('character').trigger('change');
-  assert.match($('characterInfo').textContent,/29歳/);
-  assert.match($('characterInfo').textContent,/正五位下・右近衛少将/);
-  $('name').value='朝澄ルート検査';await $('start').click();
-  const asazumiId=api.getCurrentSaveId();
-  assert.notEqual(asazumiId,id);
-  const asazumiSave=remote.files.get('renaigame/simulation/saves/'+asazumiId+'.json');
-  assert.equal(asazumiSave.state.selectedCharacterId,'char_021',$('status').textContent);
-  assert.deepEqual(Object.keys(asazumiSave.state.session.statesByCharacter),['char_021']);
-  assert.equal(asazumiSave.state.session.statesByCharacter.char_021.currentState.characterId,'char_021');
-  assert.equal(asazumiSave.state.session.statesByCharacter.char_021.currentState.romanceScore,0);
-  assert.equal(JSON.stringify(remote.files.get(key)),existingStory,'新規相手を選んでも既存の物語は書き換えない');
+  for(const partner of [
+    {id:'char_021',name:'藤原朝澄',age:'29歳',occupation:'正五位下・右近衛少将'},
+    {id:'char_022',name:'源顕守',age:'35歳',occupation:'従四位下・左近衛中将'}
+  ]){
+    const option=$('character').children.find(option=>option.value===partner.id);
+    assert.equal(option?.textContent,partner.name,'軽量版の一覧から新規の恋愛相手を選べる');
+    const previousSaveId=api.getCurrentSaveId(),previousKey='renaigame/simulation/saves/'+previousSaveId+'.json';
+    const existingStory=JSON.stringify(remote.files.get(previousKey));
+    $('character').value=partner.id;await $('character').trigger('change');
+    assert.ok($('characterInfo').textContent.includes(partner.age));
+    assert.ok($('characterInfo').textContent.includes(partner.occupation));
+    $('name').value=partner.name+'ルート検査';await $('start').click();
+    const newId=api.getCurrentSaveId();
+    assert.notEqual(newId,previousSaveId);
+    const newSave=remote.files.get('renaigame/simulation/saves/'+newId+'.json');
+    assert.equal(newSave.state.selectedCharacterId,partner.id,$('status').textContent);
+    assert.equal(newSave.meta.partnerName,partner.name);
+    assert.ok($('pairName').textContent.includes(partner.name));
+    assert.deepEqual(Object.keys(newSave.state.session.statesByCharacter),[partner.id]);
+    assert.equal(newSave.state.session.statesByCharacter[partner.id].currentState.characterId,partner.id);
+    assert.equal(newSave.state.session.statesByCharacter[partner.id].currentState.romanceScore,0);
+    assert.equal(JSON.stringify(remote.files.get(previousKey)),existingStory,'別の相手を選んでも既存の物語を書き換えない');
+  }
   console.log('Lite UI: private new/load/reload, one-button chapter save, source/publish failures, duplicate/wrong-slot protection, profiles and navigation passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

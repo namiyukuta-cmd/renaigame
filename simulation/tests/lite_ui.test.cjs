@@ -14,6 +14,8 @@ class Element{
   set textContent(text){this._text=String(text);this.children=[];}
   get textContent(){return this._text+this.children.map(child=>child.textContent).join('');}
   getAttribute(name){return this.attrs[name];}
+  setAttribute(name,value){this.attrs[name]=String(value);}
+  removeAttribute(name){delete this.attrs[name];}
   focus(){this.doc.activeElement=this;}
   select(){}
   setSelectionRange(){}
@@ -84,6 +86,17 @@ function chapter(api,save,number){
   const id=api.getCurrentSaveId(),key='renaigame/simulation/saves/'+id+'.json';
   assert.ok(remote.files.has(key));const original=copy(remote.files.get(key));
   assert.equal(original.game,'simulation');assert.equal(original.state.selectedCharacterId,'char_016');
+  await $('copy').click();
+  assert.ok(app.copied.includes(id),'空欄でも現在のセーブをAIへ渡せる');
+  assert.match(app.copied,/引き継ぎのみ/,'空欄を主人公の行動や本文生成の指示にしない');
+  assert.equal($('draft').value,'','引き継ぎのための仮入力を作らない');
+  assert.equal($('setup').hidden,true,'本文画面に新規作成フォームを混在させない');
+  const navigate=async href=>app.anchors.find(a=>a.getAttribute('href')===href).click();
+  $('draft').value='書きかけ';await $('draft').trigger('input');
+  await navigate('#home');assert.equal($('play').hidden,true);assert.equal($('loadPanel').hidden,false);assert.equal($('setup').hidden,false);
+  await navigate('#play');assert.equal($('play').hidden,false);assert.equal($('draft').value,'書きかけ','画面を切り替えても下書きが残る');
+  assert.equal(app.anchors.find(a=>a.getAttribute('href')==='#play').getAttribute('aria-current'),'page');
+  assert.equal(app.anchors.find(a=>a.getAttribute('href')==='#home').getAttribute('aria-current'),undefined);
   assert.equal(remote.requests.some(r=>r.url.includes('simulation_character_001.js')),false,'start does not load every character');
   const first=chapter(api,original,1);
   $('draft').value=first.input.protagonistInput;await $('draft').trigger('input');await $('copy').click();
@@ -102,6 +115,10 @@ function chapter(api,save,number){
   const publishes=remote.requests.filter(r=>r.method==='PATCH').length;
   app=await ui(local,remote);$=app.$;api=app.scope.RenaiGameSave;
   assert.ok($('records').textContent.includes(first.story),'reload reads the same private canon');
+  const unchanged=JSON.stringify([...remote.files]);$('draft').value=' \n';await $('draft').trigger('input');await $('copy').click();
+  const emptyHandoff=JSON.parse(app.copied.split('\n').find(line=>line.startsWith('{')));
+  assert.equal(emptyHandoff.state.session.recordsByCharacter.char_016[0].partner,first.story,'保存した本文も空欄で引き継げる');
+  assert.match(app.copied,/引き継ぎのみ/);assert.equal(JSON.stringify([...remote.files]),unchanged,'コピーはセーブを書き換えない');
   assert.equal(remote.requests.filter(r=>r.method==='PATCH').length,publishes,'reload never writes');
   const second=chapter(api,remote.files.get(key),2),secondText=JSON.stringify(second.bundle);
   $('draft').value=second.input.protagonistInput;await $('draft').trigger('input');$('chapterJson').value=secondText;await $('chapterJson').trigger('input');
@@ -127,6 +144,8 @@ function chapter(api,save,number){
   const unassignedSaved=remote.files.get('renaigame/simulation/saves/'+other+'.json');assert.equal(unassignedSaved.state.session.recordsByCharacter.__unassigned__[0].partner,rawStory,$('status').textContent);assert.deepEqual(unassignedSaved.state.session.statesByCharacter,{});assert.match($('status').textContent,/心理計算のない未選択章/);
   $('stories').value=id;await $('loadButton').click();assert.ok($('records').textContent.includes(second.story));
   $('profilePanel').open=false;const nav=app.anchors.find(a=>a.getAttribute('href')==='#profilePanel'),event=await nav.click();assert.equal(event.prevented,true);assert.equal($('profilePanel').open,true);assert.equal($('profilePanel').scrolled,true,'base URL cannot navigate fragments away from the lightweight page');
+  assert.equal($('profilePanel').hidden,false);assert.equal($('play').hidden,true);assert.equal($('reader').hidden,true);
+  assert.equal(nav.getAttribute('aria-current'),'page');
   for(const request of remote.requests.filter(r=>r.method!=='GET'))assert.ok(request.url.startsWith('https://api.github.com/repos/namiyukuta-cmd/private-game-data/'));
   assert.equal(local.map.has('renaigame_lite_workspace_v1'),false);
   assert.ok(!/<img\b/i.test(read('simulation-lite/index.html')));

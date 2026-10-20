@@ -3,7 +3,21 @@
   const api=window.RenaiGameSave,C=window.RenaiGameLite,runtime=window.RenaiGameTurnRuntime,$=id=>document.getElementById(id);
   const DRAFT='renaigame_lite_input:',PENDING='renaigame_lite_import:',FORM='renaigame_lite_profile_form';
   const PROFILE='renaigame_simulation_profile_v1',SELECTED='renaigame_simulation_selected_character_v1';
-  let active=null,catalog=[],slots=[],busy=false,filename;
+  let active=null,catalog=[],slots=[],busy=false,filename,view='home';
+  const menuPanels=['menuTitle','settings','loadPanel','setup','menuFooter'];
+  const storyPanels=['play','reader','profilePanel','savePanel'];
+  function showView(id,focus=false){
+    if(id!=='home'&&!active){message('メニューから物語を開くか、新しく作ってください。');id='home';}
+    view=id;
+    for(const panel of menuPanels)$(panel).hidden=id!=='home';
+    for(const panel of storyPanels)$(panel).hidden=panel!==id;
+    const target=id==='home'?$('menuTitle'):$(id);
+    if(target.tagName==='DETAILS')target.open=true;
+    for(const anchor of document.querySelectorAll('.bottom-nav a')){
+      if(anchor.getAttribute('href')==='#'+id)anchor.setAttribute('aria-current','page');else anchor.removeAttribute('aria-current');
+    }
+    if(focus){target.scrollIntoView({block:'start'});target.focus({preventScroll:true});}
+  }
   function message(text,error=false){$('status').textContent=text;$('status').dataset.error=String(error);}
   async function perform(action){
     if(busy)return;busy=true;$('workspace').disabled=true;
@@ -26,20 +40,21 @@
     $('stories').value=selected||'';
   }
   function adopt(save){
-    api.createCompactHandoff(save);active=save;
+    api.createCompactHandoff(save);const switched=active?.saveId!==save.saveId;active=save;
     localStorage.setItem(PROFILE,JSON.stringify(save.state.profile));
     if(save.state.selectedCharacterId)localStorage.setItem(SELECTED,save.state.selectedCharacterId);else localStorage.removeItem(SELECTED);
     if(!slots.some(s=>s.id===save.saveId))slots.unshift({...save.meta,id:save.saveId});
     else slots=slots.map(slot=>slot.id===save.saveId?{...slot,...save.meta}:slot);
-    renderSlots();render();
+    if(switched)view='play';renderSlots();render();
   }
   function render(){
     const shown=!!active;
-    for(const id of ['play','savePanel','profilePanel'])$(id).hidden=!shown;
+    showView(shown?view:'home');
     $('setup').open=!shown;$('prompt').value='';$('chapterFile').value='';filename=undefined;
-    if(!shown){$('storyInfo').textContent='保存先は非公開のprivate-game-dataです。';renderRecords();return;}
+    if(!shown){$('storyInfo').textContent='保存した物語を選んで開いてください。';renderRecords();return;}
     $('pairName').textContent=label(active);
-    $('storyInfo').textContent='次はChapter '+(records().length+1)+' ／ 非公開セーブ：'+active.saveId;
+    $('storyInfo').textContent='現在：'+label(active)+' ／ 次はChapter '+(records().length+1);
+    $('playInfo').textContent='次はChapter '+(records().length+1);
     $('draft').value=localStorage.getItem(DRAFT+active.saveId)||'';
     $('chapterJson').value=localStorage.getItem(PENDING+active.saveId)||'';
     for(const [id,key] of [['editName','name'],['editAge','age'],['editFree','free']])$(id).value=active.state.profile[key]||'';
@@ -59,7 +74,7 @@
   }
   async function json(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('データを読み込めません：'+r.status);return r.json();}
   async function refreshSlots(){slots=await api.listSaves();renderSlots();}
-  async function load(id){if(!id)throw Error('セーブを選んでください。');message('非公開セーブを開いています…');adopt(await api.loadSaveById(id));message('非公開セーブを開きました。');}
+  async function load(id){if(!id)throw Error('セーブを選んでください。');message('物語を開いています…');adopt(await api.loadSaveById(id));showView('play');message('物語を開きました。');}
   async function validationApi(characterId){
     const head=await json('https://api.github.com/repos/namiyukuta-cmd/renaigame/commits/main');
     if(!/^[0-9a-f]{40}$/i.test(head.sha||''))throw Error('検証用JSの取得元を確認できません。');
@@ -101,7 +116,7 @@
   for(const id of formKeys)$(id).addEventListener('input',()=>{try{localStorage.setItem(FORM,JSON.stringify(Object.fromEntries(formKeys.map(key=>[key,$(key).value]))));}catch(error){message(error.message,true);}});
   $('character').addEventListener('change',()=>{const c=catalog.find(c=>c.id===$('character').value);$('characterInfo').textContent=c?[c.age?c.age+'歳':'',c.occupation].filter(Boolean).join(' ／ '):'世界設定に沿って始めます。相手未選択の章では心理数値を作りません。';});
   $('start').addEventListener('click',()=>perform(async()=>{
-    if(!api.getToken()){$('settings').open=true;throw Error('非公開セーブへの接続を設定してください。');}
+    if(!api.getToken()){showView('home');$('settings').open=true;throw Error('非公開セーブへの接続を設定してください。');}
     const characterId=$('character').value||null,character=catalog.find(c=>c.id===characterId);
     if(characterId&&!character)throw Error('相手一覧を読み直してください。');
     const save={version:2,game:'simulation',page:'simulation_new.html',meta:{partnerName:character?.name||'恋愛相手未選択'},state:{profile:{name:$('name').value,age:$('age').value,free:$('free').value},selectedCharacterId:characterId}};
@@ -114,7 +129,7 @@
       $('prompt').value=handoff();$('handoff').open=true;$('prompt').focus();$('prompt').select();$('prompt').setSelectionRange(0,$('prompt').value.length);
       let copied=false;try{copied=document.execCommand?.('copy');}catch{}
       if(!copied){try{await navigator.clipboard.writeText($('prompt').value);copied=true;}catch{}}
-      if(copied){$('handoff').open=false;message('コピーしました。ChatGPTへ貼り付けてください。');}else message('引き継ぎ文を選択しました。長押ししてコピーしてください。');
+      if(copied){$('handoff').open=false;$('copy').focus({preventScroll:true});message('コピーしました。ChatGPTへ貼り付けてください。');}else message('引き継ぎ文を選択しました。長押ししてコピーしてください。');
     }catch(error){message(error.message,true);}
   });
   $('handoff').addEventListener('toggle',()=>{if($('handoff').open&&!$('prompt').value)try{$('prompt').value=handoff();}catch(error){message(error.message,true);}});
@@ -133,7 +148,7 @@
     const saved=preview.alreadySaved?await api.loadSaveById(id):await validator.commitChapterImport(preview);
     if(localStorage.getItem(DRAFT+id)===preview.protagonist)localStorage.removeItem(DRAFT+id);
     if(localStorage.getItem(PENDING+id)===source)localStorage.removeItem(PENDING+id);
-    adopt(saved);$('reader').open=true;
+    adopt(saved);showView('reader');
     message('Chapter '+preview.chapter+(preview.alreadySaved?'は非公開で保存済みです。':'を非公開で保存し、再取得して確認しました。')+(preview.unverifiedDraft?' 心理計算のない未選択章です。':''));
   }));
   $('saveProfile').addEventListener('click',()=>perform(async()=>{
@@ -142,7 +157,7 @@
   }));
   $('pages').addEventListener('change',renderRecords);
   for(const anchor of document.querySelectorAll('.bottom-nav a'))anchor.addEventListener('click',event=>{
-    event.preventDefault();const id=anchor.getAttribute('href').slice(1),target=$(id);if(!target||target.hidden){message('先に物語を開くか、新しく作ってください。');return;}if(target.tagName==='DETAILS')target.open=true;target.scrollIntoView({block:'start'});
+    event.preventDefault();if(busy)return;showView(anchor.getAttribute('href').slice(1),true);
   });
   async function init(){
     render();
@@ -154,7 +169,7 @@
     if(api.getToken()){
       const results=await Promise.allSettled([refreshSlots(),api.getCurrentSaveId()?load(api.getCurrentSaveId()):Promise.resolve()]);
       const failure=results.find(r=>r.status==='rejected');if(failure)message(failure.reason.message,true);else if(!active)message('非公開セーブから物語を選べます。');
-    }else{$('settings').open=true;message('通常版で設定したGitHubトークンがある場合は自動で接続します。未設定なら「非公開セーブへの接続」を開いてください。');}
+    }else{$('settings').open=true;message('初回のみ接続が必要です。接続すると、物語を開くか新しく作れます。');}
     $('workspace').disabled=false;
   }
   init().catch(error=>{message(error.message,true);$('workspace').disabled=false;});

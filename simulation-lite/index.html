@@ -6,19 +6,19 @@
   <meta name="theme-color" content="#f4eff1">
   <base href="../simulation/">
   <title>恋愛シミュレーション 軽量版</title>
-  <link rel="stylesheet" href="../simulation-lite/style.css?v=20261018-ai-save">
+  <link rel="stylesheet" href="../simulation-lite/style.css?v=20261020-ui">
   <script src="../js/renaigame_policy.js?v=20261019-partner-emotion" defer></script>
   <script src="js/simulation_save.js?v=20261018-ai-save" defer></script>
   <script src="js/ai_turn_runtime.js?v=20261020-ai-load" defer></script>
-  <script src="../simulation-lite/core.js?v=20261020-ai-load" defer></script>
-  <script src="../simulation-lite/app.js?v=20261020-char022-akimori" defer></script>
+  <script src="../simulation-lite/core.js?v=20261020-ui" defer></script>
+  <script src="../simulation-lite/app.js?v=20261020-ui" defer></script>
 </head>
 <body>
 <main id="home">
-  <header><a href="../index.html">恋愛ゲーム</a><span>軽量版</span><h1>恋愛シミュレーション</h1><p>物語の続きを、手軽に。</p></header>
+  <header><a href="../index.html">恋愛ゲーム</a><span>軽量版</span><h1>恋愛シミュレーション</h1></header>
   <p id="status" role="status" aria-live="polite">読み込んでいます…</p>
-  <p class="note">保存先：非公開の private-game-data ／ 通常版のセーブを使えます。</p>
   <fieldset id="workspace" disabled>
+    <h2 id="menuTitle" tabindex="-1">物語を選ぶ</h2>
     <details id="settings" class="panel"><summary>非公開セーブへの接続</summary>
       <p class="note">通常版のGitHubトークンをそのまま使います。未設定の場合だけ入力してください。</p>
       <label for="token">GitHubトークン</label><input id="token" type="password" autocomplete="off" spellcheck="false">
@@ -37,15 +37,17 @@
       <p id="characterInfo" class="note"></p>
       <button id="start" class="primary" type="button">新しい物語を非公開で保存して始める</button>
     </details>
-    <section id="play" class="panel" hidden>
-      <h2 id="pairName"></h2>
-      <label for="draft">主人公の台詞・行動</label><textarea id="draft" rows="7" spellcheck="false"></textarea>
-      <button id="copy" class="primary" type="button">AIに渡す文章をコピー</button>
-      <p class="note">ChatGPTへ貼り付けて遊びます。「保存して」と伝えると、AIが非公開セーブに保存します。</p>
+    <section id="play" class="panel" tabindex="-1" hidden>
+      <h2 id="pairName" tabindex="-1"></h2>
+      <p id="playInfo" class="note"></p>
+      <label for="draft">主人公の台詞・行動（入力は任意）</label><textarea id="draft" rows="7" spellcheck="false" placeholder="ここに書いても、ChatGPTで直接書いても遊べます。"></textarea>
+      <p class="note">空欄でも、設定と現在の記録をAIへ渡せます。</p>
+      <div class="copy-actions"><button id="copy" class="primary" type="button">AIにコピーして渡す</button></div>
+      <p class="note">コピー後、ChatGPTへ貼り付けてください。</p>
       <details id="handoff"><summary>AIに渡す文章を表示</summary><textarea id="prompt" rows="7" readonly aria-label="AIへの引き継ぎ文"></textarea></details>
     </section>
-    <section id="savePanel" class="panel" hidden>
-      <h2>AIによる保存</h2>
+    <section id="savePanel" class="panel" tabindex="-1" hidden>
+      <h2 tabindex="-1">セーブ</h2>
       <p>ChatGPTで「保存して」と伝えてください。AIが本文と心理状態を非公開セーブに保存します。</p>
       <button id="reloadSaved" type="button">AIが保存した物語を読み込む</button>
       <details id="manualImport"><summary>章JSONを手動で取り込む</summary>
@@ -54,20 +56,20 @@
       <button id="saveChapter" class="primary" type="button">検証して非公開に保存</button>
       </details>
     </section>
-    <details id="reader" class="panel"><summary>保存した物語を読む</summary>
+    <details id="reader" class="panel" tabindex="-1" hidden><summary>保存した物語を読む</summary>
       <label for="pages" class="note">10章ごとのページ</label><select id="pages"></select><div id="records"></div>
     </details>
-    <details id="profilePanel" class="panel" hidden><summary>この物語のプロフィール</summary>
+    <details id="profilePanel" class="panel" tabindex="-1" hidden><summary>この物語のプロフィール</summary>
       <label for="editName">主人公の名前</label><input id="editName" autocomplete="off">
       <label for="editAge">年齢</label><input id="editAge" inputmode="numeric">
       <label for="editFree">主人公の設定・世界・関係</label><textarea id="editFree" rows="5"></textarea>
       <button id="saveProfile" type="button">プロフィールを非公開で保存</button>
     </details>
-    <footer><a href="simulation.html">通常版を開く</a><a href="../simulation-lite/README.md">使い方</a></footer>
+    <footer id="menuFooter"><a href="simulation.html">通常版を開く</a><a href="../simulation-lite/README.md">使い方</a></footer>
   </fieldset>
 </main>
 <nav class="bottom-nav" aria-label="ゲームメニュー">
-  <a href="#home">ホーム</a><a href="#setup">恋愛相手</a><a href="#reader">記録</a><a href="#profilePanel">プロフィール</a><a href="#savePanel">セーブ</a><a href="#loadPanel">ロード</a><a href="#play">AIに渡す</a>
+  <a href="#play">AIに渡す</a><a href="#reader">記録</a><a href="#profilePanel">プロフィール</a><a href="#savePanel">セーブ</a><a href="#home">メニュー</a>
 </nav>
 </body>
 </html>

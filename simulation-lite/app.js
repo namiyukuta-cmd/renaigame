@@ -50,7 +50,7 @@
   function render(){
     const shown=!!active;
     showView(shown?view:'home');
-    $('setup').open=!shown;$('prompt').value='';$('chapterFile').value='';filename=undefined;
+    $('setup').open=!shown;$('prompt').value='';$('handoff').open=false;$('chapterFile').value='';filename=undefined;
     if(!shown){$('storyInfo').textContent='保存した物語を選んで開いてください。';renderRecords();return;}
     $('pairName').textContent=label(active);
     $('storyInfo').textContent='現在：'+label(active)+' ／ 次はChapter '+(records().length+1);
@@ -122,13 +122,16 @@
     const save={version:2,game:'simulation',page:'simulation_new.html',meta:{partnerName:character?.name||'恋愛相手未選択'},state:{profile:{name:$('name').value,age:$('age').value,free:$('free').value},selectedCharacterId:characterId}};
     message('新しい物語を非公開で保存しています…');adopt(await api.saveToGitHub(save,{newSlot:true,freshStart:true}));message('新しい物語を非公開で保存しました。');
   }));
-  $('draft').addEventListener('input',()=>{try{if(active)localStorage.setItem(DRAFT+active.saveId,$('draft').value);$('prompt').value='';}catch(error){message(error.message,true);}});
+  $('draft').addEventListener('input',()=>{try{if(active)localStorage.setItem(DRAFT+active.saveId,$('draft').value);$('prompt').value='';$('handoff').open=false;}catch(error){message(error.message,true);}});
   function handoff(){checkActive();return C.buildPrompt(active,$('draft').value,api);}
   $('copy').addEventListener('click',async()=>{
     try{
-      $('prompt').value=handoff();$('handoff').open=true;$('prompt').focus();$('prompt').select();$('prompt').setSelectionRange(0,$('prompt').value.length);
-      let copied=false;try{copied=document.execCommand?.('copy');}catch{}
-      if(!copied){try{await navigator.clipboard.writeText($('prompt').value);copied=true;}catch{}}
+      $('prompt').value=handoff();
+      let copied=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText($('prompt').value);copied=true;}}catch{}
+      if(!copied){
+        $('handoff').open=true;$('prompt').focus({preventScroll:true});$('prompt').select();$('prompt').setSelectionRange(0,$('prompt').value.length);
+        try{copied=document.execCommand?.('copy');}catch{}
+      }
       if(copied){$('handoff').open=false;$('copy').focus({preventScroll:true});message('コピーしました。ChatGPTへ貼り付けてください。');}else message('引き継ぎ文を選択しました。長押ししてコピーしてください。');
     }catch(error){message(error.message,true);}
   });
@@ -157,7 +160,7 @@
   }));
   $('pages').addEventListener('change',renderRecords);
   for(const anchor of document.querySelectorAll('.bottom-nav a'))anchor.addEventListener('click',event=>{
-    event.preventDefault();if(busy)return;showView(anchor.getAttribute('href').slice(1),true);
+    event.preventDefault();if(busy)return;if($('status').dataset.error==='true')message('');showView(anchor.getAttribute('href').slice(1),true);
   });
   async function init(){
     render();

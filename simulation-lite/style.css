@@ -31,11 +31,11 @@ summary { cursor:pointer; padding:8px 0; font-weight:600; }
 .record p { margin-top:0; }
 footer { display:flex; justify-content:space-between; padding:12px 2px; font-size:14px; }
 .bottom-nav { position:fixed; bottom:0; left:0; right:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding:6px max(4px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)); background:#fffcfd; border-top:1px solid #deced6; z-index:3; }
-.bottom-nav a { padding:8px 2px; font-size:clamp(11px,3vw,13px); text-decoration:none; min-height:48px; display:flex; align-items:center; justify-content:center; text-align:center; border-radius:8px; }
+.bottom-nav a { padding:8px 0; font-size:clamp(10px,2.9vw,12px); text-decoration:none; min-height:48px; display:flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap; border-radius:8px; }
 .bottom-nav a[aria-current="page"] { background:#79536a; color:white; font-weight:600; }
 #pairName { overflow-wrap:anywhere; }
 #playInfo { margin:0 0 12px; }
-#draft { min-height:180px; }
+#draft { min-height:100px; }
 #prompt { max-height:40vh; }
 :focus-visible { outline:3px solid #b680a0; outline-offset:3px; }
 [hidden] { display:none !important; }

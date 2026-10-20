@@ -105,8 +105,18 @@ function chapter(api,save,number){
   assert.match(app.copied,/liteRulePaths\(characterId\)/,'the actual copied AI prompt selects the lightweight retrieval plan');
   assert.match(app.copied,/恋愛相手自身の傷つき・悲しみ・怒り/);
   assert.match(app.copied,/主人公への異議や反論/);
+  const exactInput='  '+first.input.protagonistInput+'\n  ';
+  $('draft').value=exactInput;await $('draft').trigger('input');
+  let clipboardText='';app.scope.navigator.clipboard={writeText:async text=>{clipboardText=text;}};
+  await $('copy').click();assert.ok(clipboardText.includes('今回の主人公入力（原文を保つ）：\n'+exactInput+'\n'),'標準のコピー操作で入力原文を渡す');
+  const legacyCopy=app.scope.document.execCommand;
+  app.scope.navigator.clipboard.writeText=async()=>{throw Error('clipboard denied');};app.scope.document.execCommand=()=>false;
+  await $('copy').click();assert.equal($('handoff').open,true);assert.ok($('prompt').value.includes(exactInput));assert.match($('status').textContent,/長押ししてコピー/);
+  app.scope.document.execCommand=legacyCopy;delete app.scope.navigator.clipboard;
+  $('draft').value=first.input.protagonistInput;await $('draft').trigger('input');
   const before=JSON.stringify([...remote.files]);$('chapterJson').value='invalid';await $('chapterJson').trigger('input');await $('saveChapter').click();
   assert.equal(JSON.stringify([...remote.files]),before);assert.equal($('chapterJson').value,'invalid');
+  await navigate('#play');assert.equal($('status').dataset.error,'false','別画面へ移った後も古いエラーを出し続けない');assert.equal($('chapterJson').value,'invalid');
   const raw='```json\n'+JSON.stringify(first.bundle)+'\n```';$('chapterJson').value=raw;await $('chapterJson').trigger('input');
   remote.failSources=true;await $('saveChapter').click();assert.match($('status').textContent,/source unavailable/);assert.equal($('chapterJson').value,raw);assert.equal(JSON.stringify([...remote.files]),before);
   remote.failSources=false;await $('saveChapter').click();assert.match($('status').textContent,/再取得して確認しました/);

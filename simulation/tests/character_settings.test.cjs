@@ -140,6 +140,43 @@ assert.equal(akimoriTurn.evaluations.evaluateYoinomaInvitation.baseRomanticIniti
 assert.equal(akimoriTurn.after.trust,akimoriTurn.before.trust+2);
 assert.equal(akimoriTurn.after.anticipation,akimoriTurn.before.anticipation+3);
 assert.equal(JSON.stringify({akimori,akimoriInitial}),akimoriSnapshot,'顕守の実行で固定設定と初期心理を変更しない');
+const sadatsugu=window.SimulationCharacter023;
+assert.ok(sadatsugu,'藤原定継を人物一覧へ登録する');
+assert.equal(sadatsugu.name,'藤原定継');
+assert.equal(sadatsugu.nameKana,'ふじわらのさだつぐ');
+assert.equal(sadatsugu.common.age,41);
+assert.equal(sadatsugu.common.gender,'male');
+assert.match(sadatsugu.common.occupation,/正四位下・左中弁/);
+assert.equal(sadatsugu.common.signatureLine,'わたくしの歌が気に入らぬ？　それは結構。では、どこが気に入らぬのかお聞かせ願おう。');
+assert.equal(sadatsugu.common.poetryStyle.startsWith('理知的、技巧的、挑発的。'),true);
+assert.match(sadatsugu.common.personality,/歌壇の嫌われ者/);
+assert.match(sadatsugu.common.personality,/つまらぬ歌を褒めることこそ不誠実/);
+assert.match(sadatsugu.common.personality,/自分より優れた歌には驚くほど素直に感服/);
+assert.match(sadatsugu.common.personality,/一度読んだ歌を何年も覚え/);
+assert.match(sadatsugu.common.romance,/相手の言葉を誰より真剣に聞く/);
+assert.match(sadatsugu.common.romance,/自分から文を送り/);
+assert.match(sadatsugu.common.romance,/返歌を待ちきれずに次の歌を考え/);
+assert.equal(sadatsugu.common.protagonist.name,null);
+run('simulation/js/simulation_character_023_behavior.js');
+const sadatsuguInitial=JSON.parse(read('simulation/state/templates/char_023_initial_state.json'));
+assert.equal(sadatsuguInitial.characterId,'char_023');
+assert.equal(sadatsuguInitial.romanceScore,0);
+assert.equal(sadatsuguInitial.seekHeroine,0);
+assert.equal(sadatsuguInitial.romanceOnsetEstablished,false);
+assert.deepEqual(sadatsuguInitial.history,[]);
+assert.ok(sadatsuguInitial.psychologyTraits.conflictAvoidance<akimoriInitial.psychologyTraits.conflictAvoidance);
+assert.ok(sadatsuguInitial.psychologyTraits.prideTendency>akimoriInitial.psychologyTraits.prideTendency);
+const sadatsuguSnapshot=JSON.stringify({sadatsugu,sadatsuguInitial});
+const sadatsuguArgs={...args,saveId:'sadatsugu-settings-regression',characterId:'char_023',character:sadatsugu,
+ behavior:window.SimulationCharacter023Behavior,stateEntry:{currentState:sadatsuguInitial,stateHistory:[]},
+ protagonistInput:'「あなたの意見を真剣に聞きたいです。また文をください。」',
+ changes:{trust:2,anticipation:3},evidence:{trust:'意見を真剣に聞きたい',anticipation:'また文をください'}};
+const sadatsuguTurn=engine.runTurn(sadatsuguArgs);
+assert.equal(engine.verifyTurn(sadatsuguArgs,sadatsuguTurn).ok,true);
+assert.equal(sadatsuguTurn.evaluations.evaluateYoinomaInvitation.baseRomanticInitiative,8);
+assert.equal(sadatsuguTurn.after.trust,sadatsuguTurn.before.trust+2);
+assert.equal(sadatsuguTurn.after.anticipation,sadatsuguTurn.before.anticipation+3);
+assert.equal(JSON.stringify({sadatsugu,sadatsuguInitial}),sadatsuguSnapshot,'定継の実行で固定設定と初期心理を変更しない');
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
 const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";

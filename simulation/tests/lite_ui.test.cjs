@@ -151,7 +151,8 @@ function chapter(api,save,number){
   assert.ok(!/<img\b/i.test(read('simulation-lite/index.html')));
   for(const partner of [
     {id:'char_021',name:'藤原朝澄',age:'29歳',occupation:'正五位下・右近衛少将'},
-    {id:'char_022',name:'源顕守',age:'35歳',occupation:'従四位下・左近衛中将'}
+    {id:'char_022',name:'源顕守',age:'35歳',occupation:'従四位下・左近衛中将'},
+    {id:'char_023',name:'藤原定継',age:'41歳',occupation:'正四位下・左中弁'}
   ]){
     const option=$('character').children.find(option=>option.value===partner.id);
     assert.equal(option?.textContent,partner.name,'軽量版の一覧から新規の恋愛相手を選べる');
@@ -170,6 +171,10 @@ function chapter(api,save,number){
     assert.deepEqual(Object.keys(newSave.state.session.statesByCharacter),[partner.id]);
     assert.equal(newSave.state.session.statesByCharacter[partner.id].currentState.characterId,partner.id);
     assert.equal(newSave.state.session.statesByCharacter[partner.id].currentState.romanceScore,0);
+    await $('copy').click();
+    const partnerHandoff=JSON.parse(app.copied.split('\n').find(line=>line.startsWith('{')));
+    assert.equal(partnerHandoff.state.selectedCharacterId,partner.id,'選択した人物の引き継ぎをコピーする');
+    assert.deepEqual(Object.keys(partnerHandoff.state.session.statesByCharacter),[partner.id]);
     assert.equal(JSON.stringify(remote.files.get(previousKey)),existingStory,'別の相手を選んでも既存の物語を書き換えない');
   }
   console.log('Lite UI: private new/load/reload, one-button chapter save, source/publish failures, duplicate/wrong-slot protection, profiles and navigation passed');

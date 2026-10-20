@@ -19,7 +19,7 @@ async function main(){
   assert.ok(split.char_001[0].includes('inside'));
   assert.ok(!split.char_001.join('').includes('shared'));
   assert.ok(!split.char_001.join('').includes('other'));
-  for(const id of ['char_001','char_013','char_018','char_022',null]){
+  for(const id of ['char_001','char_013','char_018','char_022','char_023',null]){
     const paths=runtime.liteRulePaths(id);
     const plan=runtime.sourceRequestPlan({characterId:id,revision:'a'.repeat(40),paths});
     for(const file of plan.fetchPaths)assert.ok(fs.existsSync(path.join(root,file)),file);

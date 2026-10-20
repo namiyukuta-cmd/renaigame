@@ -17,8 +17,7 @@ async function main(){
   const snapshot=JSON.stringify(first.cache);
   calls=[];
   const second=await runtime.loadSources({characterId,revision,paths,fetchSource,cache:first.cache});
-  assert.equal(calls.length,4,'unchanged turns fetch only engine, validator and the two per-turn rules');
-  for(const file of ['simulation/js/ai_turn_engine.js','simulation/js/character_settings_validator.js','simulation/PROTAGONIST_CONTINUITY_RULES.md','simulation/ROMANCE_PREFERENCES.md']) assert.ok(calls.some(([path])=>path===file));
+  assert.equal(calls.length,0,'the verified immutable commit reuses every exact source, including engine and rules');
   assert.equal(second.changedPaths.length,0);
   assert.equal(JSON.stringify(first.cache),snapshot,'loading never mutates the previous cache');
   assert.deepEqual(second.sources,first.sources,'caching preserves the exact repository bytes');
@@ -30,10 +29,12 @@ async function main(){
   assert.throws(()=>runtime.sourceRequestPlan({characterId,revision,paths:['../secret.js']}),/取得パス/);
   const broken={...first.cache,'js/renaigame_policy.js':{revision,source:''}};
   assert.ok(runtime.sourceRequestPlan({characterId,revision,cache:broken}).fetchPaths.includes('js/renaigame_policy.js'));
-  await assert.rejects(runtime.loadSources({characterId,revision,cache:first.cache,fetchSource:async(file,ref)=>{
+  await assert.rejects(runtime.loadSources({characterId,revision:nextRevision,cache:first.cache,fetchSource:async(file,ref)=>{
     if(file==='simulation/js/ai_turn_engine.js') throw Error('network failed');
     return fetchSource(file,ref);
-  }}),/ai_turn_engine.jsの取得失敗: network failed/,'freshness failures do not silently use old bytes');
+  }}),/ai_turn_engine.jsの取得失敗: network failed/,'a new revision never falls back to the former commit after a fetch failure');
+  const missingEngine={...first.cache};delete missingEngine['simulation/js/ai_turn_engine.js'];
+  await assert.rejects(runtime.loadSources({characterId,revision,cache:missingEngine,fetchSource:async()=>{throw Error('required source unavailable');}}),/ai_turn_engine.jsの取得失敗/,'a missing required source cannot be skipped even at the same commit');
   await assert.rejects(runtime.loadSources({characterId,revision,fetchSource:async()=>({structuredContent:{content:'Action completed.'}})}),/ソース本文/);
   assert.equal(JSON.stringify(first.cache),snapshot);
   // Real sources obtained through either path still execute all psychology.
@@ -45,6 +46,6 @@ async function main(){
   const original=run(first.sources),cached=run(second.sources);
   assert.deepEqual(cached,original);
   assert.equal(cached.verification.ok,true);assert.equal(cached.packet.execution.invoked.length,7);
-  console.log('PASS: commit-pinned source reuse, mandatory refresh, failed-fetch isolation and identical real-JS results');
+  console.log('PASS: exact-commit reuse without repeat downloads, changed/missing source failures, and identical real-JS results');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

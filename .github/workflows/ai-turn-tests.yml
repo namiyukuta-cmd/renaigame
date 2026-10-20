@@ -65,6 +65,8 @@ jobs:
           node-version: "22"
       - run: node simulation/scripts/generate_policy_reference.cjs --check
       - run: node simulation/scripts/generate_lite_catalog.cjs --check
+      - run: node simulation/scripts/generate_lite_ai_notes.cjs --check
+      - run: node simulation/tests/lite_loading.test.cjs
       - run: node simulation/tests/lite_private.test.cjs
       - run: node simulation/tests/lite_ai_save.test.cjs
       - run: node simulation/tests/lite_ui.test.cjs

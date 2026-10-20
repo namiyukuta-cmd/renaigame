@@ -48,7 +48,7 @@
 1. 人物JSに固有ID・名前・性格・人物設定を作り、上記2項目をcommonへ記載する。主人公の未設定情報を補完しない。
 2. behavior JSにその人物の行動傾向を作る。積極度と矛盾する「絶対に誘わない」「必ず毎回誘う」等の固定ルートにしない。現在心理・実ログ・JS判定に従って誘い方を表現する。
 3. 新規周回用の心理テンプレートを作る。固定積極度を好意や恋愛度へ足して初期状態を恋愛済みにしない。現在セーブや過去履歴を変更しない。
-4. `simulation/js/simulation_characters.js` の一覧へ人物JSを登録する。人物JSは `window.SimulationCharacters` へ自己登録する。AI生成入口へ人物JS・behavior・初期テンプレートの参照を追加する。
+4. `simulation/js/simulation_characters.js` の一覧へ人物JSを登録する。人物JSは `window.SimulationCharacters` へ自己登録する。AI生成入口へ人物JS・behavior・初期テンプレートの参照を追加する。`node simulation/scripts/generate_lite_catalog.cjs`と`node simulation/scripts/generate_lite_ai_notes.cjs`で軽量版の一覧と選択中人物の開始メモを再生成する。
 5. 人物JSを実際に評価して整数1〜10を確認し、心理実行器のrunTurn / verifyTurnで明示設定した固定値が使われることを確認する。性格と設定理由の整合性も確認する。
 
 宵の間への提案は `evaluateYoinomaInvitation` とAI生成入口・毎ターン運用ルールに従う。AIが固定値を勝手に選び直したり、計算結果を本文生成時に差し替えたりしない。

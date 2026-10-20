@@ -120,7 +120,7 @@ replayContext.recordIndicesは保存済み配列への参照である。未保�
 
 ## 本文を出す前のJS継続検査（必須）
 
-`simulation/js/ai_turn_engine.js`の最新版を毎Turn取得する。入力を受けたら、心理計算や本文を書く前に `RenaiGameTurnEngine.continuityInput(protagonistInput)` を実行する。`ok=false` なら、主人公を残す方針を維持し、最後の継続可能な場面と相手役・NPCの可能な具体的対応を確認する。確認への返答を死亡展開の許可にしない。入力をそのまま死亡・消滅・過去からの嫌悪の本文にせず、暫定本文も出さない。確認を繰り返して物語を足止めしない。
+毎Turn、mainの完全なcommit SHAを確認し、その版の`simulation/js/ai_turn_engine.js`を適用する。同じSHAの原文を保持していれば再利用でき、版違い・欠落時は取得する。入力を受けたら、心理計算や本文を書く前に `RenaiGameTurnEngine.continuityInput(protagonistInput)` を実行する。`ok=false` なら、主人公を残す方針を維持し、最後の継続可能な場面と相手役・NPCの可能な具体的対応を確認する。確認への返答を死亡展開の許可にしない。入力をそのまま死亡・消滅・過去からの嫌悪の本文にせず、暫定本文も出さない。確認を繰り返して物語を足止めしない。
 
 本文生成後に `RenaiGameTurnEngine.validateContinuity({protagonistProfile,records}, story, storyActions)` を実行し、`ok=true` を確認する。恋愛相手未選択・心理計算のない章もこの検査を必ず行う。通常の心理計算済み章では `validateStory` にも同じ検査が含まれる。
 

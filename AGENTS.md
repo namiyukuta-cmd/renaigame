@@ -3,6 +3,7 @@
 - **軽量版（simulation-lite）の保存はAIが直接行う。**「保存して」「記録と情報更新」「GitHubに保存」で、`simulation-lite/AI_SAVE.md`と`ai_save.js`を使い、現在saveIdの非公開`private-game-data`へ検証後に保存・再取得確認する。「保存JSONを出して」は出力依頼。以下の画面取り込みを前提とした保存手順は通常版のもの。標準version 2・心理計算・本文と意味の検査は共用し、拒否された書込みを回避・強行しない。
 
 - 共通の機械規則は`js/renaigame_policy.js`、心理数値項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`を正本とする。段階・補正・保存形式・意味確認軸を別ファイルへ手で複製しない。自動生成の`simulation/AI_POLICY_REFERENCE.md`は`node simulation/scripts/generate_policy_reference.cjs`で更新する。公開前は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を行う。新しい不具合は修正前に再現し、回帰検査を追加する。検査成功を本文の意味全体の保証と報告しない。
+- 軽量版の生成資料は`RenaiGameTurnRuntime.liteRulePaths`を使う。毎TurnのHEAD確認後、同じcommitの取得済み原文は実行器・規則も再利用し、版違い・欠落時は取得する。主人公の保護・心理計算・意味確認を省略しない。人物専用メモは`node simulation/scripts/generate_lite_ai_notes.cjs`で共通入口から生成し、計測表は`node simulation/scripts/benchmark_lite_loading.cjs --write`で更新する。秒単位の生成速度を、バイト数の削減率で代用して報告しない。
 
 - 公開前に`.github/workflows/ai-turn-tests.yml`の全検査をローカルで実行する。設定・実装・関連テストを整えてから、1作業の複数ファイルを`create_tree`→`create_commit`→`update_ref`の1コミットにまとめて反映する。ファイルごとの途中コミットでmainへ公開しない。反映後は最新コミットのActionsの成功を確認し、失敗時は原因を修正してから完了を報告する。
 

@@ -27,20 +27,36 @@
     if(typeof value !== 'string' || !value.trim() || value.trim() === 'Action completed.') fail(path + ': JSソース本文がありません。ツールの完了メッセージは実行できません。');
     return value;
   }
-  // An immutable Git commit identifies reusable bytes. The engine, settings
-  // validator and per-turn rules are fetched again even at the same commit.
+  function liteRulePaths(characterId){
+    if(characterId!==null)sourcePaths(characterId);
+    const paths=[
+      'simulation-lite/AI_ENTRY.md',
+      'simulation/AI_CONVERSATION_RULES.md',
+      'simulation/AI_NOVEL_GENERATION_RULES.md',
+      'simulation/STORY_REVIEW_GATE.md',
+      'simulation/AI_TURN_EXECUTION.md'
+    ];
+    if(characterId!==null)paths.push('simulation-lite/character-notes/'+characterId+'.md');
+    if(characterId==='char_013')paths.push(
+      'simulation/world/mizunagi/world.json',
+      'simulation/world/mizunagi/characters.json',
+      'simulation/world/mizunagi/timeline.json'
+    );
+    return paths;
+  }
+  // The caller verifies current HEAD each turn. All bytes at that immutable
+  // commit can be reused; changed/missing sources must still be fetched.
   function sourceRequestPlan({characterId,revision,cache = {},paths = []}){
     if(typeof revision !== 'string' || !/^[0-9a-f]{40}$/i.test(revision)) fail('取得元はbranch名ではなく現在HEADの完全なcommit SHAを指定してください。');
     if(!object(cache) || !Array.isArray(paths)) fail('取得キャッシュまたは追加パスが不正です。');
-    const fresh = [
-      'simulation/js/ai_turn_engine.js',
-      'simulation/js/character_settings_validator.js',
+    const rules = [
       'simulation/PROTAGONIST_CONTINUITY_RULES.md',
       'simulation/ROMANCE_PREFERENCES.md'
     ];
-    const required = [...new Set([...sourcePaths(characterId),...fresh,...paths])];
+    const scripts=characterId===null?['js/renaigame_policy.js','simulation/js/ai_turn_engine.js']:sourcePaths(characterId);
+    const required = [...new Set([...scripts,...rules,...paths])];
     if(required.some(path=>typeof path !== 'string' || path.split('/').some(part=>!part || part === '.' || part === '..') || !/^[A-Za-z0-9_./-]+\.(?:js|md|json)$/.test(path))) fail('取得パスが不正です。');
-    const reusable = path=>!fresh.includes(path) && cache[path]?.revision === revision &&
+    const reusable = path=>cache[path]?.revision === revision &&
       typeof cache[path].source === 'string' && cache[path].source.trim() && cache[path].source.trim() !== 'Action completed.';
     return {revision,fetchPaths:required.filter(path=>!reusable(path)),reusePaths:required.filter(reusable)};
   }
@@ -121,7 +137,7 @@
     }
     return Object.freeze({scope,buildArgs,runTurn,validateStory,releaseStory,settings:clone(settings),context:clone(context)});
   }
-  const api = Object.freeze({version:1,sourcePaths,sourceText,sourceRequestPlan,loadSources,createRuntime});
+  const api = Object.freeze({version:1,sourcePaths,sourceText,liteRulePaths,sourceRequestPlan,loadSources,createRuntime});
   root.RenaiGameTurnRuntime = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

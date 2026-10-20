@@ -1,0 +1,41 @@
+{
+  "revision": "c3544ecfd613df1d5bd0d233736a2cff09df0456",
+  "characterId": "char_022",
+  "paths": [
+    "simulation-lite/AI_ENTRY.md",
+    "simulation/AI_GENERATION_ENTRY.md",
+    "simulation/AI_CONVERSATION_RULES.md",
+    "simulation/AI_NOVEL_GENERATION_RULES.md",
+    "simulation/STORY_REVIEW_GATE.md",
+    "simulation/AI_TURN_EXECUTION.md",
+    "simulation/AI_SAVE_WORKFLOW.md",
+    "simulation-lite/AI_SAVE.md"
+  ],
+  "sourceSizes": {
+    "js/renaigame_policy.js": 5461,
+    "simulation/js/character_settings_validator.js": 7583,
+    "js/renaigame_romance_rules.js": 23895,
+    "js/renaigame_psychology_parameters.js": 73104,
+    "simulation/js/ai_turn_engine.js": 47301,
+    "simulation/js/simulation_character_022.js": 9253,
+    "simulation/js/simulation_character_022_behavior.js": 3768,
+    "simulation/PROTAGONIST_CONTINUITY_RULES.md": 22093,
+    "simulation/ROMANCE_PREFERENCES.md": 7739,
+    "simulation-lite/AI_ENTRY.md": 5886,
+    "simulation/AI_GENERATION_ENTRY.md": 59303,
+    "simulation/AI_CONVERSATION_RULES.md": 12788,
+    "simulation/AI_NOVEL_GENERATION_RULES.md": 17435,
+    "simulation/STORY_REVIEW_GATE.md": 12501,
+    "simulation/AI_TURN_EXECUTION.md": 15404,
+    "simulation/AI_SAVE_WORKFLOW.md": 31340,
+    "simulation-lite/AI_SAVE.md": 4281
+  },
+  "cold": {
+    "requests": 17,
+    "bytes": 359135
+  },
+  "warm": {
+    "requests": 4,
+    "bytes": 84716
+  }
+}

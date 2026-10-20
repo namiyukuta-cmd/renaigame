@@ -12,4 +12,6 @@
 
 共通の心理JS・意味確認・本文検証、標準version 2の章形式を使います。保存のたびにスロットを選び直したり、保存ボタンを押したりする必要はありません。違う物語の章、同一章の異なる内容、章飛ばし、競合は上書きしません。AIが保存した内容はゲームへ戻った時に自動で読み込みます。「AIが保存した物語を読み込む」からの再読み込みもできます。手動のJSON取り込みは折りたたみ欄に残しています。AI自体の出力時間が一定になる保証はありません。
 
-AI向け入口は [AI_ENTRY.md](AI_ENTRY.md)、直接保存の実行手順は [AI_SAVE.md](AI_SAVE.md)。相手目録は人物JSを正本として `node simulation/scripts/generate_lite_catalog.cjs` で生成します。
+AIの生成資料は`RenaiGameTurnRuntime.liteRulePaths`で選びます。選択中の人物の開始メモを使い、通常版の入口全文・他人物の設定・保存専用資料を本文生成のたびに追加取得しません。毎Turnの最新HEAD確認後、同じcommitの取得済み原文は実行器・規則も再利用し、変更・欠落時に取得します。別の会話へキャッシュが自動で渡るとは扱いません。計測条件と取得数・バイト数は[読み込み計測](LOAD_BENCHMARK.md)に記録しています。
+
+AI向け入口は [AI_ENTRY.md](AI_ENTRY.md)、保存依頼時の実行手順は [AI_SAVE.md](AI_SAVE.md)。相手目録は`node simulation/scripts/generate_lite_catalog.cjs`、人物別の開始メモは`node simulation/scripts/generate_lite_ai_notes.cjs`で正本から生成します。資料を変更したら`node simulation/scripts/benchmark_lite_loading.cjs --write`で計測表を更新します。

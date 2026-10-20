@@ -89,6 +89,7 @@ function chapter(api,save,number){
   $('draft').value=first.input.protagonistInput;await $('draft').trigger('input');await $('copy').click();
   assert.ok(app.copied.includes('private-game-data'));assert.ok(app.copied.includes(id));assert.ok(!app.copied.includes('test-token'));
   assert.ok(app.copied.includes(first.input.protagonistInput));
+  assert.match(app.copied,/liteRulePaths\(characterId\)/,'the actual copied AI prompt selects the lightweight retrieval plan');
   assert.match(app.copied,/恋愛相手自身の傷つき・悲しみ・怒り/);
   assert.match(app.copied,/主人公への異議や反論/);
   const before=JSON.stringify([...remote.files]);$('chapterJson').value='invalid';await $('chapterJson').trigger('input');await $('saveChapter').click();

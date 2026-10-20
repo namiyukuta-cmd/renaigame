@@ -15,7 +15,7 @@
     snapshot.saveMode='ai-direct';
     return [
       'GitHubのnamiyukuta-cmd/renaigameの恋愛シミュレーション軽量版で遊びます。',
-      '最初にsimulation-lite/AI_ENTRY.mdを読み、その指示と共通の生成・継続・恋愛方針を適用してください。',
+      '最初にsimulation-lite/AI_ENTRY.mdを読み、その指示と共通の生成・継続・恋愛方針を適用してください。生成資料はRenaiGameTurnRuntime.liteRulePaths(characterId)で選び、毎Turn確認したHEADと同じcommitの取得済み原文を再利用してください。',
       '主人公の恋愛相手は男性限定です。主人公の未入力の台詞・行動・心理・反応・同意・結末を補完せず、死亡・消滅・存在否定の展開にしないでください。男性自身の接近・関心・求愛・応答を進めてください。',
       root.RenaiGamePolicy.partnerEmotion.instruction,
       '保存先：namiyukuta-cmd/private-game-data / renaigame/simulation/saves/'+save.saveId+'.json',

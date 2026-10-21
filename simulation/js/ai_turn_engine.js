@@ -284,7 +284,7 @@
     // line breaks but never across a sentence or quotation boundary. Do not
     // exempt other death assertions elsewhere in the same input or sentence.
     const tail = text.slice(index, index + 180).split(/[。！？!?「」“”]/)[0].replace(/\s/g, '');
-    const event = /^(?:死んだ|死亡した|亡くなった|身罷(?:られ(?:た|る)|った|る)|逝去(?:した|された)|息を引き取(?:った|られ(?:た|る)?)|命を落と(?:した|された)|絶命した)/.exec(tail);
+    const event = /^(?:死んだ|死亡した|亡くなった|身罷(?:られ(?:た|る)|った|る)|逝去(?:した|された)|息を引き取(?:った|られ(?:た|る)?)|命を落と(?:した|された)|絶命した|霧散(?:した|しました))/.exec(tail);
     if (!event) return false;
     const continuation = tail.slice(event[0].length);
     if (/^(?:ら(?!れ)|なら(?:ば)?|と(?:したら|すれば)|場合(?:[、,にはのを]|$))/.test(continuation)) return true;
@@ -356,15 +356,22 @@
     return {version:1,binding:storyReviewBinding(args,story,storyActions),pass:'after_draft',
       freshStart:!(args?.records || []).length,usedUnsavedDraft:false,
       checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[],
+        ...(policy.storyDirection.reviewGuidance[axis] ? {guidance:policy.storyDirection.reviewGuidance[axis]} : {}),
         ...(axis === policy.literaryReview.axis ? {revisionNote:'',aspects:Object.fromEntries(
           policy.literaryReview.aspects.map(name=>[name,{status:'pending',reason:'',quotes:[],
             ...(policy.literaryReview.guidance?.[name] ? {guidance:policy.literaryReview.guidance[name]} : {})}]))} : {})}]))};
+  }
+  function protagonistNames(args){
+    const name=args?.protagonistProfile?.name;
+    return [...new Set([...policy.storyDirection.protagonistLabels,name,
+      typeof name==='string' ? name.trim().split(/[・\s]/)[0] : null]
+      .filter(value=>typeof value==='string' && value.trim()).map(value=>value.trim()))];
   }
   // This is a separate check of current protagonist acts and proxy decisions.
   // A generic semantic "pass" cannot override missing source evidence.
   function validateProtagonistAgency(args, story, storyActions = {}){
     const errors = [], claims = storyActions.protagonistClaims || [];
-    const names = [args?.protagonistProfile?.name,'主人公','彼女','あなた'].filter(Boolean);
+    const names = protagonistNames(args);
     const sensitive = /(?:頷いた|うなずいた|微笑んだ|笑った|承諾した|同意した|許した|安心した|救われた|会いたくない|会わない|拒んだ|部屋を出た)/;
     const proxy = /(?:どなたとも|誰とも|誰にも)[^。\n]{0,18}(?:お会いになりません|会われません|会いたくない|会わない)|(?:ご本人|姫君|主人公|彼女)[^。\n]{0,24}(?:ご意向|望んで|お断り|面会を拒)|(?:面会|訪問)[^。\n]{0,18}(?:拒んで|お断りにな|望んでいない)/;
     const fragments = typeof story === 'string' ? story.split(/[。\n]/).map(x=>x.trim()).filter(Boolean) : [];
@@ -583,12 +590,10 @@
     if (typeof story !== "string" || !story.trim()) return { ok: false, errors: ["本文が空です"], warnings, requiresSemanticReview: true };
     const headerCheck = validateChapterHeader(story);
     errors.push(...headerCheck.errors);
-    const profile = args && args.protagonistProfile || {};
     const inputCheck = typeof args?.protagonistInput === 'string' && args.protagonistInput.trim() ? continuityInput(args.protagonistInput) : {ok:true,errors:[]};
     const agencyCheck = validateProtagonistAgency(args || {},story,storyActions);
     errors.push(...inputCheck.errors,...agencyCheck.errors);
-    const names = [profile.name, "主人公", "彼女", "あなた"].filter(value => typeof value === "string" && value.trim()).map(value => value.trim());
-    if (profile.name) names.push(String(profile.name).split(/[・\s]/)[0]);
+    const names = protagonistNames(args);
     const namesIn = text => names.some(name => text.includes(name));
     const sentences = story.matchAll(/[^。\r\n]+/g);
     for (const sentenceMatch of sentences) {
@@ -598,8 +603,16 @@
       const exclusion = /(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/.test(sentence);
       const exclusionDenied = /(?:見(?:捨|放)て(?:ない|られていない)|見放されていない|居場所がないわけではない|居場所はないわけではない|いない方がいいとは(?:言え|思ってい)ない|助けないわけではない|という(?:事実|記録)はない)/.test(sentence);
       if (namesIn(sentence) && exclusion && !exclusionDenied) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
-      const factualDeath = [...sentence.matchAll(/(?:死んだ|死亡した|亡くなった|身罷(?:られ|った|り|る)|逝去した|息を引き取った|命を落とした|消滅した|消された|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/g)]
-        .some(match => !nonFactualDeathReference(story, sentenceOffset + match.index));
+      const factualDeath = [...sentence.matchAll(/(?:死んだ|死亡した|亡くなった|身罷(?:られ|った|り|る)|逝去した|息を引き取った|命を落とした|消滅した|消された|霧散(?:した|しました)|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/g)]
+        .some(match => {
+          if(nonFactualDeathReference(story, sentenceOffset + match.index)) return false;
+          // A mist clearing in front of the heroine is not her disappearance.
+          if(match[0].startsWith('霧散')) return names.some(name=>{
+            const at=sentence.lastIndexOf(name,match.index);
+            return at>=0 && /^(?:は|が|も)/.test(sentence.slice(at+name.length));
+          });
+          return true;
+        });
       if (namesIn(sentence) && !denied && factualDeath) {
         errors.push("主人公の死亡・消滅・存在否定を確定する文章があります。保護方針に沿って本文を修正してください。");
       }

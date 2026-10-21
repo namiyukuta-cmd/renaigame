@@ -19,6 +19,8 @@
 
 ## 独立して確認する項目
 
+全攻略対象・全主人公の共通方針は`RenaiGamePolicy.storyDirection`を使う。通常版・軽量版の引き継ぎと、恋愛相手未選択を含む全ての`prepareStoryReview`に同じ指示・確認観点を渡す。共通の案内が入っても各結論はpendingのままであり、今回本文・原文・正本の実際の照合を省略しない。人物別の初期値変更を、恋愛の進行や主人公を守る継続方針の実施の代わりにしない。
+
 項目の定義は`RenaiGamePolicy.reviewAxes`、仕上げの観点は`RenaiGamePolicy.literaryReview.aspects`から取得する。
 
 | 軸 | 確認すること | 必要な根拠 |

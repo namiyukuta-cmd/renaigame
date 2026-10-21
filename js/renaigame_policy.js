@@ -27,6 +27,15 @@
     historyForbidden:['packet','before','after','evaluations','execution','sources','protagonistInput'],
     filenamePattern:'<saveId>_<characterId>_<4桁chapter>.json'
   };
+  const storyDirection = {
+    instruction:'全攻略対象・全主人公に共通する恋愛ゲームの方針です。通常版・軽量版、新規・継続、恋愛相手の選択済み・未選択を問わず適用してください。主人公と男性の相手との恋愛を、相手本人の関心・接近・求愛・関係への応答で進めてください。低い初期値や過去の仕打ちを、恋愛を進めない固定方針にしないでください。主人公を無視・不要扱いしたり、死亡・消滅・排除させたりすることで話を終わらせないでください。苦痛や抗議には知り得る情報で可能な具体的応答を行い、主人公の未入力の心理・行動・同意・結末を補完しないでください。数値の一律引き上げで代用せず、今回入力と同じスロットの現在心理・実ログに沿って描いてください。',
+    protagonistLabels:['主人公','彼女','あなた','ヒロイン','女君','姫君'],
+    reviewGuidance:{
+      inputConsistency:'主人公の今回入力・抗議・引用を照合し、別の意思や死亡・消滅・排除の確定へ変換していないか確認する。主人公の心理・行動・同意・結末を補完していないか、知り得る情報に基づく具体的な応答があるかを本文で確認する。',
+      canonProvenance:'同じスロットの現在心理・実ログと照合する。新しい主人公や未選択の章にも共通方針を適用し、過去や低い数値を現在の無関心・不要扱い・死への肯定の根拠へすり替えない。',
+      romanceMotivation:'男性本人の関心・接近・求愛・関係への応答が今回の出来事として進んだか確認する。謝罪・看病・周囲の対応だけで代用せず、初期値の一律変更や主人公の好意・承諾の補完で進行を捏造しない。'
+    }
+  };
   const partnerEmotion = {
     instruction:'恋愛相手自身の傷つき・悲しみ・怒りを、主人公の言葉・行動、実ログ、現在心理に沿って台詞や行動へ表してください。主人公への異議や反論、理不尽への抗議も本人の感情として描けます。優しさや主人公の保護を理由に無反応・即時の許しへ置き換えず、喜びや会いたさも同様に表してください。毎章の衝突や主人公の落ち度を捏造せず、相手の感情から主人公の心理・謝罪・同意を決めないでください。',
     reviewGuidance:'主人公のどの言葉・出来事を受け、相手本人が何を感じ、何を望み、どう応じたかを本文から確認する。傷つき・嘆き・怒りや理不尽への異議を、無反応・即時の許しや情景だけへ置き換えていないか。穏やかな場面に衝突を作らず、感情を抑える人物なら抑えた感情が伝わる選択や所作を確認する。相手が不在なら知り得ない反応を捏造せず、今回描く人物の感情と相手を描かない場面上の理由を確認する。'
@@ -34,7 +43,7 @@
   const literaryReview = {
     axis:'literaryQuality',
     aspects:['characterSpecificity','sceneEmotion','concreteProgress','expositionBalance'],
-    guidance:{sceneEmotion:partnerEmotion.reviewGuidance}
+    guidance:{sceneEmotion:partnerEmotion.reviewGuidance,concreteProgress:storyDirection.reviewGuidance.romanceMotivation}
   };
   const reviewAxes = ['inputConsistency','canonProvenance','protagonistAgency','romanceMotivation','circumstanceChange',literaryReview.axis];
   function requiredPsychologyFields(psychology){
@@ -48,7 +57,7 @@
     return '標準version '+chapter.version+'のstateHistory.entryは'+chapter.historyFields.join('/')+'だけです。'+chapter.historyForbidden.join('・')+'を章JSONへ展開しないでください。本文と主人公原文はrecordsに1回ずつ保持し、過去ログの0始まりの添字を使用順にreplayContext.recordIndices、実際の行動宣言をreplayContext.storyActionsへ入れてください。心理パケット全文はゲーム側が正本から再計算・指紋検証して正本セーブへ保持します。';
   }
   const policy = freeze({
-    version:1,stages,chapter,reviewAxes,literaryReview,partnerEmotion,
+    version:1,stages,chapter,reviewAxes,literaryReview,partnerEmotion,storyDirection,
     romance:{partnerGender:'male',bloodRelativesAllowed:false,supportCountsAsRomance:false},
     requiredPsychologyFields,chapterFilename,chapterInstruction
   });

@@ -195,14 +195,27 @@ assert.match(higekuroRules,/玉鬘[^\n]*恋愛進展/,'現在の妻との婚姻�
 assert.match(higekuroRules,/死亡願望[^\n]*演技/,'恋愛値や過去の冷遇から加害意図や偽装を創作しない');
 const higekuroInitial=JSON.parse(read('simulation/state/templates/char_024_initial_state.json'));
 assert.equal(higekuroInitial.characterId,'char_024');
-assert.equal(higekuroInitial.romanceScore,0);
-assert.equal(higekuroInitial.romanceOnsetEstablished,false);
+assert.equal(higekuroInitial.stage,4,'新規開始から主人公を恋愛相手として意識する');
+assert.equal(higekuroInitial.stageName,engine.policy.stages.find(stage=>stage.id===4).name);
+assert.ok(higekuroInitial.romanceScore>0,'恋愛度0の受動的な初期状態を既定にしない');
+assert.equal(higekuroInitial.romanceOnsetEstablished,true);
+assert.ok(higekuroInitial.romanticAwareness>0);
+assert.ok(higekuroInitial.desireForContact>0);
+assert.ok(higekuroInitial.seekHeroine>0);
+assert.ok(higekuroInitial.pursuitDrive>0);
+assert.equal(higekuroInitial.perceivedReciprocity,0,'主人公側の好意は初期値で決めない');
+assert.equal(higekuroInitial.certaintyOfHerAffection,0);
+assert.ok(higekuroRules.includes('恋愛の対象は主人公一人'),'恋愛相手の現在の恋情を主人公へ向ける');
+assert.ok(higekuroRules.includes('二人を同時に愛する'),'他の女性との恋情を並行維持しない指示を保持する');
 assert.equal(higekuroInitial.priorFamiliarity,95);
 assert.deepEqual(higekuroInitial.history,[]);
 const higekuroArgs={...args,saveId:'higekuro-regression',characterId:'char_024',character:higekuro,behavior:window.SimulationCharacter024Behavior,stateEntry:{currentState:higekuroInitial,stateHistory:[]},protagonistInput:'「あなたが私を顧みなかったことを、忘れはしません。」',changes:{hurt:3,guilt:4},evidence:{hurt:'顧みなかった',guilt:'顧みなかった'}};
 const higekuroTurn=engine.runTurn(higekuroArgs);
 assert.equal(engine.verifyTurn(higekuroArgs,higekuroTurn).ok,true);
 assert.equal(higekuroTurn.evaluations.evaluateYoinomaInvitation.baseRomanticInitiative,9);
+assert.equal(higekuroTurn.evaluations.evaluateRomanceOnset.onsetType,'reunion_rekindling');
+assert.equal(higekuroTurn.evaluations.evaluateRomanceOnset.established,true);
+assert.equal(higekuroTurn.evaluations.evaluateApproachAvoidance.mode,'approach','初期心理の実計算でも本人から接近する');
 // A continuing state, not the fresh template, supplies this turn's feelings.
 // Marriage and duty remain present while grounded attraction can still change.
 const continuingHigekuro=clone(higekuroTurn.after),initialHigekuroSnapshot=JSON.stringify(higekuroInitial);

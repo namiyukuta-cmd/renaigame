@@ -26,11 +26,12 @@
     "simulation_character_020.js",
     "simulation_character_021.js",
     "simulation_character_022.js",
+    "simulation_character_024.js",
     "simulation_character_023.js",
     "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261020-char023-sadatsugu";
+  const CHARACTER_ASSET_VERSION = "20261021-char024-higekuro";
   let loadPromise = null;
 
   function loadScript(fileName) {

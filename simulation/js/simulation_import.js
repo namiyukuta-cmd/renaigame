@@ -34,7 +34,7 @@
         // Reload stale import code before using the strict standard v2 check.
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
-          await loadScript('js/simulation_save.js?v=20261018-ai-save');
+          await loadScript('js/simulation_save.js?v=20261022-review-context');
         }
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){

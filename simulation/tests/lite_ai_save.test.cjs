@@ -9,8 +9,8 @@ for(const [file,source]of Object.entries(sources))vm.runInNewContext(source,cont
 const api=scope.RenaiGameSave,writer=require('../../simulation-lite/ai_save.js');
 const id='run_ai_save_test',prefix='renaigame/simulation/saves/',savePath=prefix+id+'.json',initial=JSON.parse(read('simulation/state/templates/char_016_initial_state.json'));
 const save={version:2,game:'simulation',hasSave:true,saveId:id,page:'simulation_new.html',updatedAt:'old',meta:{id,protagonistName:'テスト',partnerName:'アーサー',selectedCharacterId:'char_016',slotNumber:1,updatedAt:'old'},state:{profile:{name:'テスト',age:'31',free:'テスト用'},selectedCharacterId:'char_016',session:{id,recordsByCharacter:{char_016:[]},statesByCharacter:{char_016:{currentState:initial.currentState||initial,stateHistory:[]}}}}};
-function bundleFor(full,chapter){
-  const snapshot=api.createCompactHandoff(full),records=snapshot.state.session.recordsByCharacter.char_016;
+function bundleFor(full,chapter,reviewFullHistory=false){
+  const snapshot=reviewFullHistory?full:api.createCompactHandoff(full),records=snapshot.state.session.recordsByCharacter.char_016;
   const runner=runtime.createRuntime({sources,save:snapshot,saveId:id,characterId:'char_016'});
   const input={protagonistInput:'Chapter'+chapter+'\n「ありがとう。」',changes:{gratitude:1},evidence:{gratitude:'ありがとう。'}};
   const story='Chapter '+chapter+'\n英国・店内／2026年10月18日（日）／15:0'+chapter+'／15℃\n\nアーサーは頷いた。';
@@ -48,8 +48,10 @@ function connector(){
   assert.ok(c.files.get(savePath).state.session.statesByCharacter.char_016.stateHistory[0].before);
   assert.equal(c.files.get(prefix+'index.json').saves[1].updatedAt,'unchanged');
   assert.equal(c.calls.filter(([name])=>name==='createTree').length,1);assert.equal(c.calls.filter(([name])=>name==='updateRef').length,1);
-  const prior=copy(c.files.get(savePath)),second=bundleFor(prior,2);await writer.saveChapter({bundle:second,api,github:c.github});
+  const prior=copy(c.files.get(savePath)),second=bundleFor(prior,2,true),originalReview=copy(second.replayContext.storyActions.semanticReview);
+  await writer.saveChapter({bundle:second,api,github:c.github});
   assert.deepEqual(c.files.get(savePath).state.session.statesByCharacter.char_016.stateHistory[0],prior.state.session.statesByCharacter.char_016.stateHistory[0]);
+  assert.deepEqual(c.files.get(savePath).chapterImportMetadataByCharacter.char_016[2].replayContext.storyActions.semanticReview,originalReview,'AI saving retains the exact full-canon review');
   const count=c.calls.filter(([name])=>name==='updateRef').length,duplicate=await writer.saveChapter({bundle:second,api,github:c.github});assert.equal(duplicate.alreadySaved,true);assert.equal(c.calls.filter(([name])=>name==='updateRef').length,count);
   for(const kind of ['blocked','conflict','badVerify','publicRepo']){
     const target=connector();target[kind]=true;const before=JSON.stringify([...target.files]);

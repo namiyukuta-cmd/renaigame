@@ -937,6 +937,7 @@
     if(!compact && !equal(psychology.normalizeState(before,id), packet.before)) importError('計算前の心理状態が現在のセーブと一致しません。');
     const actualRecords = full.state.session.recordsByCharacter[id] || [];
     const context = bundle.replayContext || {};
+    const canonicalStateEntry = stateEntry;
     if(context.storyActions?.handoffView === 'history-references-v1') stateEntry = compactStateEntry(stateEntry);
     if(context.records !== undefined && context.recordIndices !== undefined) importError('過去ログ本文と参照番号を同時に指定しないでください。');
     let records;
@@ -960,6 +961,14 @@
         if(replay.fingerprint === expectedFingerprint){ args.protagonistProfile = {}; packet = replay; }
       }
       if(packet.fingerprint !== expectedFingerprint) importError('心理パケットの再計算指紋が一致しません。入力・心理状態・参照ログを確認してください。');
+    }
+    // A marked chapter may have been reviewed against the complete canon.
+    // Reconstruct that exact context too; never rewrite its receipt or accept
+    // a binding to different canon, input, story or declarations. The normal
+    // psychology replay and every semantic-review check still run below.
+    if(context.storyActions?.handoffView === 'history-references-v1' &&
+       context.storyActions.semanticReview?.binding === engine.prepareStoryReview({...args,stateEntry:canonicalStateEntry},record.partner,context.storyActions).binding){
+      args.stateEntry = canonicalStateEntry;
     }
     const verification = engine.verifyTurn(args, packet);
     if(!verification.ok) importError('心理JSの再検証に失敗しました：' + verification.errors.join('／'));

@@ -40,8 +40,8 @@ const base={version:2,game:'simulation',hasSave:true,saveId:id,page:'simulation_
   state:{profile:{name:'テスト主人公',age:'31',free:'テスト用の設定'},selectedCharacterId:characterId,
     session:{id,recordsByCharacter:{[characterId]:[]},statesByCharacter:{[characterId]:initial}}}};
 const sources=Object.fromEntries([...runtime.sourcePaths(characterId),'simulation/js/simulation_save.js'].map(file=>[file,read(file)]));
-function chapter(save,number,compact=false){
-  const view=compact?api.createCompactHandoff(save):save;
+function chapter(save,number,compact=false,reviewFullHistory=false){
+  const view=compact&&!reviewFullHistory?api.createCompactHandoff(save):save;
   const records=view.state.session.recordsByCharacter[characterId];
   const runner=runtime.createRuntime({sources,save:view,saveId:id,characterId,recordIndices:records.map((_,i)=>i)});
   const input={protagonistInput:'Chapter'+number+'\n「ありがとう。」',changes:{gratitude:1},evidence:{gratitude:'ありがとう。'}};
@@ -68,6 +68,25 @@ function chapter(save,number,compact=false){
   assert.deepEqual(files.get(key),full,'constructing the transfer view never changes private canon');
   await assert.rejects(api.saveToGitHub(snapshot),/短縮データ/,'a transfer view cannot replace the full save');
   const second=chapter(full,2,true),before=JSON.stringify([...files]);
+  // AI can use the complete canon while retaining the lightweight handoff mark.
+  // Its original receipt must match that exact full history on import, without
+  // converting it to a compact-history receipt or weakening any review axis.
+  const fullReviewed=chapter(full,2,true,true),fullReviewedBefore=JSON.stringify(fullReviewed);
+  assert.notEqual(fullReviewed.replayContext.storyActions.semanticReview.binding,second.replayContext.storyActions.semanticReview.binding);
+  assert.equal(fullReviewed.stateHistory[0].entry.fingerprint,second.stateHistory[0].entry.fingerprint);
+  assert.equal((await api.prepareChapterImport(fullReviewed)).chapter,2,'a full-canon review remains valid with the lightweight handoff mark');
+  assert.equal(JSON.stringify(fullReviewed),fullReviewedBefore,'import preserves the original receipt, story and psychology');
+  const staleStory=copy(fullReviewed);staleStory.records[0].entry.partner+='\nアーサーは扉を開いた。';
+  await assert.rejects(api.prepareChapterImport(staleStory),/意味|確認|レビュー/,'a changed story cannot reuse the full-history review');
+  const absentReview=copy(fullReviewed);delete absentReview.replayContext.storyActions.semanticReview;
+  await assert.rejects(api.prepareChapterImport(absentReview),/意味|確認|レビュー/);
+  const falseEvidence=copy(fullReviewed);falseEvidence.replayContext.storyActions.semanticReview.checks.inputConsistency.sources[0].quote='今回入力にない引用';
+  await assert.rejects(api.prepareChapterImport(falseEvidence),/根拠|原文/,'matching binding cannot bypass evidence validation');
+  const changedMark=copy(fullReviewed);delete changedMark.replayContext.storyActions.handoffView;
+  await assert.rejects(api.prepareChapterImport(changedMark),/意味|確認|レビュー/,'changing the reviewed declarations still invalidates the receipt');
+  const changedCanon=copy(full);changedCanon.state.session.statesByCharacter[characterId].stateHistory[0].after.gratitude++;
+  await assert.rejects(api.prepareChapterImport(fullReviewed,{head:'a'.repeat(40),save:changedCanon,index:files.get('renaigame/simulation/saves/index.json')}),/意味|確認|レビュー/,'full-history receipts remain bound to the exact saved history');
+  assert.equal(JSON.stringify([...files]),before,'successful and rejected review checks never publish');
   const preview=await api.prepareChapterImport(second);assert.equal(JSON.stringify([...files]),before,'validation never publishes');
   failPublish=true;await assert.rejects(api.commitChapterImport(preview));assert.equal(JSON.stringify([...files]),before,'failed save leaves private canon intact');failPublish=false;
   await api.commitChapterImport(await api.prepareChapterImport(second));

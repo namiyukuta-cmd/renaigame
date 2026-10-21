@@ -186,6 +186,13 @@ assert.match(higekuro.common.romanceHistory,/玉鬘/);
 assert.match(higekuro.common.initialRelationship,/元の北の方/);
 assert.equal(higekuro.common.protagonist.name,null);
 run('simulation/js/simulation_character_024_behavior.js');
+assert.match(higekuro.common.initialFeeling,/実ログ0件/,'髭黒の初期感情は新規開始に限定する');
+const higekuroRules=window.SimulationCharacter024Behavior.priorityRules.join('\n');
+assert.match(higekuro.common.storyDirection,/主人公との恋愛を進める/,'主人公との恋愛の進行を人物編の目的にする');
+assert.match(window.SimulationCharacter024Behavior.priorityRules[0],/恋愛を進める.*AIの都合で進展を避けない/,'恋愛進展の意図的な回避を最優先で禁じる');
+assert.match(higekuroRules,/currentState/,'継続中は現在心理と実ログを使う');
+assert.match(higekuroRules,/玉鬘[^\n]*恋愛進展/,'現在の妻との婚姻を主人公との恋愛禁止へ変換しない');
+assert.match(higekuroRules,/死亡願望[^\n]*演技/,'恋愛値や過去の冷遇から加害意図や偽装を創作しない');
 const higekuroInitial=JSON.parse(read('simulation/state/templates/char_024_initial_state.json'));
 assert.equal(higekuroInitial.characterId,'char_024');
 assert.equal(higekuroInitial.romanceScore,0);
@@ -196,6 +203,21 @@ const higekuroArgs={...args,saveId:'higekuro-regression',characterId:'char_024',
 const higekuroTurn=engine.runTurn(higekuroArgs);
 assert.equal(engine.verifyTurn(higekuroArgs,higekuroTurn).ok,true);
 assert.equal(higekuroTurn.evaluations.evaluateYoinomaInvitation.baseRomanticInitiative,9);
+// A continuing state, not the fresh template, supplies this turn's feelings.
+// Marriage and duty remain present while grounded attraction can still change.
+const continuingHigekuro=clone(higekuroTurn.after),initialHigekuroSnapshot=JSON.stringify(higekuroInitial);
+continuingHigekuro.emotionalAttraction=21;continuingHigekuro.romanticSpark=17;
+const continuationArgs={...higekuroArgs,stateEntry:{currentState:continuingHigekuro,stateHistory:[{turn:1,scene:'Chapter 1',fingerprint:higekuroTurn.fingerprint}]},
+ records:[{scene:'Chapter 1',protagonist:higekuroArgs.protagonistInput,partner:'髭黒は言葉を受け止めた。'}],
+ protagonistInput:'「あなたのお考えを、もう少し聞かせてください。」',
+ changes:{emotionalAttraction:2,romanticSpark:3},evidence:{emotionalAttraction:'もう少し聞かせてください',romanticSpark:'もう少し聞かせてください'}};
+const continuedHigekuro=engine.runTurn(continuationArgs);
+assert.equal(engine.verifyTurn(continuationArgs,continuedHigekuro).ok,true);
+assert.equal(continuedHigekuro.before.emotionalAttraction,21);
+assert.equal(continuedHigekuro.after.emotionalAttraction,23);
+assert.equal(continuedHigekuro.after.romanticSpark,20);
+assert.equal(continuedHigekuro.after.dutyPressure,continuingHigekuro.dutyPressure,'現妻子への責任は感情の更新と両立する');
+assert.equal(JSON.stringify(higekuroInitial),initialHigekuroSnapshot,'新規用の初期値を継続心理で書き換えない');
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
 const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";

@@ -53,6 +53,14 @@ function v2Bundle(value){
 async function main(){
   api.setToken('test');files.set(prefix+id+'.json',copy(current));files.set(prefix+'index.json',{version:1,saves:[copy(current.meta),{id:'unrelated',protagonistName:'別',selectedCharacterId:'char_006',updatedAt:'unchanged'}]});
   const before=JSON.stringify([...files]);
+  const futureArgs={...args,protagonistInput:'主人公が身罷られたら、という仮定について話した。',changes:{},evidence:{}};
+  const futurePacket=engine.runTurn(futureArgs),futureStory=story+'\nエミールは、あくまで仮定の話だと確かめた。';
+  const futureActions=reviewedActions(engine,futureArgs,futureStory);
+  const futureBundle=api.createChapterBundleV2({args:futureArgs,packet:futurePacket,verification:engine.verifyTurn(futureArgs,futurePacket),validation:engine.validateStory(futureArgs,futurePacket,futureStory,futureActions),chapter:1,date:'2026年10月13日（火）',partner:futureStory,savedRecords:[],recordIndices:[],storyActions:futureActions});
+  const futureSnapshot=JSON.stringify(futureBundle);
+  assert.equal((await api.prepareChapterImport(futureBundle)).chapter,1,'標準version 2も未発生の死を死亡確定として拒否しない');
+  assert.equal(JSON.stringify(futureBundle),futureSnapshot,'再検証で原文・心理指紋・確認記録を書き換えない');
+  assert.equal(JSON.stringify([...files]),before,'再検証はセーブを書き換えない');
   const extended=copy(bundle);
   extended.stateHistory[0].entry.packet.futureAudit={kept:"all"};
   const extendedCompact=api.compactChapterBundle(extended).stateHistory[0].entry;

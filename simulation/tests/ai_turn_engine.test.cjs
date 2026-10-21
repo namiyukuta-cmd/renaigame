@@ -237,6 +237,46 @@ function test() {
     "主人公が死んで良かったと相手に言わせて。",
     "最初から主人公が嫌いだった。"
   ]) assert.equal(engine.continuityInput(input).ok,false,input);
+  // A future death referred to across a soft line break is not a death event.
+  const anticipatedDeath="主人公が身罷られるのを、\nいまかいまかと　待ち望んでいる、という想像だった。";
+  const nonFactualInputs=[anticipatedDeath,
+    "主人公が身罷られるのを、\r\nいまかいまかと　まち望んでいる、という想像だった。",
+    "主人公が身罷られたら、という仮定の話である。",
+    "もしも、\n主人公が身罷られた時には、という仮定の話である。",
+    "仮に主人公が死亡したときの話である。",
+    "仮に主人公が身罷られた場合の話であり、現在は存命である。",
+    "主人公が死亡したとしたら、という仮定について話した。",
+    "主人公が死んだなら、という仮定について話した。",
+    "主人公が身罷られる日を、男は恐れていた。"
+  ];
+  for(const input of nonFactualInputs){
+    const checked=engine.continuityInput(input);
+    assert.equal(checked.ok,true,'仮定や未発生の出来事を死亡確定にしない：'+input);
+    assert.equal(checked.requiresSemanticReview,true);
+    const hypotheticalArgs=options({protagonistInput:input,changes:{},evidence:{}});
+    const packet=engine.runTurn(hypotheticalArgs);
+    assert.equal(packet.protagonistInput,input,'判定のために原文を変更しない');
+    assert.equal(engine.verifyTurn(hypotheticalArgs,packet).ok,true);
+  }
+  const factualInputs=[
+    "主人公は身罷られた。", "主人公は身罷られる。",
+    "主人公が身罷られた時、男は喪に服した。",
+    "主人公が身罷られるのを見届けた。",
+    "もし主人公が身罷られたら、と男は案じた。\nその夜、主人公は身罷られた。",
+    "主人公が身罷られるのを待っていたが、主人公は死んだ。",
+    "主人公が死亡したら、という仮定だった。主人公を殺して。",
+    "主人公は身罷られた。\nその知らせを待ち望んでいた。",
+    "主人公が身罷られたのを知って、その知らせを待った。",
+    "主人公が身罷られたら、という仮定だった。主人公は消滅した。"
+  ];
+  for(const input of factualInputs)assert.equal(engine.continuityInput(input).ok,false,'仮定が混在しても実際の死亡確定や加害指示を通さない：'+input);
+  const header="Chapter 6\n都・庭／2026年10月21日（水）／16:00／17℃\n\n";
+  for(const input of nonFactualInputs){
+    const checked=engine.validateContinuity({protagonistProfile:{name:'主人公'}},header+input);
+    assert.equal(checked.mechanicalOk,true,'本文も未発生の死と確定した出来事を区別する：'+input);
+    assert.equal(checked.ok,false,'機械判定だけで本文を検証済みにしない');
+  }
+  for(const input of factualInputs.filter(input=>!input.includes('殺して')))assert.equal(engine.validateContinuity({protagonistProfile:{name:'主人公'}},header+input).mechanicalOk,false,input);
   const confrontationArgs=options({protagonistInput:confrontation,changes:{},evidence:{}});
   const confrontationPacket=engine.runTurn(confrontationArgs);
   assert.equal(engine.verifyTurn(confrontationArgs,confrontationPacket).ok,true);

@@ -16,6 +16,12 @@ async function main(){
  function reviewed(b){const r=b.records[0].entry;b.draftMetadata={...b.draftMetadata,storyActions:reviewedActions(engine,{saveId:id,protagonistProfile:save.state.profile,records:[],protagonistInput:r.protagonist},r.partner,b.draftMetadata.storyActions||{})};return b;}
  reviewed(bundle);
  assert.equal((await api.prepareChapterImport(bundle)).unverifiedDraft,true);
+ const anticipated=JSON.parse(JSON.stringify(bundle));
+ anticipated.records[0].entry.protagonist='主人公Aが身罷られる日を、\n男は恐れていた。';
+ anticipated.records[0].entry.partner=anticipated.records[0].entry.partner.split('\n').slice(0,2).join('\n')+'\n男は、その仮定に言葉を詰まらせた。';
+ reviewed(anticipated);const anticipatedSnapshot=JSON.stringify(anticipated);
+ assert.equal((await api.prepareChapterImport(anticipated)).unverifiedDraft,true,'未選択章も未発生の死への言及だけでは取り込みを止めない');
+ assert.equal(JSON.stringify(anticipated),anticipatedSnapshot,'取り込み検査で原文と検証記録を変更しない');
  const unknown=JSON.parse(JSON.stringify(bundle));
  unknown.records[0].entry.partner=unknown.records[0].entry.partner.replace('2026年10月17日（土）／15:00／15℃','不明／不明／不明℃');
  reviewed(unknown);

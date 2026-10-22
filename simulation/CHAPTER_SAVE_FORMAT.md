@@ -92,6 +92,8 @@ AIは`runTurn`→`verifyTurn`→`validateStory`を実行・確認した後、**�
 
 新規章は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)の全確認軸を必須とし、小説としての仕上げの`checks.literaryQuality`も省略しない。確認記録は既存の`replayContext.storyActions.semanticReview`（未選択章は`draftMetadata.storyActions.semanticReview`）に保持し、本文作成・取り込みで再検査する。`mechanicalOk:true`だけの本文を保存JSONとして出さない。標準version 2のルート・ファイル名は変更しない。既に保存済みの同内容の章への再取り込みでは、旧確認票を無断で追加・書き換えない。
 
+意味確認票の版は章JSONの版とは別である。現行の`prepareStoryReview`が返す確認票を新しい生成に使う。作成済みの意味確認票version 1は元のbinding・適用条件で再検証し、怒りや不信への新しい応答条件を理由に、旧章へ恋愛宣言の後付けや本文の書き直しを要求しない。
+
 1. 本文生成時の`args/packet/verification/validation`と確定本文を保持する。保存のために心理変化や物語を生成し直さない。
 2. `simulation/js/simulation_save.js`を評価し、`RenaiGameSave.createChapterBundleV2({args,packet,verification,validation,chapter,date,partner,savedRecords,recordIndices,storyActions})`で組み立てる。`savedRecords`はそのsaveIdの正本の全実ログ、`args.records`は実際に計算に渡した選択ログ、`partner`は確定本文全文。`args.stateEntry`も同じ正本の心理状態・履歴を使う。
 3. この関数は元パケットと元の検証結果を再照合し、参照ログが正本の添字と一致すること、正本の次章であることを確認する。本文・パケットを再生成せず、既存オブジェクトを書き換えない。

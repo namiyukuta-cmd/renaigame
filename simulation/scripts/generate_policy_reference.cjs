@@ -38,6 +38,7 @@ function render(contract=policy,psychology=scope.window.RenaiGamePsychologyParam
     '- ファイル名：`'+c.filenamePattern+'`','',
     '同内容の再取り込みは重複追加しない。異なる保存済み同章は上書き・統合しない。続きを進める場合は次のChapterとして計算・検証する。','',
     '## 本文の意味確認','',
+    '新規生成の意味確認票はversion '+contract.storyDirection.reviewVersion+'。章JSONのversionとは別。作成済みの旧票は元のbindingと条件で再検証し、新しい本文の出力には流用しない。','',
     ...contract.reviewAxes.map(axis=>'- `'+axis+'`'),'',
     '小説としての仕上げは`'+contract.literaryReview.axis+'`で全章必須。`revisionNote`に改稿内容または修正不要の理由、`aspects`に次の各項目のpass・理由・最終本文の引用を記録する。',
     ...contract.literaryReview.aspects.map(aspect=>'- `'+aspect+'`'),'',

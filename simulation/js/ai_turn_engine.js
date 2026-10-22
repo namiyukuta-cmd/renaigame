@@ -307,6 +307,11 @@
       const directsHarm = /(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない))|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写|言わせて|言わせろ)/.test(clause);
       if (directsHarm) { unresolved = true; continue; }
       const factualConcerns = [...clause.matchAll(concerns)].filter(match => {
+        // Her own anger is not evidence that the man hates her. Keep the
+        // original input, and do not stop a reply merely for this declaration.
+        if (/嫌い/.test(match[0]) && /(?:私|わたし|主人公)(?:は|が)[^。！？!?]{0,20}(?:あなた|貴方|お前|相手|彼)(?:が|のことが)(?:大)?嫌い|^[「『\s]*(?:最初から)?(?:あなた|貴方|お前|恋愛相手)(?:が|のことが)(?:大)?嫌い/.test(clause)) {
+          reportedConcern = true;return false;
+        }
         if (!nonFactualDeathReference(input, clauseMatch.index + match.index)) return true;
         reportedConcern = true;return false;
       });
@@ -344,16 +349,16 @@
     const text = typeof value === 'string' ? value : value === undefined ? '' : stable(value);
     return typeof text === 'string' && text.includes(cite.quote) ? text : null;
   }
-  function storyReviewBinding(args, story, storyActions = {}){
+  function storyReviewBinding(args, story, storyActions = {}, reviewVersion = policy.storyDirection.reviewVersion){
     const actions = Object.fromEntries(Object.entries(storyActions).filter(([key])=>key !== 'semanticReview'));
-    return fingerprint({policy:1,saveId:args?.saveId || null,characterId:args?.characterId || null,
+    return fingerprint({policy:reviewVersion,saveId:args?.saveId || null,characterId:args?.characterId || null,
       input:args?.protagonistInput || '',profile:args?.protagonistProfile || {},records:args?.records || [],
       character:args?.character || null,behavior:args?.behavior || null,state:args?.stateEntry || null,
       changes:args?.changes || {},evidence:args?.evidence || {},stageTransition:args?.stageTransition || null,
       yoinomaContext:args?.yoinomaContext || {},story,actions});
   }
   function prepareStoryReview(args, story, storyActions = {}){
-    return {version:1,binding:storyReviewBinding(args,story,storyActions),pass:'after_draft',
+    return {version:policy.storyDirection.reviewVersion,binding:storyReviewBinding(args,story,storyActions),pass:'after_draft',
       freshStart:!(args?.records || []).length,usedUnsavedDraft:false,
       checks:Object.fromEntries(REVIEW_AXES.map(axis=>[axis,{status:'pending',reason:'',quotes:[],sources:[],
         ...(policy.storyDirection.reviewGuidance[axis] ? {guidance:policy.storyDirection.reviewGuidance[axis]} : {}),
@@ -387,9 +392,9 @@
   }
   function validateSemanticReview(args, story, storyActions = {}){
     const errors = [], review = storyActions.semanticReview;
-    const binding = storyReviewBinding(args,story,storyActions);
+    const binding = storyReviewBinding(args,story,storyActions,review?.version);
     const romance = validateRomanceProgress(args,story,storyActions), support = validateSupportProgress(args,story,storyActions);
-    if(!record(review) || review.version !== 1 || review.pass !== 'after_draft' || review.binding !== binding ||
+    if(!record(review) || !policy.storyDirection.compatibleReviewVersions.includes(review.version) || review.pass !== 'after_draft' || review.binding !== binding ||
        review.usedUnsavedDraft !== false || review.freshStart !== !(args?.records || []).length){
       return {ok:false,binding,literaryQuality:{ok:false},errors:['確定本文・今回入力・正本資料に一致する、下書き後の意味確認記録がありません。']};
     }
@@ -442,6 +447,23 @@
     return typeof text === "string" && /(?:何も変わらない|変わり映えのない|死の訪れを待|死ぬ日が来るまで|死に近づく|生きる意味(?:も|が|は)?な|いる意味がない)/.test(text);
   }
 
+  function romanticDistrust(text) {
+    return typeof text === 'string' && policy.storyDirection.priorityConcernPatterns.some(pattern=>new RegExp(pattern).test(text));
+  }
+
+  function explicitRomancePause(text) {
+    const pauses = text.matchAll(/(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/g);
+    for(const match of pauses){
+      const before=text.slice(0,match.index).split(/[。！？!?\n]/).pop();
+      const after=text.slice(match.index+match[0].length).split(/[。！？!?\n]/)[0];
+      // A predicted rejection by him is not a boundary set by her.
+      if(/(?:どうせ|きっと|結局|たぶん|恐らく)/.test(before) && /^[」』”"\s]*(?:って|と|なんて)[^。！？!?]{0,20}(?:言|思)/.test(after)) continue;
+      if(/^[」』”"\s]*(?:とは|なんて|などと)[^。！？!?]{0,12}(?:言っていない|言ってない|言わない|言っていません)/.test(after)) continue;
+      return true;
+    }
+    return false;
+  }
+
   // Family/care interactions remain possible, but cannot satisfy romance.
   // Metadata is checked against the story; meaning and relationships must also
   // be checked against the selected character, profile and world settings.
@@ -452,10 +474,13 @@
     const records = args && Array.isArray(args.records) ? args.records : [];
     const input = args && args.protagonistInput || "";
     const recent = records.slice(-2);
-    const pause = /(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/.test(input);
+    // Version 1 receipts are replayed with their original applicability rules.
+    // Current generation cannot release a legacy receipt (see releaseStory).
+    const legacyReview = storyActions?.semanticReview?.version === 1;
+    const pause = legacyReview ? /(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/.test(input) : explicitRomancePause(input);
     const requested = /(?:恋愛(?:を|が)?進め|恋愛したい|恋愛の進展|ロマンスを進め|求愛して)/.test(input);
     const immediateCare = /(?:空腹|飢え|食事が届か|食べ(?:ていない|られない)|寒い|凍え)/.test(input);
-    const required = !pause && (requested || stalledRomance(input) ||
+    const required = !pause && (requested || (!legacyReview && romanticDistrust(input)) || stalledRomance(input) ||
       (!immediateCare && recent.length === 2 && recent.every(entry => stalledRomance(entry && entry.protagonist))));
     const progress = storyActions && storyActions.romanceProgress;
     const errors = [];
@@ -692,6 +717,7 @@
     const inspection = packet ? inspectStory(args,packet,story,storyActions) : {validation:validateContinuity(args,story,storyActions)};
     const validation = inspection.validation;
     if(!validation.ok || !validation.readyForOutput) fail('本文を出力できません: ' + validation.errors.join('／'));
+    if(storyActions.semanticReview?.version !== policy.storyDirection.reviewVersion) fail('本文を出力できません: 現行のprepareStoryReviewで、主人公を一番に選ぶ共通方針を含めて本文を確認してください。旧確認票は作成済みの章の再検証に限ります。');
     return {story,...inspection};
   }
   const api = Object.freeze({

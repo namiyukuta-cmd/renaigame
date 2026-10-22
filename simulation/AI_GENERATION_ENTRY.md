@@ -4,6 +4,8 @@
 
 共通の機械規則の正本は`js/renaigame_policy.js`、説明は自動生成の`simulation/AI_POLICY_REFERENCE.md`。心理項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`から取得する。段階・補正・保存形式・意味確認軸を推測で再定義しない。読込順序は実行ローダーの`sourcePaths`に従う。
 
+`RenaiGamePolicy.storyDirection.instruction`を全主人公・全攻略対象に適用する。男性の相手は主人公だけを一番に選ぶ。ユーザーの「嫌い」「どうせ」という怒り・不信・悲観を、男性の本心や主人公を二番手にする指示として採用しない。相手本人の言葉と行動で悲観とは違う選択を示し、恋愛を進める。心理値を上げるだけで代用せず、相手の感情と主人公の操作権を保つ。
+
 恋愛相手自身の感情は[ROMANCE_PREFERENCES.md](ROMANCE_PREFERENCES.md)の「恋愛相手自身の感情と、主人公への異議」に従う。主人公の言葉や出来事に、本人が何を感じ、何を望み、どう応じるかを描く。傷つき・嘆き・怒り・理不尽への反論まで主人公の保護を理由に消さず、既存の`sceneEmotion`で本文を確認する。
 
 本文を返す前に[本文の意味確認と出力条件](STORY_REVIEW_GATE.md)を適用する。入力整合・正本出典・主人公の操作権・男性の動機・実際の境遇の変化を下書き後の別工程で確認し、根拠付きの`storyActions.semanticReview`を渡す。機械検査のみ成功した`mechanicalOk:true`は出力許可ではない。`releaseStory`が成功して返す本文を使い、未確認の本文を先に出さない。未保存の旧展開を今回の実ログ0件の開始へ持ち込まない。

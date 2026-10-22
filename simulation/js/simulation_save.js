@@ -967,7 +967,7 @@
     // a binding to different canon, input, story or declarations. The normal
     // psychology replay and every semantic-review check still run below.
     if(context.storyActions?.handoffView === 'history-references-v1' &&
-       context.storyActions.semanticReview?.binding === engine.prepareStoryReview({...args,stateEntry:canonicalStateEntry},record.partner,context.storyActions).binding){
+       context.storyActions.semanticReview?.binding === engine.validateSemanticReview({...args,stateEntry:canonicalStateEntry},record.partner,context.storyActions).binding){
       args.stateEntry = canonicalStateEntry;
     }
     const verification = engine.verifyTurn(args, packet);

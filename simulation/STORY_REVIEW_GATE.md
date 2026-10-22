@@ -38,6 +38,8 @@
 
 恋愛の動機と小説の仕上げでは、現在の恋情が主人公一人へ向いているかも確認する。別の女性への恋情を維持しながら主人公にも求愛する構成や、婚姻・子への責任を二人への恋愛感情として描く構成にしない。男性の片思い・求愛は主人公側の同意や好意と区別し、初期設定にある恋情を一律0へ戻さない。
 
+怒り・不信・「嫌い」「どうせ愛されない」という悲観は、男性の本心や恋愛停止の指示と区別する。主人公だけを一番に選ぶ固定方針に従い、男性本人が言葉と実際の行動で応答しているかを既存の入力整合・正本出典・恋愛の動機の軸で確認する。現行の確認では、この場面で恋愛の応答を省略して`not_applicable`にしない。相手の傷つき・怒り・反論を残しつつ、愛情の撤回・二番手扱い・見捨てへ変えていないかも読む。主人公の納得や許しを確認の根拠として捏造しない。
+
 ### 小説としての仕上げの確認記録
 
 `checks.literaryQuality`には通常のstatus/reason/quotes/sourcesに加え、`revisionNote`と`aspects`を記録する。`prepareStoryReview`は各観点もpendingで作り、合格を自動生成しない。
@@ -56,6 +58,8 @@
 ## 確認記録
 
 prepareStoryReviewの返すversion/binding/pass/freshStart/usedUnsavedDraft/checksを使う。各checkは次の形にする。
+
+新規生成は`RenaiGamePolicy.storyDirection.reviewVersion`（現在2）の票を使う。章JSONの版とは別で、bindingにも確認の版を結び付ける。`releaseStory`は現行票を必須とし、版番号だけの書換えは通さない。作成済みのversion 1票は元のbinding・適用条件で再検証し、本文や旧票の変更・恋愛宣言の後付けを要求しない。
 
 ```json
 {

@@ -61,7 +61,7 @@
 
 prepareStoryReviewの返すversion/binding/pass/freshStart/usedUnsavedDraft/checksを使う。各checkは次の形にする。
 
-新規生成は`RenaiGamePolicy.storyDirection.reviewVersion`（現在2）の票を使う。章JSONの版とは別で、bindingにも確認の版を結び付ける。`releaseStory`は現行票を必須とし、版番号だけの書換えは通さない。作成済みのversion 1票は元のbinding・適用条件で再検証し、本文や旧票の変更・恋愛宣言の後付けを要求しない。
+新規生成は`RenaiGamePolicy.storyDirection.reviewVersion`（現在3）の票を使う。章JSONの版とは別で、bindingにも確認の版を結び付ける。選択済みの新規章は、通常の会話や看病でも恋愛軸を必須とし、明示された休止等を除き`not_applicable`にはできない。`releaseStory`は現行票を必須とし、版番号だけの書換えは通さない。作成済みのversion 1・2票は元のbinding・適用条件で再検証し、本文や旧票の変更・恋愛宣言の後付けを要求しない。
 
 ```json
 {

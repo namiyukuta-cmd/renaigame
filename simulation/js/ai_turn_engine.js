@@ -492,13 +492,15 @@
     const records = args && Array.isArray(args.records) ? args.records : [];
     const input = args && args.protagonistInput || "";
     const recent = records.slice(-2);
-    // Version 1 receipts are replayed with their original applicability rules.
+    // Historical receipts are replayed with their original applicability rules.
     // Current generation cannot release a legacy receipt (see releaseStory).
     const legacyReview = storyActions?.semanticReview?.version === 1;
+    const historicalReview = [1,2].includes(storyActions?.semanticReview?.version);
     const pause = legacyReview ? /(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/.test(input) : explicitRomancePause(input);
     const requested = /(?:恋愛(?:を|が)?進め|恋愛したい|恋愛の進展|ロマンスを進め|求愛して)/.test(input);
     const immediateCare = /(?:空腹|飢え|食事が届か|食べ(?:ていない|られない)|寒い|凍え)/.test(input);
-    const required = !pause && (requested || (!legacyReview && romanticDistrust(input)) || stalledRomance(input) ||
+    const selected = args?.characterId != null || record(args?.character) || record(args?.stateEntry);
+    const required = !pause && ((!historicalReview && selected) || requested || (!legacyReview && romanticDistrust(input)) || stalledRomance(input) ||
       (!immediateCare && recent.length === 2 && recent.every(entry => stalledRomance(entry && entry.protagonist))));
     const progress = storyActions && storyActions.romanceProgress;
     const errors = [];

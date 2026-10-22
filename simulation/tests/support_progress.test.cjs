@@ -79,7 +79,11 @@ const turnArgs = {...args, saveId: "run_support_test", characterId: "char_003",
 const packet = engine.runTurn(turnArgs), packetBefore = JSON.stringify(packet);
 assert.equal(engine.verifyTurn(turnArgs, packet).ok, true);
 assert.equal(engine.validateStory(turnArgs, packet, story).mechanicalOk, false);
-assert.equal(engine.validateStory(turnArgs, packet, story, actions(progress)).mechanicalOk, true);
+assert.equal(engine.validateStory(turnArgs, packet, story, actions(progress)).mechanicalOk, false,
+  'family support alone cannot complete a selected romance chapter');
+const approach=turnArgs.character.name+'は、自分から会いに来た。',intent='「あなたに会いたかった。二人で話したい」';
+const romantic=require('./helpers/romance_declaration.cjs')(turnArgs,approach,intent);
+assert.equal(engine.validateStory(turnArgs,packet,story+'\n'+approach+'\n'+intent,{...actions(progress),...romantic}).mechanicalOk,true);
 assert.equal(JSON.stringify(packet), packetBefore, "progress checks do not adjust psychology to fit the story");
 
 // AI handoffs carry the outcome rule; no dependency on a browser DOM.

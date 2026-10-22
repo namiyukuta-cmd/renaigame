@@ -5,6 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'../..'),read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const runtime=require('../js/ai_turn_runtime.js'),engine=require('../js/ai_turn_engine.js');
 const reviewed=require('./helpers/review_fixture.cjs'),copy=value=>JSON.parse(JSON.stringify(value));
+const romantic=require('./helpers/romance_declaration.cjs');
 const header='Chapter 1\n都・庭／2026年10月22日（木）／15:00／18℃\n';
 const unnamed={saveId:'run_shared_unnamed',protagonistInput:'「お話ししたいです。」',protagonistProfile:{},records:[]};
 const vanished=header+'女君は存在を保てず霧散しました。\n男性は大喜びでした。';
@@ -25,14 +26,21 @@ function check(scope,args,packet,save,character){
   const lite=scope.RenaiGameLite.buildPrompt(save,args.protagonistInput,scope.RenaiGameSave);
   for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.instruction),'both handoffs use the same shared instruction');
   for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.beforeDraft),'both handoffs require original records and actual execution before drafting');
-  const good=sceneHeader+(character?.name||'青年')+'は、自分から話を聞きたいと伝えた。';
+  for(const prompt of [normal,lite]){
+    assert.ok(prompt.includes(p.storyDirection.turnInstruction),'ordinary chapters receive the romance objective');
+    assert.ok(prompt.includes(p.storyDirection.expressionRule),'restraint controls expression, not whether romance is allowed');
+  }
+  const actor=character?.name||'青年',approach=actor+'は、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+  const good=sceneHeader+approach+'\n'+intent;
+  const declarations=romantic(args,approach,intent,actor);
+  if(!character)declarations.romanceProgress.motivation={source:'profile',field:'free',quote:args.protagonistProfile.free};
   const pending=e.prepareStoryReview(args,good);
   for(const [axis,guidance]of Object.entries(p.storyDirection.reviewGuidance)){
     assert.equal(pending.checks[axis].status,'pending');
     assert.equal(pending.checks[axis].guidance,guidance,'review guidance is shared across all protagonists');
   }
   assert.equal(pending.checks.literaryQuality.aspects.concreteProgress.guidance,p.storyDirection.reviewGuidance.romanceMotivation);
-  assert.equal(e.releaseStory(args,packet,good,reviewed(e,args,good)).story,good);
+  assert.equal(e.releaseStory(args,packet,good,reviewed(e,args,good,declarations)).story,good);
   const name=args.protagonistProfile.name;
   for(const text of [name+'は霧散した。',name+'は誰にも必要とされない存在だった。','女君は霧散しました。']){
     const bad=sceneHeader+text,actions=reviewed(e,args,bad);
@@ -41,8 +49,8 @@ function check(scope,args,packet,save,character){
     assert.throws(()=>e.releaseStory(args,packet,bad,actions),/死亡|消滅|存在否定|見捨て|不要/);
   }
   for(const text of ['庭の霧が霧散しました。',name+'の前で庭の霧が霧散しました。','女君の前で庭の霧が霧散しました。','もし'+name+'が霧散したら、と男性はその仮定を打ち消した。']){
-    const allowed=sceneHeader+text;
-    assert.equal(e.releaseStory(args,packet,allowed,reviewed(e,args,allowed)).story,allowed,'ordinary fog and hypothetical events remain distinct');
+    const allowed=sceneHeader+text+'\n'+approach+'\n'+intent;
+    assert.equal(e.releaseStory(args,packet,allowed,reviewed(e,args,allowed,declarations)).story,allowed,'ordinary fog and hypothetical events remain distinct');
   }
   assert.equal(JSON.stringify({args,packet,save}),before,'shared rules do not rewrite scores, protagonists, stories or saves');
 }
@@ -65,7 +73,7 @@ const scope={};
 for(const file of ['js/renaigame_policy.js','simulation/js/ai_turn_engine.js'])
   new Function('window','globalThis','module','require',read(file))(scope,scope,undefined,undefined);
 installUI(scope);
-const args={...unnamed,protagonistProfile:{name:'新しい主人公'},characterId:null};
+const args={...unnamed,protagonistProfile:{name:'新しい主人公',free:'隣家の青年は、主人公に会って話をしたいと願っている。'},characterId:null};
 const save={version:2,game:'simulation',saveId:args.saveId,state:{profile:copy(args.protagonistProfile),selectedCharacterId:null,session:{id:args.saveId,recordsByCharacter:{__unassigned__:[]},statesByCharacter:{}}}};
 check(scope,args,null,save,null);
 const continuingSave=copy(save),past={scene:'Chapter 1',protagonist:args.protagonistInput,partner:header+'青年は話を聞きたいと伝えた。'};

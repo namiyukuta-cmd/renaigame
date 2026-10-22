@@ -233,8 +233,9 @@ assert.equal(continuedHigekuro.after.dutyPressure,continuingHigekuro.dutyPressur
 assert.equal(JSON.stringify(higekuroInitial),initialHigekuroSnapshot,'新規用の初期値を継続心理で書き換えない');
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.setting.city=null,/city/)}),/人物設定が未完成/);
 assert.throws(()=>engine.runTurn({...args,character:invalid(c=>c.common.occupation="主人公は現在の殺害依頼の対象である。",/殺害・排除/)}),/人物設定が未完成/);
-const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n“Hello.”\n「こんにちは。」";
-const reviewActions=require('./helpers/review_fixture.cjs')(engine,args,greeting);
+const approach=character.name+'は自分から声をかけた。',intent='「またあなたに会いたいと思っていました」';
+const greeting="Chapter 1\nイングランド・ヨーク／2026年10月15日（木）／17:40／12℃\n"+approach+'\n'+intent;
+const reviewActions=require('./helpers/review_fixture.cjs')(engine,args,greeting,require('./helpers/romance_declaration.cjs')(args,approach,intent));
 assert.equal(engine.validateStory(args,packet,greeting,reviewActions).ok,true);
 console.log("Character settings: all registered sources inspected; incomplete new settings blocked; char_008 runTurn / verifyTurn / validateStory passed.");
 

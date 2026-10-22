@@ -102,8 +102,10 @@ function test() {
     stageName: "告白前", seekHeroine: 70 }, "char_018").seekHeroine, 75,
     "進展済みの恋愛段階の下限は保持する");
 
-  const goodStory = "Chapter 1\nカフェ／2026年10月17日（土）／15:00／15℃\n“Hello.”\n「こんにちは」";
-  assert.equal(engine.validateStory(args, packet, goodStory).mechanicalOk, true);
+  const approach=args.character.name+'は自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+  const goodStory = "Chapter 1\nカフェ／2026年10月17日（土）／15:00／15℃\n"+approach+'\n'+intent;
+  const goodActions=require('./helpers/romance_declaration.cjs')(args,approach,intent);
+  assert.equal(engine.validateStory(args, packet, goodStory,goodActions).mechanicalOk, true);
   assert.equal(engine.validateStory(args, packet, "“Hello.”").mechanicalOk, false);
   assert.equal(engine.validateStory(args, modified, goodStory).mechanicalOk, false);
 
@@ -168,7 +170,7 @@ function test() {
   assert.equal(engine.verifyTurn(invitationArgs, shy).ok, true);
   assert.equal(engine.validateStory(invitationArgs, shy, goodStory).mechanicalOk, false);
   const inviteStory = goodStory + "\n“Would you like to spend a little more time with me at my place?”\n「よければ、僕の家でもう少し一緒に過ごしませんか」";
-  assert.equal(engine.validateStory(invitationArgs, shy, inviteStory, {yoinomaInvitation: "indirect"}).mechanicalOk, true);
+  assert.equal(engine.validateStory(invitationArgs, shy, inviteStory, {...goodActions,yoinomaInvitation: "indirect"}).mechanicalOk, true);
   const directArgs = {...invitationArgs, character: {...invitationArgs.character,
     common: {...invitationArgs.character.common, baseRomanticInitiative: 10}}};
   assert.equal(engine.runTurn(directArgs).evaluations.evaluateYoinomaInvitation.mode, "direct");
@@ -281,7 +283,10 @@ function test() {
   const confrontationPacket=engine.runTurn(confrontationArgs);
   assert.equal(engine.verifyTurn(confrontationArgs,confrontationPacket).ok,true);
   const response="Chapter 38\n家／2026年10月15日（木）／18:00／12℃\n“I said those words. I will answer for them.”\n「あの言葉を言った。言ったことについて、きちんと答える。」";
-  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,response).mechanicalOk,true);
+  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,response).mechanicalOk,false,
+    'accountability alone does not complete a selected romance chapter');
+  const continuedResponse=response+'\n'+approach+'\n'+intent;
+  assert.equal(engine.validateStory(confrontationArgs,confrontationPacket,continuedResponse,goodActions).mechanicalOk,true);
   assert.equal(engine.validateContinuity({protagonistProfile:{name:"美奈"}},"美奈は死んだ。").mechanicalOk,false);
   assert.equal(engine.validateContinuity({},"“I am glad you died.”").mechanicalOk,false);
   assert.equal(engine.validateContinuity({},"最初から主人公が嫌いだった。").mechanicalOk,false);

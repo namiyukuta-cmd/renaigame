@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const {spawnSync} = require('node:child_process');
 const runtime = require('../js/ai_turn_runtime.js');
 const reviewedActions = require('./helpers/review_fixture.cjs');
+const romantic=require('./helpers/romance_declaration.cjs');
 const root = path.resolve(__dirname,'../..');
 const read = file=>fs.readFileSync(path.join(root,file),'utf8');
 const copy = value=>JSON.parse(JSON.stringify(value));
@@ -15,7 +16,8 @@ const sources = Object.fromEntries(runtime.sourcePaths(characterId).map(file=>[f
 const initial=JSON.parse(read('simulation/state/templates/char_016_initial_state.json'));
 const save={saveId,state:{profile:{name:'実行検査',age:'22',free:''},selectedCharacterId:characterId,session:{id:saveId,recordsByCharacter:{[characterId]:[]},statesByCharacter:{[characterId]:initial}}}};
 const input={saveId,characterId,protagonistInput:'Chapter1\n「ありがとう。」',changes:{gratitude:2},evidence:{gratitude:'ありがとう。'},recordIndices:[],storyActions:{}};
-const story='Chapter 1\n英国・大学／2026年10月17日（土）／15:20／13℃\n\nアーサーは頷いた。';
+const approach='アーサーは書物を閉じ、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+const story='Chapter 1\n英国・大学／2026年10月17日（土）／15:20／13℃\n\n'+approach+'\n'+intent;
 const setup = overrides=>runtime.createRuntime({sources,save,saveId,characterId,...overrides});
 
 // Regression: the former documented loader omits the settings validator.
@@ -25,7 +27,11 @@ assert.throws(()=>oldScope.RenaiGameTurnEngine.runTurn({...input,character:oldSc
 
 const original=JSON.stringify({save,input});
 const runner=setup(),turn=runner.runTurn(input);
-const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,runner.buildArgs(input),story);
+const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,runner.buildArgs(input),story,romantic(runner.buildArgs(input),approach,intent));
+assert.equal(turn.generationDirection.objective,runner.scope.RenaiGamePolicy.storyDirection.turnInstruction);
+assert.equal(turn.generationDirection.psychologyUse,runner.scope.RenaiGamePolicy.storyDirection.expressionRule);
+assert.equal(turn.generationDirection.stage.id,turn.packet.after.stage);
+assert.equal(turn.packet.generationDirection,undefined,'generation guidance is not part of persisted psychology');
 assert.equal(turn.verification.ok,true);
 assert.equal(turn.packet.execution.invoked.length,7);
 assert.equal(runner.validateStory(input,turn.packet,story,actions).validation.ok,true);

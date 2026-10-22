@@ -6,6 +6,7 @@ const os = require('node:os');
 const vm = require('node:vm');
 const { spawnSync } = require('node:child_process');
 const reviewedActions = require('./helpers/review_fixture.cjs');
+const romantic=require('./helpers/romance_declaration.cjs');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root,file), 'utf8');
 const copy = value => JSON.parse(JSON.stringify(value));
@@ -28,8 +29,9 @@ const args = {
   changes: {gratitude:2}, evidence: {gratitude:'ありがとう。'}
 };
 const packet = engine.runTurn(args);
-const partner = 'Chapter 1\n英国・店内／2026年10月17日（土）／15:00／15℃\n\nアーサーは頷いた。';
-const actions = reviewedActions(engine,args,partner);
+const approach='アーサーは書物を閉じ、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+const partner = 'Chapter 1\n英国・店内／2026年10月17日（土）／15:00／15℃\n\n'+approach+'\n'+intent;
+const actions = reviewedActions(engine,args,partner,romantic(args,approach,intent));
 const input = {
   args, packet, partner, chapter:1, date:'2026年10月17日（土）',
   verification:engine.verifyTurn(args,packet), validation:engine.validateStory(args,packet,partner,actions),
@@ -89,13 +91,13 @@ async function main(){
   assert.throws(()=>api.createChapterBundleV2({...input,chapter:2}),/次のChapter/);
 
   const unknownStory=partner.replace('2026年10月17日（土）／15:00／15℃','不明／不明／不明℃');
-  const unknownActions=reviewedActions(engine,args,unknownStory);
+  const unknownActions=reviewedActions(engine,args,unknownStory,romantic(args,approach,intent));
   assert.throws(()=>api.createChapterBundleV2({...input,partner:unknownStory,storyActions:unknownActions}),/本文/,'producer rejects an invalid header even with a completed review and an old passing validation');
 
   const savedRecords=[copy(bundle.records[0].entry)];
   const nextArgs={...args,stateEntry:{currentState:packet.after,stateHistory:[{turn:1}]},records:savedRecords,protagonistInput:args.protagonistInput.replace('Chapter1','Chapter2')};
   const nextPacket=engine.runTurn(nextArgs), nextStory=partner.replace('Chapter 1','Chapter 2');
-  const nextActions=reviewedActions(engine,nextArgs,nextStory);
+  const nextActions=reviewedActions(engine,nextArgs,nextStory,romantic(nextArgs,approach,intent));
   const nextInput={...input,args:nextArgs,packet:nextPacket,partner:nextStory,chapter:2,savedRecords,recordIndices:[0],storyActions:nextActions,verification:engine.verifyTurn(nextArgs,nextPacket),validation:engine.validateStory(nextArgs,nextPacket,nextStory,nextActions)};
   const next=api.createChapterBundleV2(nextInput);
   assert.equal(next.records[0].index,1);

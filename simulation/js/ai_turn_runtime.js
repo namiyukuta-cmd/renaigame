@@ -127,7 +127,11 @@
     function runTurn(input){
       const args = buildArgs(input), packet = engine.runTurn(args), verification = engine.verifyTurn(args,packet);
       if(!verification.ok) fail('心理計算の再検証失敗: ' + verification.errors.join('／'));
-      return {packet,verification,context:clone(context)};
+      const policy=scope.RenaiGamePolicy,stage=policy.stages.find(item=>item.id===packet.after.stage);
+      return {packet,verification,context:clone(context),generationDirection:{
+        objective:policy.storyDirection.turnInstruction,psychologyUse:policy.storyDirection.expressionRule,
+        stage:clone(stage || policy.stages[0])
+      }};
     }
     function validateStory(input,packet,story,storyActions = {}){
       const args = buildArgs(input), {verification,validation} = engine.inspectStory(args,packet,story,storyActions);

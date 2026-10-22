@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const runtime=require('../js/ai_turn_runtime.js'),reviewedActions=require('./helpers/review_fixture.cjs');
+const romantic=require('./helpers/romance_declaration.cjs');
 const root=path.resolve(__dirname,'../..'),read=file=>fs.readFileSync(path.join(root,file),'utf8'),copy=value=>JSON.parse(JSON.stringify(value));
 assert.ok(fs.existsSync(path.join(root,'simulation-lite/ai_save.js')),'AI needs a direct save path that does not require a browser or a pasted JSON');
 const scope={},context={window:scope};
@@ -13,8 +14,9 @@ function bundleFor(full,chapter,reviewFullHistory=false){
   const snapshot=reviewFullHistory?full:api.createCompactHandoff(full),records=snapshot.state.session.recordsByCharacter.char_016;
   const runner=runtime.createRuntime({sources,save:snapshot,saveId:id,characterId:'char_016'});
   const input={protagonistInput:'Chapter'+chapter+'\n「ありがとう。」',changes:{gratitude:1},evidence:{gratitude:'ありがとう。'}};
-  const story='Chapter '+chapter+'\n英国・店内／2026年10月18日（日）／15:0'+chapter+'／15℃\n\nアーサーは頷いた。';
-  const args=runner.buildArgs(input),run=runner.runTurn(input),actions=reviewedActions(runner.scope.RenaiGameTurnEngine,args,story,{handoffView:'history-references-v1'}),released=runner.releaseStory(input,run.packet,story,actions);
+  const approach='アーサーは書物を閉じ、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+  const story='Chapter '+chapter+'\n英国・店内／2026年10月18日（日）／15:0'+chapter+'／15℃\n\n'+approach+'\n'+intent;
+  const args=runner.buildArgs(input),run=runner.runTurn(input),actions=reviewedActions(runner.scope.RenaiGameTurnEngine,args,story,{handoffView:'history-references-v1',...romantic(args,approach,intent)}),released=runner.releaseStory(input,run.packet,story,actions);
   vm.runInNewContext(sources['simulation/js/simulation_save.js'],{window:runner.scope});
   return runner.scope.RenaiGameSave.createChapterBundleV2({args,packet:run.packet,verification:released.verification,validation:released.validation,chapter,date:'2026年10月18日（日）',partner:story,savedRecords:records,recordIndices:records.map((_,i)=>i),storyActions:actions});
 }

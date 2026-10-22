@@ -66,7 +66,7 @@ const input = {
   yoinomaContext: actualYoinomaContext
 };
 const turn = runner.runTurn(input);
-// turn.packet.after/evaluations、人物設定・行動設定、実ログから本文を下書きする。
+// turn.generationDirectionとpacket.after/evaluations、人物設定・行動設定、実ログから恋愛を主軸に下書きする。
 // 推敲後にprepareStoryReviewの確認票へ実際の意味確認を記入する。
 const released = runner.releaseStory(input, turn.packet, generatedStory, actualStoryActions);
 // 成功したreleased.storyを返し、verification/validation/contextを保持する。

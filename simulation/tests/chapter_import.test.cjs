@@ -1,4 +1,5 @@
 const reviewedActions=require('./helpers/review_fixture.cjs');
+const romantic=require('./helpers/romance_declaration.cjs');
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict'), path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const files = new Map(), local = new Map(), pending = new Map(), commits = new Map();
@@ -39,8 +40,9 @@ const initial=JSON.parse(fs.readFileSync(root+'/simulation/state/templates/char_
 const prefix='renaigame/simulation/saves/', id='run_import_test', characterId='char_007', profile={name:'取込テスト',age:'41',free:''};
 const current={version:2,saveId:id,hasSave:true,game:'simulation',page:'simulation_new.html',updatedAt:'old',meta:{id,protagonistName:profile.name,partnerName:'エミール',selectedCharacterId:characterId,updatedAt:'old'},state:{profile,selectedCharacterId:characterId,session:{id,recordsByCharacter:{},statesByCharacter:{}}},storage:{format:'chapter-files-v1',characters:{}}};
 const args={saveId:id,characterId,character:sandbox.window.SimulationCharacter007,behavior:sandbox.window.SimulationCharacter007Behavior,psychology,stateEntry:initial,records:[],protagonistProfile:profile,protagonistInput:'Chapter1\n「ありがとう。」',changes:{gratitude:2},evidence:{gratitude:'ありがとう。'},yoinomaContext:{}};
-const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／08:00／10℃\n\nエミールは静かに頷いた。';
-const actions=reviewedActions(engine,args,story);
+const approach='エミールは椅子を寄せ、自分から声をかけた。',intent='「あなたと二人で話す時間を取りたくて、仕事を終わらせてきた」';
+const packet=engine.runTurn(args), story='Chapter 1\nスウェーデン・家／2026年10月13日（火）／08:00／10℃\n\n'+approach+'\n'+intent;
+const actions=reviewedActions(engine,args,story,romantic(args,approach,intent));
 const bundle={version:1,saveId:id,characterId,chapter:1,records:[{index:0,entry:{scene:'Chapter 1',date:'2026-10-13',protagonist:args.protagonistInput,partner:story}}],stateHistory:[{index:0,entry:{turn:1,scene:'Chapter 1',...packet,verification:engine.verifyTurn(args,packet),validation:engine.validateStory(args,packet,story,actions),packet}}],replayContext:{recordIndices:[],storyActions:actions}};
 const copy=x=>JSON.parse(JSON.stringify(x));
 function v2Bundle(value){
@@ -55,7 +57,7 @@ async function main(){
   const before=JSON.stringify([...files]);
   const futureArgs={...args,protagonistInput:'主人公が身罷られたら、という仮定について話した。',changes:{},evidence:{}};
   const futurePacket=engine.runTurn(futureArgs),futureStory=story+'\nエミールは、あくまで仮定の話だと確かめた。';
-  const futureActions=reviewedActions(engine,futureArgs,futureStory);
+  const futureActions=reviewedActions(engine,futureArgs,futureStory,romantic(futureArgs,approach,intent));
   const futureBundle=api.createChapterBundleV2({args:futureArgs,packet:futurePacket,verification:engine.verifyTurn(futureArgs,futurePacket),validation:engine.validateStory(futureArgs,futurePacket,futureStory,futureActions),chapter:1,date:'2026年10月13日（火）',partner:futureStory,savedRecords:[],recordIndices:[],storyActions:futureActions});
   const futureSnapshot=JSON.stringify(futureBundle);
   assert.equal((await api.prepareChapterImport(futureBundle)).chapter,1,'標準version 2も未発生の死を死亡確定として拒否しない');
@@ -83,7 +85,7 @@ async function main(){
   await assert.rejects(api.prepareChapterImport(corruptV2),/指紋/);
   const unknown=copy(bundle);
   unknown.records[0].entry.partner=story.replace('2026年10月13日（火）／08:00／10℃','不明／不明／不明℃');
-  unknown.replayContext.storyActions=reviewedActions(engine,args,unknown.records[0].entry.partner);
+  unknown.replayContext.storyActions=reviewedActions(engine,args,unknown.records[0].entry.partner,romantic(args,approach,intent));
   await assert.rejects(api.prepareChapterImport(unknown),/Chapterヘッダ/,'selected import rechecks the actual header instead of trusting an old ok:true');
   const preview=await api.prepareChapterImport(compact);
   assert.equal(preview.chapter,1);assert.equal(preview.protagonistName,profile.name);
@@ -132,7 +134,7 @@ async function main(){
     const turnArgs={...args,protagonistProfile:chapter===4?{}:profile,stateEntry:slot.state.session.statesByCharacter.char_007,records:indices.map(i=>logs[i]),protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
     const turnPacket=engine.runTurn(turnArgs);
     const turnStory=story.replace('Chapter 1','Chapter '+chapter);
-    const turnActions=reviewedActions(engine,turnArgs,turnStory);
+    const turnActions=reviewedActions(engine,turnArgs,turnStory,romantic(turnArgs,approach,intent));
     const next={version:1,saveId:id,characterId,chapter,records:[{index:chapter-1,entry:{scene:'Chapter '+chapter,date:'2026-10-13',protagonist:turnArgs.protagonistInput,partner:turnStory}}],stateHistory:[{index:chapter-1,entry:{turn:chapter,scene:'Chapter '+chapter,...turnPacket,verification:engine.verifyTurn(turnArgs,turnPacket),validation:engine.validateStory(turnArgs,turnPacket,turnStory,turnActions),packet:turnPacket}}],replayContext:chapter===2?{records:copy(turnArgs.records),storyActions:turnActions}:{recordIndices:indices,storyActions:turnActions}};
     const wrong=copy(next);wrong.replayContext={recordIndices:[999]};await assert.rejects(api.prepareChapterImport(wrong),/参照番号/);
     const mismatch=copy(next);mismatch.replayContext={recordIndices:chapter===2?[]:[0]};await assert.rejects(api.prepareChapterImport(mismatch),/指紋/);

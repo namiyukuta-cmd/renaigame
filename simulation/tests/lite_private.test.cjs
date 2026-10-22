@@ -2,6 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../..'),read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const runtime=require('../js/ai_turn_runtime.js'),reviewedActions=require('./helpers/review_fixture.cjs');
+const romantic=require('./helpers/romance_declaration.cjs');
 const copy=value=>JSON.parse(JSON.stringify(value));
 const local=new Map(),files=new Map(),trees=new Map(),commits=new Map(),requests=[];
 let head='original',counter=0,failPublish=false;
@@ -45,10 +46,11 @@ function chapter(save,number,compact=false,reviewFullHistory=false){
   const records=view.state.session.recordsByCharacter[characterId];
   const runner=runtime.createRuntime({sources,save:view,saveId:id,characterId,recordIndices:records.map((_,i)=>i)});
   const input={protagonistInput:'Chapter'+number+'\n「ありがとう。」',changes:{gratitude:1},evidence:{gratitude:'ありがとう。'}};
-  const story='Chapter '+number+'\n英国・店内／2026年10月18日（日）／15:0'+number+'／15℃\n\nアーサーは頷いた。';
+  const approach='アーサーは書物を閉じ、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
+  const story='Chapter '+number+'\n英国・店内／2026年10月18日（日）／15:0'+number+'／15℃\n\n'+approach+'\n'+intent;
   const args=runner.buildArgs(input),run=runner.runTurn(input);
   const declarations=compact?{handoffView:'history-references-v1'}:{};
-  const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,args,story,declarations);
+  const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,args,story,{...declarations,...romantic(args,approach,intent)});
   const released=runner.releaseStory(input,run.packet,story,actions);
   vm.runInNewContext(sources['simulation/js/simulation_save.js'],{window:runner.scope});
   return runner.scope.RenaiGameSave.createChapterBundleV2({args,packet:run.packet,verification:released.verification,validation:released.validation,

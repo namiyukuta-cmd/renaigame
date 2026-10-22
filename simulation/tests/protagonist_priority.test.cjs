@@ -37,6 +37,17 @@ assert.throws(()=>engine.releaseStory(args,null,care,legacy),/現行のprepareSt
 const relabeled=JSON.parse(JSON.stringify(legacy));relabeled.semanticReview.version=engine.policy.storyDirection.reviewVersion;
 assert.equal(engine.validateContinuity(args,care,relabeled).ok,false,'changing a version number cannot update a historical review');
 
+// Ordinary dialogue must not need an extra "advance romance" command.
+const ordinary={saveId:'run_ordinary',characterId:'char_007',protagonistInput:'「お話を聞かせてください。」',protagonistProfile:{name:'検査役'},records:[]};
+assert.equal(engine.validateRomanceProgress(ordinary,care).required,true,
+  'romance is the default focus of a selected route, including its first chapter');
+assert.equal(engine.validateContinuity(ordinary,care,reviewed(engine,ordinary,care)).readyForOutput,false,
+  'a completed form cannot turn care-only prose into the main romance plot');
+const oldOrdinary=reviewed(engine,ordinary,care);
+oldOrdinary.semanticReview.version=2;oldOrdinary.semanticReview.binding='e7c0a29b';
+assert.equal(engine.validateContinuity(ordinary,care,oldOrdinary).ok,true,'original version 2 chapters retain their original applicability and binding');
+assert.throws(()=>engine.releaseStory(ordinary,null,care,oldOrdinary),/現行のprepareStoryReview/);
+
 const registry=[...read('simulation/js/simulation_characters.js').matchAll(/"simulation_character_(\d{3})\.js"/g)].map(match=>'char_'+match[1]);
 for(const characterId of registry){
   const saveId='run_priority_'+characterId,initial=JSON.parse(read('simulation/state/templates/'+characterId+'_initial_state.json'));
@@ -45,6 +56,20 @@ for(const characterId of registry){
   const sources=Object.fromEntries(runtime.sourcePaths(characterId).map(file=>[file,read(file)]));
   const runner=runtime.createRuntime({sources,save,saveId,characterId}),e=runner.scope.RenaiGameTurnEngine;
   const turn={protagonistInput:input,changes:{},evidence:{}},turnArgs=runner.buildArgs(turn),packet=runner.runTurn(turn).packet;
+  for(const protagonistInput of ['「こんにちは。」','「お話を聞かせてください。」','今日は寒い。']){
+    const normalArgs=runner.buildArgs({...turn,protagonistInput});
+    assert.equal(e.validateRomanceProgress(normalArgs,care).required,true,characterId+' must not wait for a romance keyword or exempt a care scene');
+    assert.equal(e.validateContinuity(normalArgs,care,reviewed(e,normalArgs,care)).readyForOutput,false);
+  }
+  const normalTurn={protagonistInput:ordinary.protagonistInput,changes:{},evidence:{}},normalArgs=runner.buildArgs(normalTurn),normalRun=runner.runTurn(normalTurn);
+  assert.equal(normalRun.generationDirection.stage.id,normalRun.packet.after.stage);
+  assert.equal(normalRun.generationDirection.objective,e.policy.storyDirection.turnInstruction);
+  const normalApproach=normalArgs.character.name+'は、主人公との会話を続けるために自分から声をかけた。';
+  const normalIntent='「もっとあなたのことを知りたい。次に会える時も、私からお声をかけたいのです」';
+  const normalStory=header+normalApproach+'\n'+normalIntent;
+  const normalProgress=require('./helpers/romance_declaration.cjs')(normalArgs,normalApproach,normalIntent);
+  assert.equal(runner.releaseStory(normalTurn,normalRun.packet,normalStory,reviewed(e,normalArgs,normalStory,normalProgress)).story,normalStory,
+    characterId+' can initiate a normal chapter without changing its psychology values');
   const before=JSON.stringify({save,turnArgs,packet});
   const actor=turnArgs.character.name;
   const action=actor+'は、二人で過ごすために取っていた時間を人任せにせず、自分の言葉で伝えた。';
@@ -65,4 +90,6 @@ for(const characterId of registry){
 }
 assert.match(engine.policy.storyDirection.instruction,/男性の恋愛相手は主人公だけを一番/);
 assert.match(engine.policy.storyDirection.instruction,/傷つき・悲しみ・怒り・反論/);
+assert.doesNotMatch(read('js/renaigame_romance_rules.js'),/恋愛感情なし。ほぼ他人|主人公が拒絶していない限り|最低1つ検討する/,
+  'the executable common rules must not reintroduce the old non-romance defaults');
 console.log('PASS: anger/distrust response for all '+registry.length+' partners, actual boundaries, legacy review replay and no score/save mutation; synthetic scenes only');

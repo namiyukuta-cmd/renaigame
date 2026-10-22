@@ -21,6 +21,8 @@
       root.RenaiGamePolicy.partnerEmotion.instruction,
       root.RenaiGamePolicy.storyDirection.instruction,
       root.RenaiGamePolicy.storyDirection.beforeDraft,
+      root.RenaiGamePolicy.storyDirection.turnInstruction,
+      root.RenaiGamePolicy.storyDirection.expressionRule,
       '保存先：namiyukuta-cmd/private-game-data / renaigame/simulation/saves/'+save.saveId+'.json',
       '保存方式：AI直接保存。「保存して」「記録と情報更新」で、接続済みGitHubツールを使ってこの非公開セーブをAIが更新し、保存コミットを再取得して確認してください。ユーザーによるJSONの貼り付けや保存ボタンを通常手順にしないでください。',
       '現在saveId：'+save.saveId+' / characterId：'+(save.state.selectedCharacterId||'null（未選択）'),

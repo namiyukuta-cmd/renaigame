@@ -451,6 +451,24 @@
     return typeof text === 'string' && policy.storyDirection.priorityConcernPatterns.some(pattern=>new RegExp(pattern).test(text));
   }
 
+  function partnerNames(args){
+    const c=args?.character;
+    return c ? [...new Set([c.name,c.englishName,c.common?.name]
+      .filter(name=>typeof name==='string' && name.trim())
+      .flatMap(name=>[name.trim(),name.trim().split(/[・\s]/)[0],name.trim().replace(/親王$/,'')])
+      .concat(policy.actorAliases[c.id] || []))] : [];
+  }
+  const nameText=value=>value.normalize('NFKC').replace(/[・\s]+/g,' ').trim().toLowerCase();
+  function matchesPartnerName(actor,names){
+    const key=nameText(actor),bare=key.replace(/(?:殿|様|さま|さん|くん|君)$/,'').trim();
+    return names.some(name=>[key,bare].includes(nameText(name)));
+  }
+  function actorMentioned(args,story,actor){
+    if(typeof actor!=='string' || !actor.trim()) return false;
+    const names=partnerNames(args);
+    return matchesPartnerName(actor,names) ? names.some(name=>nameText(story).includes(nameText(name))) : story.includes(actor);
+  }
+
   function explicitRomancePause(text) {
     const pauses = text.matchAll(/(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/g);
     for(const match of pauses){
@@ -494,7 +512,7 @@
         errors.push("実父・祖父・実兄弟などの血縁者を恋愛相手にしないでください。血縁関係のない男性との恋愛として設定を確認してください。");
       }
       const actor = typeof progress.actor === "string" ? progress.actor.trim() : "";
-      if (!actor || !story.includes(actor)) errors.push("恋愛相手の名前または呼称を本文中に示してください。");
+      if (!actorMentioned(args,story,actor)) errors.push("恋愛相手の名前または呼称を本文中に示してください。");
       if (/^(?:父|父親|実父|母|母親|実母|祖父|祖母|実兄|実弟|実姉|実妹|伯父|叔父|伯母|叔母|女房|侍女|女性の世話役)$/.test(actor) ||
           ["主人公", "彼女", "あなた", args && args.protagonistProfile && args.protagonistProfile.name].includes(actor)) {
         errors.push("家族・女性の世話役・主人公自身を男性の恋愛相手として申告しないでください。");
@@ -507,10 +525,8 @@
       }
       if (args && args.character) {
         const character = args.character;
-        const names = [character.name, character.englishName, character.common && character.common.name]
-          .filter(name => typeof name === "string" && name.trim())
-          .flatMap(name => [name.trim(), name.trim().split(/[・\s]/)[0], name.trim().replace(/親王$/, "")]);
-        if (names.length && !names.includes(actor)) errors.push("恋愛の実行者の名前が現在の男性攻略対象と一致しません。家族や世話役にIDだけを流用しないでください。");
+        const names = partnerNames(args);
+        if (names.length && !matchesPartnerName(actor,names)) errors.push("恋愛の実行者の名前が現在の男性攻略対象と一致しません。家族や世話役にIDだけを流用しないでください。");
         const gender = character.common && character.common.gender;
         if (gender !== undefined && !["male", "男性"].includes(gender)) errors.push("人物設定の恋愛相手が男性ではありません。男性限定の共通方針を確認してください。");
       }
@@ -543,7 +559,7 @@
       if (!["circumstance_change", "relationship_response"].includes(progress.kind)) {
         errors.push("支援の実行結果が必要です。日常の世話・申し出・準備だけを状況や関係の変化として申告しないでください。");
       }
-      if (typeof progress.actor !== "string" || !progress.actor.trim() || !story.includes(progress.actor)) {
+      if (!actorMentioned(args,story,progress.actor)) {
         errors.push("支援を実行した相手役・NPCを本文中の名前または呼称で指定してください。");
       }
       if (["主人公", "彼女", "あなた", args && args.protagonistProfile && args.protagonistProfile.name].includes(progress.actor)) {

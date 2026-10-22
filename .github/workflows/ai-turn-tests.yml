@@ -81,6 +81,7 @@ jobs:
       - run: node simulation/tests/chapter_header.test.cjs
       - run: node simulation/tests/support_progress.test.cjs
       - run: node simulation/tests/romance_progress.test.cjs
+      - run: node simulation/tests/actor_names.test.cjs
       - run: node tests/unassigned-continuity-import.test.cjs
       - run: node simulation/tests/ai_turn_runtime.test.cjs
       - run: node simulation/tests/ai_turn_sources.test.cjs

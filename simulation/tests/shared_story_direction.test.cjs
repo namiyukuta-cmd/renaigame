@@ -24,6 +24,7 @@ function check(scope,args,packet,save,character){
   const normal=scope.RenaiGameHandoff.buildPrompt({character,profile:save.state.profile,saveId:save.saveId,protagonistInput:args.protagonistInput});
   const lite=scope.RenaiGameLite.buildPrompt(save,args.protagonistInput,scope.RenaiGameSave);
   for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.instruction),'both handoffs use the same shared instruction');
+  for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.beforeDraft),'both handoffs require original records and actual execution before drafting');
   const good=sceneHeader+(character?.name||'青年')+'は、自分から話を聞きたいと伝えた。';
   const pending=e.prepareStoryReview(args,good);
   for(const [axis,guidance]of Object.entries(p.storyDirection.reviewGuidance)){

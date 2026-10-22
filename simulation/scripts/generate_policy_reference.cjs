@@ -20,6 +20,7 @@ function render(contract=policy,psychology=scope.window.RenaiGamePsychologyParam
     '興味だけでは恋愛欲求の発生を意味しない。主人公の意思・反応を補完しない。','',
     '## 全攻略対象・全主人公の進行方針','',
     contract.storyDirection.instruction,'',
+    contract.storyDirection.beforeDraft,'',
     ...Object.entries(contract.storyDirection.reviewGuidance).map(([axis,guidance])=>'- `'+axis+'`：'+guidance),'',
     '## 恋愛相手自身の感情','',
     contract.partnerEmotion.instruction,'',

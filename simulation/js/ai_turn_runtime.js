@@ -86,6 +86,9 @@
     const stateEntry = snapshot.state.session.statesByCharacter[characterId];
     if(stateEntry?.stateHistory !== undefined && !Array.isArray(stateEntry.stateHistory)) fail('正本の心理履歴が不正です。');
     if(stateEntry?.stateHistory?.length && !Array.isArray(snapshot.state.session.recordsByCharacter[characterId])) fail('心理履歴に対応する正本の実ログがありません。');
+    if((stateEntry?.stateHistory || []).length > savedRecords.length) fail('心理履歴に対応する実ログが不足しています。省略された章を取得し、空の履歴や初期値で代用しないでください。');
+    if(savedRecords.some(entry=>typeof entry.protagonist !== 'string' || !entry.protagonist.trim() ||
+       typeof entry.partner !== 'string' || !entry.partner.trim())) fail('実ログの主人公原文または相手の本文がありません。章の参照や要約で代用しないでください。');
     if(!object(stateEntry) && (savedRecords.length || !object(initialState))) fail('現在の心理stateがありません。既存の履歴を初期値で代用しないでください。');
     const state = clone(stateEntry || initialState);
     const indices = recordIndices === undefined ? savedRecords.map((_,index)=>index) : clone(recordIndices);

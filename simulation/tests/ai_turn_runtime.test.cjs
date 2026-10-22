@@ -29,6 +29,8 @@ const actions=reviewedActions(runner.scope.RenaiGameTurnEngine,runner.buildArgs(
 assert.equal(turn.verification.ok,true);
 assert.equal(turn.packet.execution.invoked.length,7);
 assert.equal(runner.validateStory(input,turn.packet,story,actions).validation.ok,true);
+assert.throws(()=>runner.releaseStory(input,null,story,actions),/心理計算パケット/,
+  'a selected route cannot use the unassigned release path to skip psychology');
 const fiveAxis=copy(actions);delete fiveAxis.semanticReview.checks.literaryQuality;
 assert.throws(()=>runner.validateStory(input,turn.packet,story,fiveAxis),/literaryQuality/,'selected-character turns also require the finishing review');
 assert.equal(turn.packet.sources.protagonistProfile,runner.scope.RenaiGameTurnEngine.fingerprint(save.state.profile));
@@ -83,12 +85,38 @@ assert.deepEqual(selected.context.recordIndices,[1,0]);
 assert.equal(selected.packet.sources.records,selection.scope.RenaiGameTurnEngine.fingerprint(withLogs.state.session.recordsByCharacter[characterId].slice().reverse()));
 const missingLogs=copy(withLogs);delete missingLogs.state.session.recordsByCharacter[characterId];
 assert.throws(()=>setup({save:missingLogs}),/正本の実ログがありません/);
+const emptyLogs=copy(withLogs);emptyLogs.state.session.recordsByCharacter[characterId]=[];
+assert.throws(()=>setup({save:emptyLogs}),/実ログ.*不足/,'persisted psychology cannot continue from a fabricated empty history');
+const truncatedLogs=copy(withLogs);truncatedLogs.state.session.recordsByCharacter[characterId].pop();
+assert.throws(()=>setup({save:truncatedLogs}),/実ログ.*不足/,'a dropped chapter cannot be treated as complete canon');
+for(const field of ['protagonist','partner']){
+  const metadataOnly=copy(withLogs);delete metadataOnly.state.session.recordsByCharacter[characterId][0][field];
+  assert.throws(()=>setup({save:metadataOnly}),/実ログ.*本文/,'chapter metadata is not the original text: '+field);
+}
 const malformedHistory=copy(withLogs);malformedHistory.state.session.statesByCharacter[characterId].stateHistory={};
 assert.throws(()=>setup({save:malformedHistory}),/心理履歴が不正/);
 delete withLogs.state.session.statesByCharacter[characterId];
 assert.throws(()=>setup({save:withLogs,initialState:initial}),/初期値で代用/);
 const newSlot=copy(save);delete newSlot.state.session.statesByCharacter[characterId];
 assert.equal(setup({save:newSlot,initialState:initial}).runTurn(input).verification.ok,true,'explicit initial state is allowed only for an empty slot');
+
+// A continuing eighth turn uses all seven original chapters and the actual
+// preceding calculation, rather than another initial state or a summary.
+const sevenChapters=copy(save);
+for(let chapter=1;chapter<=7;chapter++){
+  const current=setup({save:sevenChapters}),raw={...input,protagonistInput:'Chapter'+chapter+'\n「ありがとう。」'};
+  const measured=current.runTurn(raw);
+  sevenChapters.state.session.recordsByCharacter[characterId].push({scene:'Chapter '+chapter,protagonist:raw.protagonistInput,partner:story.replace('Chapter 1','Chapter '+chapter)});
+  const old=sevenChapters.state.session.statesByCharacter[characterId];
+  sevenChapters.state.session.statesByCharacter[characterId]={currentState:copy(measured.packet.after),stateHistory:[...(old.stateHistory||[]),{turn:chapter,fingerprint:measured.packet.fingerprint}]};
+}
+const next=setup({save:sevenChapters}),eighthInput={...input,protagonistInput:'Chapter8\n「ありがとう。」'};
+const canonBefore=JSON.stringify(sevenChapters),eighth=next.runTurn(eighthInput);
+assert.deepEqual(next.buildArgs(eighthInput).records,sevenChapters.state.session.recordsByCharacter[characterId]);
+assert.deepEqual(eighth.packet.before,sevenChapters.state.session.statesByCharacter[characterId].currentState);
+assert.equal(eighth.context.recordCount,7);assert.equal(eighth.context.stateHistoryCount,7);
+assert.equal(eighth.packet.sources.records,next.scope.RenaiGameTurnEngine.fingerprint(next.buildArgs(eighthInput).records));
+assert.equal(JSON.stringify(sevenChapters),canonBefore,'preparing the continuation never rewrites saved canon');
 
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ai-turn-runtime-'));
 try{

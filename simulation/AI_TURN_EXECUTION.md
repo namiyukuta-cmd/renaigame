@@ -2,12 +2,9 @@
 
 共通の段階・補正・保存形式・意味確認軸の正本は`js/renaigame_policy.js`。説明は自動生成の[AI_POLICY_REFERENCE.md](AI_POLICY_REFERENCE.md)を使う。各ファイルで定義を複製せず、変更後は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を実行する。
 
-本文の最終出力は[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)に従う。小説は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)の「小説としての仕上げ」に従い、**下書きの文学的推敲を終えてから**意味確認票を作る。形式のために文章を説明調へ戻さない。下書き後に`engine.prepareStoryReview(runner.buildArgs(input),draft,storyActions)`で未完了の確認票を作り、AIが仕上げを含む全確認軸を実際に照合して`storyActions.semanticReview`へ記録する。`checks.literaryQuality`の各観点は本文引用と理由、`revisionNote`を必須とする。`validateStory/validateContinuity`は意味確認未完了なら`ok:false`となる。`runner.releaseStory(input,packet,draft,storyActions).story`を最終本文に使う。確認票を自動で全passにしない。
+本文生成前に今回スロットの実ログ全文・現在心理を読み、取得した本物のJSで`runner.runTurn`を実行する。人物設定・規則の読了を計算の代用にしない。ローダーは心理履歴に対応する実ログの不足・原文欠落を拒否し、選択済みの`releaseStory`は計算パケットを必須とする。不足は同じ非公開正本から取得し、初期化・要約・未計算の本文で埋めない。
 
-Nodeの`run_ai_turn.cjs review <save.json> <input.json> <packet.json> <story.txt>`は未完了の確認票を返す。確認記録を入力ファイルのstoryActionsへ保持した後、同じ引数で`release`を使うと、検証成功時だけ本文が出力される。`run`や`review`の段階は本文出力の許可ではない。
-
-GitHubから取得した本物のJSを実行し、現在saveIdの正本から計算する。読んだだけで実行済みと扱わない。
-本文生成前にrunTurnとverifyTurnを成功させ、下書き生成後にvalidateStoryを成功させてから本文を返す。まだ下書きがない段階でvalidateStoryの成功を求めて処理を止めない。
+計算後は[AI_NOVEL_GENERATION_RULES.md](AI_NOVEL_GENERATION_RULES.md)に従って執筆・文学的推敲を行い、[STORY_REVIEW_GATE.md](STORY_REVIEW_GATE.md)の独立した意味確認を完了する。`checks.literaryQuality`の本文引用・各観点の理由・`revisionNote`も必須。確認票を自動合格にせず、`releaseStory`の成功した本文だけを返す。`run`や`review`は出力許可ではなく、まだ下書きがない段階で本文検証の成功を要求して停止しない。実行コードとCLIの用法は下記に示す。
 
 ## 通常Turnの最短手順（検査は省略しない）
 
@@ -41,13 +38,6 @@ const runner = loader.RenaiGameTurnRuntime.createRuntime({sources: loaded.source
 
 1. `simulation/js/ai_turn_runtime.js`（取得済みソースを同じwindowへ読み込む共通ローダー）
 2. ローダーの`sourcePaths(characterId)`が返すすべてのファイルを、同じリポジトリの同じコミットから取得する。ファイル数や順序を別途固定しない。
-   - `js/renaigame_policy.js`（共通の機械規則。最初に読み込む）
-   - `simulation/js/character_settings_validator.js`
-   - `js/renaigame_romance_rules.js`
-   - `js/renaigame_psychology_parameters.js`
-   - `simulation/js/ai_turn_engine.js`
-   - 対象の`simulation_character_XXX.js`
-   - 対象の`simulation_character_XXX_behavior.js`
 3. 指定saveIdの完全な正本セーブをprivate-game-dataから取得する。旧分割形式は先に全章を復元する。
 4. 今回の主人公入力原文を保持し、設定・現在心理・実ログに基づくchangesと入力原文からのevidenceを用意する。
 
@@ -55,7 +45,7 @@ const runner = loader.RenaiGameTurnRuntime.createRuntime({sources: loaded.source
 
 GitHubツールの`content[0].text`が`Action completed.`の場合、それは完了通知でありJSではない。fetch_fileをUTF-8で取得し、`structuredContent.content`のソース本文を使う。ローダーはこのツール応答オブジェクトを直接受け取ることもできる。base64は先にUTF-8へデコードする。
 
-取得済みソースをコードモードのローダーへ直接渡せる場合、実行のためだけにローカルファイルを再作成しない。Nodeでファイルが必要な場合は内容またはblob SHAを比較し、同一なら変更しない。更新は1回の置換とし、同じパッチで同一路径を削除・追加する重複操作は使わない。ファイル操作に失敗しても保持中の入力・計算結果を作り直さず、操作だけを修正する。
+取得済みソースは実行ツールへ直接渡す。Node用に保存するときは内容またはblob SHAを比較し、同一なら再書込みしない。更新は1回の置換とし、同一路径の削除・追加を重ねない。失敗時は保持中の入力・計算結果を作り直さず、操作だけを修正する。
 
 ## 実行方法A：コードモード等で取得済みソースを実行する
 
@@ -145,11 +135,6 @@ UTF-8のファイルとして書いた後の形式検査は`node simulation/scri
 
 packet.execution.invokedは7個のevaluate関数の実行証跡で、正規化の実行はnormalizedBefore/normalizedAfterにも記録される。fingerprintは照合値であり暗号署名ではない。機械検査は本文の意味・人物らしさ・主人公の未入力描写を完全には保証しない。外部ChatGPTのツール利用自体をリポジトリから強制する機能でもない。
 
-## 支援場面の本文検査
+## 支援と恋愛の本文検査
 
-`PROTAGONIST_CONTINUITY_RULES.md`の支援の実行結果の規定を適用する。入力・過去ログの苦痛や停滞を検出した場合は、`storyActions.continuity.supportProgress`に対応した問題の原文参照、実行者、対応と結果の本文引用を渡す。申し出・準備・同じ世話だけを結果と申告しない。失敗時は同じ章の本文を修正して再検査し、説明だけで終了しない。心理計算・過去ログ・主人公の未入力心理を成果に合わせて書き換えない。
-
-
-## 恋愛の進展を支援で置き換えない
-
-主人公の恋愛相手は男性限定。`ROMANCE_PREFERENCES.md`に従い、恋愛の進行を求めた章や停滞が反復した章では`storyActions.romanceProgress`を`validateStory`へ渡す。女性NPC・血縁者・別の攻略対象は恋愛の実行者にしない。生活支援の`supportProgress`が合格しても恋愛の進展が成立したとは扱わない。男性自身の行動と個人的な関心・希望が本文にあるか照合する。
+支援は`PROTAGONIST_CONTINUITY_RULES.md`、男性本人との恋愛は`ROMANCE_PREFERENCES.md`の規定を適用する。必要な`storyActions.continuity.supportProgress`と`storyActions.romanceProgress`を渡す。世話・準備を恋愛の進展へ読み替えず、実行・結果・本人の関心を本文と原文から照合する。不合格なら同じ章を修正・再検査し、心理・過去ログ・主人公の反応を改変して通さない。

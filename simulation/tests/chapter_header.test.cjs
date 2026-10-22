@@ -13,6 +13,7 @@ const args = {saveId:'run_header',characterId:'char_003',character:window.Simula
   stateEntry:require('../state/templates/char_003_initial_state.json'),records:[],
   protagonistInput:'「こんにちは」',changes:{},evidence:{}};
 const packet = engine.runTurn(args);
+const unassigned={saveId:'run_header_unassigned',characterId:null,records:[],protagonistInput:args.protagonistInput};
 const story = (detail,chapter=1) => `Chapter ${chapter}\n${detail}\n相手は「こんにちは」と答えた。`;
 const valid = '庭／2026年10月17日（土）／16:00／18.5℃';
 for (const detail of [valid,'都・門前／1001年10月17日（土）／09:05／-2℃',
@@ -20,7 +21,8 @@ for (const detail of [valid,'都・門前／1001年10月17日（土）／09:05�
   const text = story(detail), actions = reviewed(engine,args,text);
   assert.equal(engine.validateChapterHeader(text).ok,true,detail);
   assert.equal(engine.releaseStory(args,packet,text,actions).story,text);
-  assert.equal(engine.releaseStory(args,null,text,actions).story,text,'unselected path uses the same check');
+  assert.throws(()=>engine.releaseStory(args,null,text,actions),/心理計算パケット/,'a selected partner cannot masquerade as an unassigned chapter');
+  assert.equal(engine.releaseStory(unassigned,null,text,reviewed(engine,unassigned,text)).story,text,'a genuinely unselected path uses the same header check');
 }
 const invalid = [
   '庭／不明／不明／不明℃','不明／2026年10月17日（土）／16:00／18℃',
@@ -36,13 +38,14 @@ for (const chapter of [1,3]) for (const detail of invalid) {
   const text = story(detail,chapter), actions = reviewed(engine,args,text);
   const snapshot = JSON.stringify({args,packet,text,actions});
   assert.equal(engine.validateChapterHeader(text).ok,false,detail);
-  for (const result of [engine.validateStory(args,packet,text,actions),engine.validateContinuity(args,text,actions)]) {
+  const unassignedActions=reviewed(engine,unassigned,text);
+  for (const result of [engine.validateStory(args,packet,text,actions),engine.validateContinuity(unassigned,text,unassignedActions)]) {
     assert.equal(result.ok,false); assert.equal(result.readyForOutput,false);
     assert.equal(result.mechanicalOk,false); assert.equal(result.checks.chapterHeader.ok,false);
     assert.ok(result.errors.some(error=>error.includes('Chapterヘッダ')));
   }
   assert.throws(()=>engine.releaseStory(args,packet,text,actions),/Chapterヘッダ/);
-  assert.throws(()=>engine.releaseStory(args,null,text,actions),/Chapterヘッダ/);
+  assert.throws(()=>engine.releaseStory(unassigned,null,text,unassignedActions),/Chapterヘッダ/);
   assert.equal(JSON.stringify({args,packet,text,actions}),snapshot,'validation cannot rewrite source data');
 }
 for (const text of ['',story(valid).replace('Chapter 1','Chapter 0'),story(valid).split('\n').slice(1).join('\n')]) {

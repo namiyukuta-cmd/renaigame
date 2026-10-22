@@ -17,6 +17,7 @@
       '主人公の恋愛相手は男性限定です。simulation/ROMANCE_PREFERENCES.mdを必ず読み、女性NPC・実父・祖父・実兄弟を恋愛相手にせず、家族や世話役の支援を恋愛進展の代用にしないでください。選択中の男性と現在の世界設定を保ち、その男性自身の接近・関心・求愛・関係への応答を進めてください。',
       policy.partnerEmotion.instruction,
       policy.storyDirection.instruction,
+      policy.storyDirection.beforeDraft,
       'まず simulation/AI_GENERATION_ENTRY.md を読み、そこに指定された運用ルール・共通恋愛ルールを取得してください。',
       '機械処理の正本はjs/renaigame_policy.js、説明はsimulation/AI_POLICY_REFERENCE.mdです。正本を心理JS・実行器より先に読み、段階・保存形式を独自に再定義しないでください。'
     ];

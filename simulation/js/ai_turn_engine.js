@@ -718,6 +718,7 @@
     const validation = inspection.validation;
     if(!validation.ok || !validation.readyForOutput) fail('本文を出力できません: ' + validation.errors.join('／'));
     if(storyActions.semanticReview?.version !== policy.storyDirection.reviewVersion) fail('本文を出力できません: 現行のprepareStoryReviewで、主人公を一番に選ぶ共通方針を含めて本文を確認してください。旧確認票は作成済みの章の再検証に限ります。');
+    if((args?.characterId != null || record(args?.character) || record(args?.stateEntry)) && !record(packet)) fail('本文を出力できません: 攻略対象の心理計算パケットがありません。現在の実ログ・心理状態でrunTurnを実行し、その結果を渡してください。');
     return {story,...inspection};
   }
   const api = Object.freeze({

@@ -14,6 +14,7 @@
     const recordId = character ? character.id : '__unassigned__';
     const lines = [
       'GitHubの namiyukuta-cmd/renaigame の恋愛シミュレーションを使って遊びます。',
+      policy.storyDirection.protagonistCare,
       '主人公の恋愛相手は男性限定です。simulation/ROMANCE_PREFERENCES.mdを必ず読み、女性NPC・実父・祖父・実兄弟を恋愛相手にせず、家族や世話役の支援を恋愛進展の代用にしないでください。選択中の男性と現在の世界設定を保ち、その男性自身の接近・関心・求愛・関係への応答を進めてください。',
       policy.partnerEmotion.instruction,
       policy.storyDirection.instruction,

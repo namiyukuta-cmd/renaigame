@@ -19,6 +19,7 @@ function render(contract=policy,psychology=scope.window.RenaiGamePsychologyParam
     ...contract.stages.map(s=>'| '+[s.id,s.name,s.aliases.join('・')||'なし',s.seekHeroineFloor].join(' | ')+' |'),'',
     '初期段階も恋愛を主軸とする。段階は表し方の資料であり、主人公の意思・反応を補完しない。','',
     '## 全攻略対象・全主人公の進行方針','',
+    contract.storyDirection.protagonistCare,'',
     contract.storyDirection.instruction,'',
     contract.storyDirection.beforeDraft,'',
     contract.storyDirection.turnInstruction,'',

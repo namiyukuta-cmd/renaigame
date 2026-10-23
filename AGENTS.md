@@ -1,5 +1,7 @@
 # 恋愛シミュレーションのAI作業規定
 
+- 主人公をユーザー本人として扱う最優先方針は`RenaiGamePolicy.storyDirection.protagonistCare`と`simulation/PROTAGONIST_CONTINUITY_RULES.md`冒頭に従う。主人公を雑に扱うことや恋愛の意図から外れる描写も禁止対象とし、抗議・失敗例・短い返答で解除しない。
+
 - **軽量版（simulation-lite）の保存はAIが直接行う。**「保存して」「記録と情報更新」「GitHubに保存」で、`simulation-lite/AI_SAVE.md`と`ai_save.js`を使い、現在saveIdの非公開`private-game-data`へ検証後に保存・再取得確認する。「保存JSONを出して」は出力依頼。以下の画面取り込みを前提とした保存手順は通常版のもの。標準version 2・心理計算・本文と意味の検査は共用し、拒否された書込みを回避・強行しない。
 
 - 共通の機械規則は`js/renaigame_policy.js`、心理数値項目は`js/renaigame_psychology_parameters.js`の`stateDefaults`を正本とする。段階・補正・保存形式・意味確認軸を別ファイルへ手で複製しない。自動生成の`simulation/AI_POLICY_REFERENCE.md`は`node simulation/scripts/generate_policy_reference.cjs`で更新する。公開前は`node simulation/scripts/check_ai_turn.cjs`でCIと同じ全検査を行う。新しい不具合は修正前に再現し、回帰検査を追加する。検査成功を本文の意味全体の保証と報告しない。

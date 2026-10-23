@@ -27,6 +27,7 @@ function check(scope,args,packet,save,character){
   for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.instruction),'both handoffs use the same shared instruction');
   for(const prompt of [normal,lite])assert.ok(prompt.includes(p.storyDirection.beforeDraft),'both handoffs require original records and actual execution before drafting');
   for(const prompt of [normal,lite]){
+    assert.ok(prompt.includes(p.storyDirection.protagonistCare),'both handoffs carry the shared user-as-protagonist protection before the chapter input');
     assert.ok(prompt.includes(p.storyDirection.turnInstruction),'ordinary chapters receive the romance objective');
     assert.ok(prompt.includes(p.storyDirection.expressionRule),'restraint controls expression, not whether romance is allowed');
     assert.ok(prompt.includes(p.storyDirection.sourcePriority),'character-specific vetoes cannot reverse the shared romance direction');
@@ -63,6 +64,7 @@ for(const characterId of registry){
   const runner=runtime.createRuntime({sources,save,saveId,characterId});installUI(runner.scope);
   const input={protagonistInput:unnamed.protagonistInput,changes:{},evidence:{}};
   const run=runner.runTurn(input),args=runner.buildArgs(input);
+  assert.equal(run.generationDirection.protagonistCare,runner.scope.RenaiGamePolicy.storyDirection.protagonistCare,'every selected partner receives the same protection before drafting');
   check(runner.scope,args,run.packet,save,args.character);
   const continued=copy(save);
   continued.state.session.recordsByCharacter[characterId]=[{scene:'Chapter 1',date:'2026年10月22日（木）',protagonist:input.protagonistInput,partner:header+args.character.name+'は話を聞きたいと伝えた。'}];

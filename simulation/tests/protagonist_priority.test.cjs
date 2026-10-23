@@ -64,6 +64,7 @@ for(const characterId of registry){
   const normalTurn={protagonistInput:ordinary.protagonistInput,changes:{},evidence:{}},normalArgs=runner.buildArgs(normalTurn),normalRun=runner.runTurn(normalTurn);
   assert.equal(normalRun.generationDirection.stage.id,normalRun.packet.after.stage);
   assert.equal(normalRun.generationDirection.objective,e.policy.storyDirection.turnInstruction);
+  assert.equal(normalRun.generationDirection.sourcePriority,e.policy.storyDirection.sourcePriority);
   const normalApproach=normalArgs.character.name+'は、主人公との会話を続けるために自分から声をかけた。';
   const normalIntent='「もっとあなたのことを知りたい。次に会える時も、私からお声をかけたいのです」';
   const normalStory=header+normalApproach+'\n'+normalIntent;

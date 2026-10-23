@@ -23,6 +23,7 @@ function render(contract=policy,psychology=scope.window.RenaiGamePsychologyParam
     contract.storyDirection.beforeDraft,'',
     contract.storyDirection.turnInstruction,'',
     contract.storyDirection.expressionRule,'',
+    contract.storyDirection.sourcePriority,'',
     ...Object.entries(contract.storyDirection.reviewGuidance).map(([axis,guidance])=>'- `'+axis+'`：'+guidance),'',
     '## 恋愛相手自身の感情','',
     contract.partnerEmotion.instruction,'',

@@ -951,14 +951,14 @@
     if(!compact && engine.fingerprint(profile) !== packet.sources.protagonistProfile && engine.fingerprint({}) === packet.sources.protagonistProfile) profile = {};
     const character = window.RenaiGameCharacters?.getById(id) || window.SimulationCharacters?.[id];
     const behavior = window['SimulationCharacter' + id.slice(5) + 'Behavior'];
-    const args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, stateEntry, records, protagonistProfile: profile, protagonistInput: record.protagonist, changes: compact ? history.changes : packet.changes, evidence: compact ? history.evidence : packet.evidence, stageTransition: compact ? history.stageTransition : packet.stageTransition, yoinomaContext: compact ? history.yoinomaContext : packet.yoinomaContext };
+    let args = { saveId: bundle.saveId, characterId: id, character, behavior, psychology, sourceHistory:Object.values(window.RenaiGameSourceHistory?.[id] || {}), stateEntry, records, protagonistProfile: profile, protagonistInput: record.protagonist, changes: compact ? history.changes : packet.changes, evidence: compact ? history.evidence : packet.evidence, stageTransition: compact ? history.stageTransition : packet.stageTransition, yoinomaContext: compact ? history.yoinomaContext : packet.yoinomaContext };
     if(compact){
-      try { packet = engine.runTurn(args); }
+      try { const replay=engine.replayTurn(args,expectedFingerprint);args=replay.args;packet=replay.packet; }
       catch(error){ importError('心理JSの計算に失敗しました：' + error.message); }
       if(packet.fingerprint !== expectedFingerprint && Object.keys(profile || {}).length){
         const withoutProfile = {...args, protagonistProfile: {}};
-        const replay = engine.runTurn(withoutProfile);
-        if(replay.fingerprint === expectedFingerprint){ args.protagonistProfile = {}; packet = replay; }
+        const replay = engine.replayTurn(withoutProfile,expectedFingerprint);
+        if(replay.packet.fingerprint === expectedFingerprint){ args=replay.args;packet=replay.packet; }
       }
       if(packet.fingerprint !== expectedFingerprint) importError('心理パケットの再計算指紋が一致しません。入力・心理状態・参照ログを確認してください。');
     }

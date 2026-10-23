@@ -252,6 +252,26 @@
     return packet;
   }
 
+  // Exact repository snapshots, used only to replay already authored chapters.
+  // Fresh runTurn/prepareStoryReview always use the current active sources.
+  function sourceVariants(args){
+    const history=Array.isArray(args?.sourceHistory) ? args.sourceHistory : [];
+    return [args,...history.filter(item=>record(item.character) && record(item.behavior) &&
+      item.character.id===args.characterId && item.behavior.characterId===args.characterId)
+      .map(item=>({...args,character:item.character,behavior:item.behavior,replaySourceRevision:item.revision}))];
+  }
+  function replayTurn(args,expectedFingerprint){
+    let first,error;
+    for(const variant of sourceVariants(args)){
+      try{
+        const packet=runTurn(variant),result={args:variant,packet};
+        if(!first)first=result;
+        if(packet.fingerprint===expectedFingerprint)return result;
+      }catch(failure){if(!error)error=failure;}
+    }
+    if(!first)throw error;
+    return first;
+  }
   function verifyTurn(args, packet) {
     try {
       if (!record(packet) || packet.version !== 1) fail("パケットが不正です");
@@ -259,7 +279,7 @@
           args.protagonistInput !== packet.protagonistInput) {
         fail("現在のsaveId・攻略対象・主人公入力とパケットが一致しません");
       }
-      const recomputed = runTurn({
+      const recomputed = replayTurn({
         ...args,
         saveId: packet.saveId,
         characterId: packet.characterId,
@@ -267,7 +287,7 @@
         changes: packet.changes,
         evidence: packet.evidence,
         stageTransition: packet.stageTransition
-      });
+      },packet.fingerprint).packet;
       const matches = stable(packet) === stable(recomputed);
       return {
         ok: matches,
@@ -392,7 +412,11 @@
   }
   function validateSemanticReview(args, story, storyActions = {}){
     const errors = [], review = storyActions.semanticReview;
-    const binding = storyReviewBinding(args,story,storyActions,review?.version);
+    let binding = storyReviewBinding(args,story,storyActions,review?.version);
+    if(review && review.version!==policy.storyDirection.reviewVersion && policy.storyDirection.compatibleReviewVersions.includes(review.version)){
+      const historical=sourceVariants(args).find(variant=>storyReviewBinding(variant,story,storyActions,review.version)===review.binding);
+      if(historical){args=historical;binding=review.binding;}
+    }
     const romance = validateRomanceProgress(args,story,storyActions), support = validateSupportProgress(args,story,storyActions);
     if(!record(review) || !policy.storyDirection.compatibleReviewVersions.includes(review.version) || review.pass !== 'after_draft' || review.binding !== binding ||
        review.usedUnsavedDraft !== false || review.freshStart !== !(args?.records || []).length){
@@ -736,6 +760,7 @@
     const validation = inspection.validation;
     if(!validation.ok || !validation.readyForOutput) fail('本文を出力できません: ' + validation.errors.join('／'));
     if(storyActions.semanticReview?.version !== policy.storyDirection.reviewVersion) fail('本文を出力できません: 現行のprepareStoryReviewで、主人公を一番に選ぶ共通方針を含めて本文を確認してください。旧確認票は作成済みの章の再検証に限ります。');
+    if(args?.replaySourceRevision || (packet && (packet.sources?.character!==fingerprint(args.character) || packet.sources?.behavior!==fingerprint(args.behavior)))) fail('本文を出力できません: 過去版の人物設定は保存済み章の再検証専用です。現在の人物設定でrunTurnを実行してください。');
     if((args?.characterId != null || record(args?.character) || record(args?.stateEntry)) && !record(packet)) fail('本文を出力できません: 攻略対象の心理計算パケットがありません。現在の実ログ・心理状態でrunTurnを実行し、その結果を渡してください。');
     return {story,...inspection};
   }
@@ -743,6 +768,7 @@
     version: 1,
     functionNames: FUNCTION_NAMES,
     runTurn,
+    replayTurn,
     verifyTurn,
     inspectStory,
     validateStory,

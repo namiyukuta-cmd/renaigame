@@ -61,7 +61,7 @@
 
 prepareStoryReviewの返すversion/binding/pass/freshStart/usedUnsavedDraft/checksを使う。各checkは次の形にする。
 
-新規生成は`RenaiGamePolicy.storyDirection.reviewVersion`（現在3）の票を使う。章JSONの版とは別で、bindingにも確認の版を結び付ける。選択済みの新規章は、通常の会話や看病でも恋愛軸を必須とし、明示された休止等を除き`not_applicable`にはできない。`releaseStory`は現行票を必須とし、版番号だけの書換えは通さない。作成済みのversion 1・2票は元のbinding・適用条件で再検証し、本文や旧票の変更・恋愛宣言の後付けを要求しない。
+新規生成は`RenaiGamePolicy.storyDirection.reviewVersion`（現在4）の票を使う。章JSONの版とは別で、bindingにも確認の版を結び付ける。選択済みの新規章は、通常の会話や看病でも恋愛軸を必須とし、明示された休止等を除き`not_applicable`にはできない。`releaseStory`は現行票を必須とし、版番号だけの書換えは通さない。作成済みのversion 1・2・3票は元のbinding・適用条件で再検証し、本文や旧票の変更・恋愛宣言の後付けを要求しない。
 
 ```json
 {
@@ -108,3 +108,5 @@ Nodeではrun_ai_turn.cjsのreviewコマンドが未完了の確認票を返す�
 心理付き章は既存のreplayContext.storyActions、未選択章はdraftMetadata.storyActionsへ確認記録を保持する。標準version 2のルート構造は変えない。新規取り込みと章JSON作成でも再検査する。既に同内容で保存されている章の再取り込みで過去の本文や履歴を一括改変しない。
 
 この仕組みが機械的に確認するのは、検査結果、根拠の存在、確認記録の完了と一致である。自然言語の理由が正しいことや、未知の言い換えを完全に判定するものではなく、独立した別モデルの審査証明でもない。AIは下書き後の意味確認を実際に行う必要がある。確認記録だけを捏造して成功を申告しない。ChatGPTの別スレッドや、ツールを使わずに出す文章自体をこのコードが強制制御できると説明しない。
+
+人物設定の過去版は`sourceHistory`に保持し、保存済み章の正確な再計算・旧確認票のbinding照合だけに使う。新規生成は現行の人物設定と確認票を使う。`replayTurn`が返す過去版のargsやパケットは`releaseStory`へ流用できず、過去の本文・心理値・指紋・確認票を書き換えない。

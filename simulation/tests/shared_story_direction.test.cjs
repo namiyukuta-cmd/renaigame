@@ -29,6 +29,7 @@ function check(scope,args,packet,save,character){
   for(const prompt of [normal,lite]){
     assert.ok(prompt.includes(p.storyDirection.turnInstruction),'ordinary chapters receive the romance objective');
     assert.ok(prompt.includes(p.storyDirection.expressionRule),'restraint controls expression, not whether romance is allowed');
+    assert.ok(prompt.includes(p.storyDirection.sourcePriority),'character-specific vetoes cannot reverse the shared romance direction');
   }
   const actor=character?.name||'青年',approach=actor+'は、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
   const good=sceneHeader+approach+'\n'+intent;

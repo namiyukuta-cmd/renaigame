@@ -117,6 +117,7 @@
       if(!object(input) || !object(input.changes) || !object(input.evidence)) fail('今回の原文・changes・evidenceを明示してください。根拠がない場合だけ両方{}にします。');
       return {
         saveId,characterId,character,behavior,psychology,
+        sourceHistory:Object.values(scope.RenaiGameSourceHistory?.[characterId] || {}).map(clone),
         stateEntry:clone(state),protagonistProfile:clone(snapshot.state.profile),
         records:indices.map(index=>clone(savedRecords[index])),
         protagonistInput:input.protagonistInput,changes:clone(input.changes),evidence:clone(input.evidence),
@@ -130,6 +131,7 @@
       const policy=scope.RenaiGamePolicy,stage=policy.stages.find(item=>item.id===packet.after.stage);
       return {packet,verification,context:clone(context),generationDirection:{
         objective:policy.storyDirection.turnInstruction,psychologyUse:policy.storyDirection.expressionRule,
+        sourcePriority:policy.storyDirection.sourcePriority,
         stage:clone(stage || policy.stages[0])
       }};
     }

@@ -315,18 +315,33 @@
     return /る$/.test(event[0]) && /^(?:の|こと|日)(?:を|が|は)[、,]?[^。！？!?]{0,48}(?:待(?:ち|つ|って)|まち|望|願|恐れ|案じ)/.test(continuation);
   }
 
+  // Scope rejection to this assertion; another "is alive" in the sentence
+  // must not exempt an affirmative death or celebration elsewhere in it.
+  function rejectedAssertion(text,index,phrase){
+    const tail=text.slice(index+phrase.length).split(/[。！？!?\r\n]/)[0].replace(/^[」』”"\s]+/,'').replace(/\s/g,'')
+      .replace(/^[、,]?(?:祝われ(?:た|て|る)?|祝(?:っ(?:た|て)|う|い))(?=は?いない|ことはない|ない)/,'');
+    return /^(?:(?:た|る)?(?:の|わけ)ではない|(?:て|で)?(?:は|も)?(?:いない|いません|いけない|ならない)|な(?:い|かった|く)|ほしく(?:ない|ありません)|(?:こと|はず)(?:は|も)?ない|と(?:は|も)(?:思わない|言わない|認めない|肯定しない|言わせない)|(?:という)?(?:事実|記録|決定)(?:は|が)ない|(?:という)?(?:結末|こと)にしないで|(?:という)?(?:表現|描写|展開)を(?:使わないで|しないで|やめて)|ことにしないで|確定しないで|な(?:[」』\s]|$))/.test(tail);
+  }
+  const deathApproval=/(?:死(?:去)?|死亡|逝去)(?:を|は|が|も)[^。！？!?\r\n]{0,70}?(?:喜(?:ばれ(?:た|て|る)?|ばし(?:い|く)|ば|ん(?:だ|で)|ぶ|び)|祝(?:われ(?:た|て|る)?|わ|っ(?:た|て)|う|い)|晴れ晴れ|清々|せいせい|おめでた(?:い|く)|めでた(?:い|く)|嬉し(?:い|く)|うれし(?:い|く))/g;
+
   function continuityInput(input) {
     if (typeof input !== "string" || !input.trim()) return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
-    const concerns = /(?:死んだ|死亡した|身罷(?:られ|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ)|命を落と(?:した|された)|絶命した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/g;
+    const concerns = /(?:死んだ|死亡した|亡くなった|身罷(?:られ(?:た|て|る)?|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ)|命を落と(?:した|された)|絶命した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/g;
     const clauses = input.matchAll(/[^。！？!?\r\n]+[。！？!?]?/g);
     let unresolved = false, reportedConcern = false;
     for (const clauseMatch of clauses) {
       const clause = clauseMatch[0];
       // A report/question about a previous line is not a new death event.
       // Check each clause: a quoted question cannot exempt a separate harmful directive.
-      const directsHarm = /(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない))|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写|言わせて|言わせろ)/.test(clause);
+      const directives=clause.matchAll(/(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない))|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写|言わせて|言わせろ)/g);
+      const directsHarm=[...directives].some(match=>{
+        if(rejectedAssertion(clause,match.index,match[0])){reportedConcern=true;return false;}
+        return true;
+      });
       if (directsHarm) { unresolved = true; continue; }
-      const factualConcerns = [...clause.matchAll(concerns)].filter(match => {
+      const factualConcerns = [...clause.matchAll(concerns),...clause.matchAll(deathApproval)].filter(match => {
+        if(rejectedAssertion(clause,match.index,match[0])){reportedConcern=true;return false;}
+        if(/(?:父|母|祖父|祖母|両親|叔父|叔母)の$/.test(clause.slice(0,match.index)))return false;
         // Her own anger is not evidence that the man hates her. Keep the
         // original input, and do not stop a reply merely for this declaration.
         if (/嫌い/.test(match[0]) && /(?:私|わたし|主人公)(?:は|が)[^。！？!?]{0,20}(?:あなた|貴方|お前|相手|彼)(?:が|のことが)(?:大)?嫌い|^[「『\s]*(?:最初から)?(?:あなた|貴方|お前|恋愛相手)(?:が|のことが)(?:大)?嫌い/.test(clause)) {
@@ -338,10 +353,9 @@
       if (!factualConcerns.length) continue;
       if(/(?:父|母|夫|祖父|祖母|両親|叔父|叔母)(?:は|が)[^。\n]{0,16}(?:身罷|逝去|息を引き取|命を落と)/.test(clause) &&
          !/(?:主人公|彼女|あなた|私)(?:は|が)[^。\n]{0,20}(?:身罷|逝去|息を引き取|命を落と)/.test(clause)) continue;
-      const report = /(?:と|って|とも)[^。！？!?]{0,15}(?:言っ(?:ていた|た|ている)|言われ(?:た|ていた)|書(?:いてあった|いていた|かれた|かれていた)|認め(?:た|ていた|ている))|(?:過去|前の|以前の)[^。！？!?]{0,12}(?:発言|台詞|セリフ|記録|ログ|出力)/.test(clause);
+      const report = /(?:と|って|とも)[^。！？!?]{0,15}(?:言っ(?:ていた|た|ている)|言われ(?:た|ていた)|書(?:いてあった|いていた|かれた|かれていた)|認め(?:た|ていた|ている))|(?:過去|前の|以前の)[^。！？!?]{0,12}(?:発言|台詞|セリフ|記録|ログ|出力)/.test(clause) || romanticDistrust(clause);
       const question = /[?？]|(?:のよね|のでしょうか|んでしょうか|のでしょう|のですか|んですか|なのですか|思っているのね|思っているのよね)/.test(clause);
-      const rejectsHarm = /(?:死んだ|死亡した|身罷[^。！？!?]{0,8}|消滅した|消された|死んで[よ良]かった|大嫌いだった)[^。！？!?]{0,15}(?:ことにしないで|とは思わない|とは言わない|とは認めない|確定しないで|という結末にしないで)|身罷られて(?:は)?いない|身罷られたのではない/.test(clause);
-      if (report || question || rejectsHarm) reportedConcern = true;
+      if (report || question) reportedConcern = true;
       else unresolved = true;
     }
     return {
@@ -666,12 +680,12 @@
     for (const sentenceMatch of sentences) {
       const sentence = sentenceMatch[0].trim();if (!sentence) continue;
       const sentenceOffset = sentenceMatch.index + sentenceMatch[0].indexOf(sentence);
-      const denied = /(?:死んでいない|死んではいない|死亡していない|身罷られて(?:は)?いない|身罷られたのではない|消滅していない|消えていない|消されない|消されていない|死なせない|退場させない|という(?:事実|記録|決定)はない|(?:死亡|消滅)[^。]{0,20}記録はない)/.test(sentence);
       const exclusion = /(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/.test(sentence);
       const exclusionDenied = /(?:見(?:捨|放)て(?:ない|られていない)|見放されていない|居場所がないわけではない|居場所はないわけではない|いない方がいいとは(?:言え|思ってい)ない|助けないわけではない|という(?:事実|記録)はない)/.test(sentence);
       if (namesIn(sentence) && exclusion && !exclusionDenied) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
-      const factualDeath = [...sentence.matchAll(/(?:死んだ|死亡した|亡くなった|身罷(?:られ|った|り|る)|逝去した|息を引き取った|命を落とした|消滅した|消された|霧散(?:した|しました)|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/g)]
+      const factualDeath = [...sentence.matchAll(/(?:死んだ|死亡した|亡くなった|身罷(?:られ(?:た|て|る)?|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ(?:た|て|る)?)|命を落と(?:した|された)|消滅した|消された|霧散(?:した|しました)|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/g)]
         .some(match => {
+          if(rejectedAssertion(sentence,match.index,match[0]))return false;
           if(nonFactualDeathReference(story, sentenceOffset + match.index)) return false;
           // A mist clearing in front of the heroine is not her disappearance.
           if(match[0].startsWith('霧散')) return names.some(name=>{
@@ -680,9 +694,15 @@
           });
           return true;
         });
-      if (namesIn(sentence) && !denied && factualDeath) {
+      if (namesIn(sentence) && factualDeath) {
         errors.push("主人公の死亡・消滅・存在否定を確定する文章があります。保護方針に沿って本文を修正してください。");
       }
+      const approvesDeath=[...sentence.matchAll(deathApproval)].some(match=>{
+        if(rejectedAssertion(sentence,match.index,match[0]))return false;
+        const before=sentence.slice(0,match.index);
+        return !/の$/.test(before) || /(?:この|その|あの)$/.test(before) || names.some(name=>before.endsWith(name+'の'));
+      });
+      if(approvesDeath)errors.push('主人公の死を喜ぶ・祝う描写があります。抗議や失敗例を死亡の確定へ変えず、保護方針に沿って本文を修正してください。');
       if (/(?:死んで[よ良]かった|死んでくれて[^。]{0,12}(?:嬉し|うれし|助か)|(?:glad|happy)[^。]{0,35}(?:died|dead)|better off dead)/i.test(sentence) && !/(?:と言った記録はない|と(?:は|も)思っていない|肯定しない|喜んでいない)/.test(sentence)) {
         errors.push("主人公の死を喜ぶ表現があります。数値検証の成功で正当化できません。");
       }

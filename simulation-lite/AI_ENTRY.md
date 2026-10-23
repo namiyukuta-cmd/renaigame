@@ -14,6 +14,8 @@
 
 空欄の引き継ぎは設定・記録の確認のみで、章・心理計算・セーブは更新しません。入力は`RenaiGamePolicy.storyDirection.requestScope`に従い、AIへの作業依頼には作業で答え、ゲーム続行に執筆の言い直しを求めません。明示の執筆命令・別稿・脇役視点でも`protagonistCare`を解除せず、禁止描写を出しません。
 
+入力の皮肉・不信・苦痛は原文のまま扱います。`continuityInput.ok:false`でも空でない入力は`canRespond:true`で応答でき、衝突をユーザーの表現禁止や書換え要求にしません。詳しくは必須の`PROTAGONIST_CONTINUITY_RULES.md`を適用し、返す本文を検査します。
+
 ## 本文生成に必要な資料だけを読む
 
 軽量版ではこのファイルが共通入口`simulation/AI_GENERATION_ENTRY.md`の案内を置き換えます。生成時に通常版の入口全文・他の相手の開始設定・`AI_SAVE_WORKFLOW.md`を追加取得しません。選択中の開始設定は`simulation-lite/character-notes/<characterId>.md`に、共通入口の該当する全節を原文から自動抽出しています。人物JS・behavior・今回スロットのプロフィールと実ログを併せて使います。

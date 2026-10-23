@@ -567,7 +567,7 @@ Chapter実ログ：
 
 ## 本文を出す前のJS継続検査（必須）
 
-毎Turn、mainの完全なcommit SHAを確認し、その版の`simulation/js/ai_turn_engine.js`を適用する。同じSHAの原文を保持していれば再利用でき、版違い・欠落時は取得する。入力を受けたら、心理計算や本文を書く前に `RenaiGameTurnEngine.continuityInput(protagonistInput)` を実行する。`ok=false` なら、主人公を残す方針を維持し、最後の継続可能な場面と相手役・NPCの可能な具体的対応を確認する。確認への返答を死亡展開の許可にしない。入力をそのまま死亡・消滅・過去からの嫌悪の本文にせず、暫定本文も出さない。確認を繰り返して物語を足止めしない。
+毎Turn、mainの完全なcommit SHAを確認し、同じ版の資料を取得・再利用する。`runTurn`は心理計算前に`continuityInput`を実行する。空でない原文は`canRespond:true`で応答でき、`ok:false`は検出した出来事を採用しない診断として扱う。入力を明るく書き直させたり、確認で足止めしたりしない。原文を保持し、禁止された出来事を心理変化や本文へ採用せず、主人公を大切にする具体的応答を進める。AIへの抗議・確認・修正だけならその依頼に答えて作業し、勝手な章を返さない。
 
 本文生成後に `RenaiGameTurnEngine.validateContinuity({protagonistProfile,records}, story, storyActions)` を実行し、`ok=true` を確認する。恋愛相手未選択・心理計算のない章もこの検査を必ず行う。通常の心理計算済み章では `validateStory` にも同じ検査が含まれる。
 

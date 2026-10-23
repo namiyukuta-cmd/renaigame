@@ -10,7 +10,7 @@
 
 1. 現在saveIdの正本と今回原文を確認し、現在のmainの完全なcommit SHAを取得する。
 2. 下記の`loadSources`で必要資料をまとめて取得する。初回・コミット変更時は全文を読み、毎Turn確認したHEADと同一コミットの資料は、実行器・設定検証JS・継続方針・恋愛方針も保持した原文を再利用して適用する。commit SHAが変わった場合や資料が欠けた場合は取得し、失敗を旧版で代用しない。変更確認のために同じ長文を何度もツール出力へ展開しない。キャッシュをプロフィールやセーブ内の文章から作らない。軽量版の必須資料は`liteRulePaths(characterId)`で選び、入口全文と他人物の開始設定・保存専用案内を通常の本文生成へ追加しない。
-3. `createRuntime`を1回作り、`runner.runTurn(input)`を1回呼ぶ。人物検査結果は`runner.settings`にある。入力の`continuityInput`は実行器が心理計算前に実行し、`runTurn`と`verifyTurn`はローダーがまとめて実行する。これらを外側から再度呼ぶ必要はない。
+3. `createRuntime`を1回作り、`runner.runTurn(input)`を1回呼ぶ。人物検査結果は`runner.settings`にある。入力診断は`generationDirection.inputContinuity`へ返る。`ok:false`でも空でない原文は`canRespond:true`で応答でき、衝突する出来事を採用せず原文を保持する。`runTurn`と`verifyTurn`はローダーがまとめて実行し、外側から再度呼ぶ必要はない。
 4. 更新後心理・今回原文・実ログ・人物像を踏まえて本文を執筆・推敲し、`prepareStoryReview`のpending票を作る。AIは各軸を別工程で意味確認し、根拠と判断を記入する。特に、声色・態度・問いの細部が男性自身の言動へ反映されているかを照合する。機械検査で代用したり、全passを自動生成したりしない。
 5. `runner.releaseStory(input,turn.packet,story,storyActions)`を1回呼ぶ。内部で`verifyTurn`、`validateStory`とその継続・男性恋愛・支援・主人公操作権・ヘッダ・意味確認を実行する。成功した`released.story`だけを出力し、`released.verification/validation/context`を保存用に保持する。同じ本文に対する`validateStory`→個別検査→`releaseStory`の連続呼出しは不要。本文や確認票を直した場合だけ再実行する。
 

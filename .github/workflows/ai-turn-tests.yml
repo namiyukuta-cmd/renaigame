@@ -78,6 +78,7 @@ jobs:
       - run: node simulation/tests/mortality_assertions.test.cjs
       - run: node simulation/tests/death_wishes.test.cjs
       - run: node simulation/tests/protagonist_exclusion.test.cjs
+      - run: node simulation/tests/input_response.test.cjs
       - run: node simulation/tests/shared_story_direction.test.cjs
       - run: node simulation/tests/protagonist_priority.test.cjs
       - run: node simulation/tests/narrative_sources.test.cjs

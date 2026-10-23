@@ -41,7 +41,9 @@ assert.equal(engine.continuityInput('彼に好きだと言わせて。').ok,true
 assert.equal(engine.continuityInput('主人公は身罷られてはいない。').ok,true,'an explicit denial is not a death event');
 assert.equal(engine.continuityInput('昨年、父は身罷られた。').ok,true,'a relative background fact is not protagonist mortality');
 const conflicting={...args,protagonistInput:death};
-assert.equal(engine.validateContinuity(conflicting,story,reviewed(engine,conflicting,story,{romanceProgress:progress})).ok,false,'rewriting a conflicting input into another event cannot pass');
+assert.equal(engine.validateContinuity(conflicting,story,reviewed(engine,conflicting,story,{romanceProgress:progress})).ok,true,'the original conflicting input may receive a protected response without being rewritten or enacted');
+assert.equal(conflicting.protagonistInput,death);
+assert.equal(engine.validateContinuity(conflicting,story,actions).ok,false,'a response still needs a review bound to the exact original input');
 assert.equal(engine.continuityInput('身罷られたと以前の出力に書かれていた。どういうことですか？').ok,true,'reports and questions remain distinct from new death events');
 assert.equal(engine.validateContinuity(args,'主人公は身罷られた。',reviewed(engine,args,'主人公は身罷られた。')).ok,false);
 

@@ -102,7 +102,7 @@
       fail("今回の主人公入力がありません");
     }
     const continuity = continuityInput(args.protagonistInput);
-    if (!continuity.ok) fail(continuity.errors.join("／"));
+    if (!continuity.canRespond) fail(continuity.errors.join("／"));
     requirePsychology(args.psychology);
     const raw = getCurrentState(args.stateEntry);
     // Validate stored emotions before normalization.
@@ -334,7 +334,7 @@
   }
 
   function continuityInput(input) {
-    if (typeof input !== "string" || !input.trim()) return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
+    if (typeof input !== "string" || !input.trim()) return { ok: false, canRespond: false, requiresClarification: false, errors: ["主人公入力がありません"] };
     const concerns = /(?:死ん(?:だ|で)|死亡し(?:た|て)|亡くな(?:った|って)|身罷(?:られ(?:た|て|る)?|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ)|命を落と(?:した|された)|絶命した|消滅した|消された|消される運命|存在価値[はが]?な[いか]|死んで[よ良]かった|大嫌いだった|最初から[^。\n]{0,20}嫌い)/g;
     const clauses = input.matchAll(/[^。！？!?\r\n]+[。！？!?]?/g);
     let unresolved = false, reportedConcern = false;
@@ -366,10 +366,10 @@
       else unresolved = true;
     }
     return {
-      ok: !unresolved, requiresClarification: false, preservesProtagonist: true,
+      ok: !unresolved, canRespond: true, requiresClarification: false, preservesProtagonist: true,
       inputConflictsWithContinuity: unresolved,
       reportedConcern: reportedConcern && !unresolved, requiresSemanticReview: true,
-      errors: unresolved ? ["主人公の死亡・消滅等を新たに確定する入力は本文化しないでください。過去の発言を問いただす会話・引用・抗議は、それ自体を新しい死亡の確定にせず応答してください。"] : []
+      errors: unresolved ? ["主人公の死亡・消滅等を出来事として採用しないでください。入力原文を保持し、言い直しを求めず、保護方針に沿って応答してください。"] : []
     };
   }
 
@@ -670,9 +670,11 @@
     if (typeof story !== "string" || !story.trim()) return { ok: false, errors: ["本文が空です"], warnings, requiresSemanticReview: true };
     const headerCheck = validateChapterHeader(story);
     errors.push(...headerCheck.errors);
-    const inputCheck = typeof args?.protagonistInput === 'string' && args.protagonistInput.trim() ? continuityInput(args.protagonistInput) : {ok:true,errors:[]};
+    const inputCheck = typeof args?.protagonistInput === 'string' && args.protagonistInput.trim() ? continuityInput(args.protagonistInput) : {ok:true,canRespond:true,errors:[]};
     const agencyCheck = validateProtagonistAgency(args || {},story,storyActions);
-    errors.push(...inputCheck.errors,...agencyCheck.errors);
+    if(inputCheck.canRespond)warnings.push(...inputCheck.errors);
+    else errors.push(...inputCheck.errors);
+    errors.push(...agencyCheck.errors);
     const names = protagonistNames(args);
     const namesIn = text => names.some(name => text.includes(name));
     if(prohibitedDeathWish(story))errors.push('主人公への死亡願望を描写しています。死亡未確定でも許可せず、保護方針に沿って本文を修正してください。');
@@ -718,7 +720,7 @@
     const semanticReview = validateSemanticReview(args || {},story,storyActions);
     return { ok: mechanicalOk && semanticReview.ok, mechanicalOk, readyForOutput:mechanicalOk && semanticReview.ok,
       errors: [...new Set([...errors,...semanticReview.errors])], warnings, requiresSemanticReview: true,
-      checks:{chapterHeader:{ok:headerCheck.ok},inputConsistency:{ok:inputCheck.ok},protagonistAgency:{ok:agencyCheck.ok},
+      checks:{chapterHeader:{ok:headerCheck.ok},inputConsistency:{ok:inputCheck.canRespond,inputConflictsWithContinuity:inputCheck.inputConflictsWithContinuity},protagonistAgency:{ok:agencyCheck.ok},
         romanceProgress:{ok:romanceCheck.ok,required:romanceCheck.required},circumstanceChange:{ok:supportCheck.ok,required:supportCheck.required},
         literaryQuality:{ok:semanticReview.literaryQuality?.ok === true}},
       semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
@@ -729,7 +731,7 @@
     const verified = verifyTurn(args, packet);
     const continuity = validateContinuity(args, story, storyActions);
     const errors = [...verified.errors, ...continuity.errors];
-    const warnings = [];
+    const warnings = [...continuity.warnings];
     const invitation = packet && packet.evaluations && packet.evaluations.evaluateYoinomaInvitation;
     if (invitation && invitation.mustInvite && storyActions.yoinomaInvitation !== invitation.mode) {
       errors.push("判定どおりの宵の間の誘いを本文に含め、storyActions.yoinomaInvitationを指定してください");

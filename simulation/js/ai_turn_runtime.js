@@ -130,6 +130,7 @@
       if(!verification.ok) fail('心理計算の再検証失敗: ' + verification.errors.join('／'));
       const policy=scope.RenaiGamePolicy,stage=policy.stages.find(item=>item.id===packet.after.stage);
       return {packet,verification,context:clone(context),generationDirection:{
+        inputContinuity:engine.continuityInput(args.protagonistInput),
         protagonistCare:policy.storyDirection.protagonistCare,
         requestScope:policy.storyDirection.requestScope,
         objective:policy.storyDirection.turnInstruction,psychologyUse:policy.storyDirection.expressionRule,

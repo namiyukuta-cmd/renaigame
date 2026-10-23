@@ -6,7 +6,7 @@
 
 ## 主人公の継続・支援・入力の解釈（全キャラ共通）
 
-毎Turn、必須取得の[主人公の継続と具体的応答](PROTAGONIST_CONTINUITY_RULES.md)を全て適用する。依頼の範囲は`RenaiGamePolicy.storyDirection.requestScope`に従う。ユーザーの抗議・確認・修正を人物の言動や代替の物語へ変えない。本文執筆を頼まれた章で、主人公が相手へ反論する台詞と、AIへの抗議だけの依頼は区別する。修正依頼には実作業と結果を返し、定型謝罪だけを反復しない。
+毎Turn、必須取得の[主人公の継続と具体的応答](PROTAGONIST_CONTINUITY_RULES.md)を全て適用する。依頼の範囲は`RenaiGamePolicy.storyDirection.requestScope`に従い、AIへの抗議・確認・修正を勝手な物語へ変えない。ゲーム続行の怒り・反論・苦痛を拒否せず、執筆の言い直しを求めない。修正依頼には実作業と結果を返す。
 
 
 キャラクターの新規作成・追加・再設定時は、[キャラクター作成ルール](CHARACTER_CREATION_RULES.md)を必ず読む。固定恋愛積極度1〜10と設定理由を人物JSへ明示する。

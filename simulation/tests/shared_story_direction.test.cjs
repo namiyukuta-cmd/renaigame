@@ -34,6 +34,10 @@ function check(scope,args,packet,save,character){
   }
   const requestScope=p.storyDirection.requestScope;
   assert.equal(typeof requestScope,'string','the shared contract must distinguish a chapter request from rules, complaints and diagnostics');
+  assert.match(requestScope,/AIへの/,'non-story scope identifies requests directed to the AI, not all emotional game input');
+  assert.match(requestScope,/ゲーム続行/,'normal game input must not require a separate writing command');
+  assert.match(requestScope,/言い直/,'the player is not required to rephrase an ordinary turn as a writing request');
+  for(const qualifier of ['執筆命令','別稿','脇役視点'])assert.ok(p.storyDirection.protagonistCare.includes(qualifier),'explicit instructions and framing never revoke the shared protection: '+qualifier);
   const ruleOnly='Chapter 2\n規則を確認してください。物語は書かないでください。';
   for(const prompt of [
     scope.RenaiGameHandoff.buildPrompt({character,profile:save.state.profile,saveId:save.saveId,protagonistInput:ruleOnly}),
@@ -56,6 +60,13 @@ function check(scope,args,packet,save,character){
   assert.equal(pending.checks.literaryQuality.aspects.concreteProgress.guidance,p.storyDirection.reviewGuidance.romanceMotivation);
   assert.equal(e.releaseStory(args,packet,good,reviewed(e,args,good,declarations)).story,good);
   const name=args.protagonistProfile.name;
+  for(const deathForm of ['死んで','亡くなって','死亡して']){
+    const bad=good+'\n人物甲と人物乙は'+name+'が'+deathForm+'大層喜び、楽しく祝った。';
+    const actions=reviewed(e,args,bad,declarations),validation=e.validateContinuity(args,bad,actions);
+    assert.equal(validation.mechanicalOk,false,'a valid romance declaration and completed test review cannot exempt a death in an NPC viewpoint');
+    assert.ok(validation.errors.some(error=>/死亡|死を|保護/.test(error)));
+    assert.throws(()=>e.releaseStory(args,packet,bad,actions),/死亡|死を|保護/);
+  }
   for(const text of [name+'は霧散した。',name+'は誰にも必要とされない存在だった。','女君は霧散しました。']){
     const bad=sceneHeader+text,actions=reviewed(e,args,bad);
     const result=e.validateContinuity(args,bad,actions);

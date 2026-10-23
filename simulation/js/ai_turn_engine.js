@@ -315,12 +315,11 @@
     return /る$/.test(event[0]) && /^(?:の|こと|日)(?:を|が|は)[、,]?[^。！？!?]{0,48}(?:待(?:ち|つ|って)|まち|望|願|恐れ|案じ)/.test(continuation);
   }
 
-  // Scope rejection to this assertion; another "is alive" in the sentence
-  // must not exempt an affirmative death or celebration elsewhere in it.
+  // A denial belongs to this assertion, not other assertions in the sentence.
   function rejectedAssertion(text,index,phrase){
-    const tail=text.slice(index+phrase.length).split(/[。！？!?\r\n]/)[0].replace(/^[」』”"\s]+/,'').replace(/\s/g,'')
+    const tail=text.slice(index+phrase.length).split(/[。！？!?\r\n]/)[0].replace(/^[」』”"\s、,]+/,'').replace(/\s/g,'')
       .replace(/^[、,]?(?:祝われ(?:た|て|る)?|祝(?:っ(?:た|て)|う|い))(?=は?いない|ことはない|ない)/,'');
-    return /^(?:(?:た|る)?(?:の|わけ)ではない|(?:て|で)?(?:は|も)?(?:いない|いません|いけない|ならない)|な(?:い|かった|く)|ほしく(?:ない|ありません)|(?:こと|はず)(?:は|も)?ない|と(?:は|も)(?:思わない|言わない|認めない|肯定しない|言わせない)|(?:という)?(?:事実|記録|決定)(?:は|が)ない|(?:という)?(?:結末|こと)にしないで|(?:という)?(?:表現|描写|展開)を(?:使わないで|しないで|やめて)|ことにしないで|確定しないで|な(?:[」』\s]|$))/.test(tail);
+    return /^(?:(?:た|る)?(?:の|わけ)ではない|(?:て|で)?(?:は|も)?(?:いない|いません|いけない|ならない)|な(?:い|かった|く)|ほしく(?:ない|ありません)|(?:こと|はず)(?:は|も)?ない|と(?:は|も)(?:思(?:わ|ってい)ない|言(?:わ|え)ない|認めない|肯定しない|言わせない)|(?:という)?(?:事実|記録|決定)(?:は|が)ない|(?:という)?(?:結末|こと)にしないで|(?:という)?(?:表現|描写|展開)を(?:使わないで|しないで|やめて)|ことにしないで|確定しないで|な(?:[」』\s]|$))/.test(tail);
   }
   const deathApproval=/(?:死(?:去)?|死亡|逝去)(?:を|は|が|も)[^。！？!?\r\n]{0,70}?(?:喜(?:ばれ(?:た|て|る)?|ばし(?:い|く)|ば|ん(?:だ|で)|ぶ|び)|祝(?:われ(?:た|て|る)?|わ|っ(?:た|て)|う|い)|晴れ晴れ|清々|せいせい|おめでた(?:い|く)|めでた(?:い|く)|嬉し(?:い|く)|うれし(?:い|く))/g;
 
@@ -680,9 +679,9 @@
     for (const sentenceMatch of sentences) {
       const sentence = sentenceMatch[0].trim();if (!sentence) continue;
       const sentenceOffset = sentenceMatch.index + sentenceMatch[0].indexOf(sentence);
-      const exclusion = /(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/.test(sentence);
-      const exclusionDenied = /(?:見(?:捨|放)て(?:ない|られていない)|見放されていない|居場所がないわけではない|居場所はないわけではない|いない方がいいとは(?:言え|思ってい)ない|助けないわけではない|という(?:事実|記録)はない)/.test(sentence);
-      if (namesIn(sentence) && exclusion && !exclusionDenied) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
+      const exclusion = [...sentence.matchAll(/(?:いない方が(?:いい|良い)|居場所がない|居場所はない|見(?:放|捨)てられた|見離された|見放された|(?:誰も|誰にも)[^。]{0,35}?(?:助けない|助けてもらえない|必要とされない)|(?:誰も|誰にも)[^。]{0,20}?必要と(?:しない|されない)|存在(?:しなくて|しない方が)(?:いい|良い))/g)]
+        .some(match=>!rejectedAssertion(sentence,match.index,match[0]));
+      if (namesIn(sentence) && exclusion) errors.push("主人公への見捨て・居場所の否定・不要扱いを確定しています。方針に沿って本文を修正してください。");
       const factualDeath = [...sentence.matchAll(/(?:死んだ|死亡した|亡くなった|身罷(?:られ(?:た|て|る)?|った|り|る)|逝去(?:した|された)|息を引き取(?:った|られ(?:た|て|る)?)|命を落と(?:した|された)|消滅した|消された|霧散(?:した|しました)|この世から消えた|世界から(?:消え|排除され|削除され)|存在価値[はが]?な[いか]|不要(?:だった|な存在)|いらなかった)/g)]
         .some(match => {
           if(rejectedAssertion(sentence,match.index,match[0]))return false;

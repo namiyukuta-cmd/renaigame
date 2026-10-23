@@ -76,6 +76,7 @@ jobs:
       - run: node simulation/tests/ai_turn_engine.test.cjs
       - run: node simulation/tests/story_review.test.cjs
       - run: node simulation/tests/mortality_assertions.test.cjs
+      - run: node simulation/tests/protagonist_exclusion.test.cjs
       - run: node simulation/tests/shared_story_direction.test.cjs
       - run: node simulation/tests/protagonist_priority.test.cjs
       - run: node simulation/tests/narrative_sources.test.cjs

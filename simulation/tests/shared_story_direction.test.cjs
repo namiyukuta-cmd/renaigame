@@ -67,6 +67,11 @@ function check(scope,args,packet,save,character){
     assert.ok(validation.errors.some(error=>/死亡|死を|保護/.test(error)));
     assert.throws(()=>e.releaseStory(args,packet,bad,actions),/死亡|死を|保護/);
   }
+  for(const wish of ['――早く死ねよ。','男が待ち望んでいたのは、女君の命が尽きたという知らせだった。','「まだ死なないの？」']){
+    const bad=good+'\n'+wish,actions=reviewed(e,args,bad,declarations);
+    assert.equal(e.validateContinuity(args,bad,actions).mechanicalOk,false,'a death wish cannot be offset by a valid romance declaration');
+    assert.throws(()=>e.releaseStory(args,packet,bad,actions),/死亡願望/);
+  }
   for(const text of [name+'は霧散した。',name+'は誰にも必要とされない存在だった。','女君は霧散しました。']){
     const bad=sceneHeader+text,actions=reviewed(e,args,bad);
     const result=e.validateContinuity(args,bad,actions);

@@ -31,7 +31,7 @@
     "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261023-explicit-care";
+  const CHARACTER_ASSET_VERSION = "20261023-death-wishes";
   let loadPromise = null;
 
   function loadScript(fileName) {

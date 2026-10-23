@@ -105,8 +105,7 @@
     if (!continuity.ok) fail(continuity.errors.join("／"));
     requirePsychology(args.psychology);
     const raw = getCurrentState(args.stateEntry);
-    // Missing persisted emotions are not evidence of zero affection or trust.
-    // Check every numeric state field before normalizeState can supply defaults.
+    // Validate stored emotions before normalization.
     const critical = policy.requiredPsychologyFields(args.psychology);
     const missing = critical.filter(key => typeof raw[key] !== "number" || !Number.isFinite(raw[key]));
     if (missing.length) {
@@ -252,8 +251,7 @@
     return packet;
   }
 
-  // Exact repository snapshots, used only to replay already authored chapters.
-  // Fresh runTurn/prepareStoryReview always use the current active sources.
+  // Historical sources are replay-only.
   function sourceVariants(args){
     const history=Array.isArray(args?.sourceHistory) ? args.sourceHistory : [];
     return [args,...history.filter(item=>record(item.character) && record(item.behavior) &&
@@ -316,10 +314,24 @@
   function rejectedAssertion(text,index,phrase){
     const tail=text.slice(index+phrase.length).split(/[。！？!?\r\n]/)[0].replace(/^[」』”"\s、,]+/,'').replace(/\s/g,'')
       .replace(/^[、,]?(?:祝われ(?:た|て|る)?|祝(?:っ(?:た|て)|う|い))(?=は?いない|ことはない|ない)/,'');
-    return /^(?:(?:た|る)?(?:の|わけ)ではない|(?:て|で)?(?:は|も)?(?:いない|いなかった|いません|いけない|ならない)|な(?:い|かった|く)|ほしく(?:ない|ありません)|(?:こと|はず)(?:は|も)?ない|(?:[よ良](?:い|かった)|(?:ほ|欲)しい)?と(?:は|も)(?:思(?:わ|ってい)ない|言(?:わ|え)ない|認めない|肯定しない|言わせない)|(?:という)?(?:事実|記録|決定)(?:は|が)ない|(?:という)?(?:結末|こと)にしないで|(?:という)?(?:表現|描写|展開)を(?:使わないで|しないで|やめて)|ことにしないで|確定しないで|な(?:[」』\s]|$))/.test(tail);
+    return /^(?:(?:た|る)?(?:の|わけ)?ではな(?:い|かった)|(?:て|で)?(?:は|も)?(?:いない|いなかった|いません|いけない|ならない)|な(?:い|かった|く)|ほしく(?:ない|ありません)|(?:こと|はず)(?:は|も)?ない|(?:[よ良](?:い|かった)|(?:ほ|欲)しい)?と(?:は|も)(?:思(?:わ|ってい)ない|言(?:わ|え)ない|認めない|肯定しない|言わせない)|(?:という)?(?:事実|記録|決定)(?:は|が)ない|(?:という)?(?:結末|こと)にしないで|(?:という)?(?:表現|描写|展開)を(?:使わないで|しないで|やめて)|ことにしないで|確定しないで|な(?:[」』\s]|$))/.test(tail);
   }
   const deathApproval=/(?:死(?:去)?|死亡|逝去)(?:を|は|が|も)[^。！？!?\r\n]{0,70}?(?:喜(?:ばれ(?:た|て|る)?|ばし(?:い|く)|ば|ん(?:だ|で)|ぶ|び)|祝(?:われ(?:た|て|る)?|わ|っ(?:た|て)|う|い)|晴れ晴れ|清々|せいせい|おめでた(?:い|く)|めでた(?:い|く)|嬉し(?:い|く)|うれし(?:い|く))/g;
   const familyDeathReference=/(?:父|母|祖父|祖母|両親|叔父|叔母|夫)(?:の|(?:は|が)(?:[^はが、,「」]{0,15}[^はが、,「」の])?)$/;
+
+  function prohibitedDeathWish(story){
+    const positive=(text,pattern,family=false)=>[...text.matchAll(pattern)].some(m=>!rejectedAssertion(text,m.index,m[0])&&!(family&&familyDeathReference.test(text.slice(0,m.index)+(m[0].startsWith('の死')?'の':''))));
+    if(positive(story,/死ね(?:よ|ば(?:いい|良い|よい))?(?![るなば])|まだ死なない(?:の|か)|死んで(?:ほしい|欲しい|くれ)/g))return true;
+    const event=/(?:死ぬ|命(?:の灯)?が(?:尽き|消え)(?:る|た)|の死(?!角|闘)|死亡|逝去|身罷られる)/g;
+    for(const m of story.matchAll(/(?:待ち)?望(?:ん(?:だ|で(?:いた)?)|む|ま)|願(?:っ(?:た|て(?:いた)?)|う|わ)|待(?:っ(?:た|て(?:いた)?)|つ|た)/g)){
+      if(rejectedAssertion(story,m.index,m[0]))continue;
+      const before=story.slice(Math.max(0,m.index-160),m.index).split(/[。！？!?「」]/).pop();
+      const tail=story.slice(m.index+m[0].length,m.index+m[0].length+180);
+      const after=/^(?:の|もの|こと)[はがも]/.test(tail)?tail.split(/[。！？!?]/).slice(0,2).join('。'):'';
+      if(positive(before,event,true)||positive(after,event,true))return true;
+    }
+    return false;
+  }
 
   function continuityInput(input) {
     if (typeof input !== "string" || !input.trim()) return { ok: false, requiresClarification: false, errors: ["主人公入力がありません"] };
@@ -328,8 +340,7 @@
     let unresolved = false, reportedConcern = false;
     for (const clauseMatch of clauses) {
       const clause = clauseMatch[0];
-      // A report/question about a previous line is not a new death event.
-      // Check each clause: a quoted question cannot exempt a separate harmful directive.
+      // Inspect reports and directives separately.
       const directives=clause.matchAll(/(?:殺して|殺せ|死なせて|死なせろ|死亡させ|消滅させ|排除して|排除しろ|死んだことにし(?!ない))|(?:死んだ|死亡した|死んで[よ良]かった)[^。！？!?]{0,35}(?:展開にして|結末にして|として保存|と確定|と描写|言わせて|言わせろ)/g);
       const directsHarm=[...directives].some(match=>{
         if(rejectedAssertion(clause,match.index,match[0])){reportedConcern=true;return false;}
@@ -339,8 +350,7 @@
       const factualConcerns = [...clause.matchAll(concerns),...clause.matchAll(deathApproval)].filter(match => {
         if(rejectedAssertion(clause,match.index,match[0])){reportedConcern=true;return false;}
         if(familyDeathReference.test(clause.slice(0,match.index)))return false;
-        // Her own anger is not evidence that the man hates her. Keep the
-        // original input, and do not stop a reply merely for this declaration.
+        // Her hostility does not establish his.
         if (/嫌い/.test(match[0]) && /(?:私|わたし|主人公)(?:は|が)[^。！？!?]{0,20}(?:あなた|貴方|お前|相手|彼)(?:が|のことが)(?:大)?嫌い|^[「『\s]*(?:最初から)?(?:あなた|貴方|お前|恋愛相手)(?:が|のことが)(?:大)?嫌い/.test(clause)) {
           reportedConcern = true;return false;
         }
@@ -403,8 +413,7 @@
       typeof name==='string' ? name.trim().split(/[・\s]/)[0] : null]
       .filter(value=>typeof value==='string' && value.trim()).map(value=>value.trim()))];
   }
-  // This is a separate check of current protagonist acts and proxy decisions.
-  // A generic semantic "pass" cannot override missing source evidence.
+  // Proxy decisions require current-input evidence.
   function validateProtagonistAgency(args, story, storyActions = {}){
     const errors = [], claims = storyActions.protagonistClaims || [];
     const names = protagonistNames(args);
@@ -517,9 +526,7 @@
     return false;
   }
 
-  // Family/care interactions remain possible, but cannot satisfy romance.
-  // Metadata is checked against the story; meaning and relationships must also
-  // be checked against the selected character, profile and world settings.
+  // Care alone is not romance; review meaning against canon.
   function validateRomanceProgress(args, story, storyActions = {}) {
     if (typeof story !== "string" || !story.trim()) {
       return {ok: false, required: false, errors: ["本文が空です"], requiresSemanticReview: true};
@@ -527,8 +534,7 @@
     const records = args && Array.isArray(args.records) ? args.records : [];
     const input = args && args.protagonistInput || "";
     const recent = records.slice(-2);
-    // Historical receipts are replayed with their original applicability rules.
-    // Current generation cannot release a legacy receipt (see releaseStory).
+    // Replay old receipts under their original rules.
     const legacyReview = storyActions?.semanticReview?.version === 1;
     const historicalReview = [1,2].includes(storyActions?.semanticReview?.version);
     const pause = legacyReview ? /(?:一人にして|もう来ないで|連絡しないで|話しかけないで|退出して|恋愛を(?:止め|休|進めない))/.test(input) : explicitRomancePause(input);
@@ -576,8 +582,7 @@
     return {ok: errors.length === 0, required, errors, requiresSemanticReview: true};
   }
 
-  // Evidence checks for support scenes. Whether the outcome addresses the
-  // protagonist's problem still requires review of the actual story's meaning.
+  // Verify support evidence; meaning still needs review.
   function validateSupportProgress(args, story, storyActions = {}) {
     if (typeof story !== "string" || !story.trim()) {
       return { ok: false, required: false, errors: ["本文が空です"], requiresSemanticReview: true };
@@ -636,10 +641,7 @@
     return { ok: errors.length === 0, required, errors, requiresSemanticReview: true };
   }
 
-  // Conservative phrase checks, not a substitute for semantic review.
-  // This also works for scenes without a selected romance partner.
-  // All new chapters share this check, including turns without psychology.
-  // Use UTC only for calendar arithmetic; never infer fictional weather/time from now.
+  // All chapter headers are checked; UTC is only calendar arithmetic.
   function validateChapterHeader(story) {
     const errors = [];
     const lines = typeof story === 'string' ? story.trim().split(/\r?\n/) : [];
@@ -673,6 +675,7 @@
     errors.push(...inputCheck.errors,...agencyCheck.errors);
     const names = protagonistNames(args);
     const namesIn = text => names.some(name => text.includes(name));
+    if(prohibitedDeathWish(story))errors.push('主人公への死亡願望を描写しています。死亡未確定でも許可せず、保護方針に沿って本文を修正してください。');
     const sentences = story.matchAll(/[^。\r\n]+/g);
     for (const sentenceMatch of sentences) {
       const sentence = sentenceMatch[0].trim();if (!sentence) continue;
@@ -721,8 +724,7 @@
       semanticReview:{ok:semanticReview.ok,binding:semanticReview.binding} };
   }
 
-  // Keep the measured replay result beside the unchanged validation contract.
-  // Callers do not need to run verifyTurn again merely to retain its receipt.
+  // Retain the measured replay receipt.
   function inspectStory(args, packet, story, storyActions = {}) {
     const verified = verifyTurn(args, packet);
     const continuity = validateContinuity(args, story, storyActions);

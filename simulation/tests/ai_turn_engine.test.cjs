@@ -275,7 +275,12 @@ function test() {
   const header="Chapter 6\n都・庭／2026年10月21日（水）／16:00／17℃\n\n";
   for(const input of nonFactualInputs){
     const checked=engine.validateContinuity({protagonistProfile:{name:'主人公'}},header+input);
-    assert.equal(checked.mechanicalOk,true,'本文も未発生の死と確定した出来事を区別する：'+input);
+    const wishesDeath=/待ち望|まち望/.test(input);
+    assert.equal(checked.mechanicalOk,!wishesDeath,'未発生の死は死亡確定ではないが、死亡願望の本文は許可しない：'+input);
+    if(wishesDeath){
+      assert.ok(checked.errors.some(error=>/死亡願望/.test(error)));
+      assert.ok(!checked.errors.some(error=>/死亡・消滅・存在否定を確定/.test(error)),'a prohibited wish must not be mislabeled as actual death');
+    }
     assert.equal(checked.ok,false,'機械判定だけで本文を検証済みにしない');
   }
   for(const input of factualInputs.filter(input=>!input.includes('殺して')))assert.equal(engine.validateContinuity({protagonistProfile:{name:'主人公'}},header+input).mechanicalOk,false,input);

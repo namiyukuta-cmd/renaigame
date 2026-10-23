@@ -31,7 +31,7 @@
     "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261021-char024-higekuro";
+  const CHARACTER_ASSET_VERSION = "20261023-source-cache";
   let loadPromise = null;
 
   function loadScript(fileName) {

@@ -249,6 +249,8 @@ async function checkLoader(incomplete){
       return {dataset:{},addEventListener(event,callback){listeners[event]=callback;},listeners};
     },
     head:{appendChild(script){
+      const assetVersion=read('simulation/simulation_new.html').match(/simulation_characters\.js\?v=([^"\s]+)/)?.[1];
+      assert.ok(assetVersion&&script.src.endsWith('?v='+assetVersion),'the page and every character request use the same current cache revision');
       scripts.set(script.dataset.simulationCharacter,script);
       let source=read("simulation/"+script.src.split("?")[0]);
       if(incomplete===true && script.dataset.simulationCharacter==="simulation_character_008.js") source=source.replace('"time": "17:40"','"time": null');

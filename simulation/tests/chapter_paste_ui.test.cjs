@@ -34,10 +34,11 @@ class Element {
 }
 async function main() {
   let dialog, prepared = 0, committed = 0, lastData;
+  const loadedScripts=[];
   const document = {
     createElement: tag => new Element(tag),
     body: { appendChild(el) { dialog = el; } },
-    head: { appendChild(script) { queueMicrotask(() => script.onload()); } }
+    head: { appendChild(script) { loadedScripts.push(script.src);queueMicrotask(() => script.onload()); } }
   };
   const api = {
     assertChapterBundleV2() { return true; },
@@ -77,6 +78,8 @@ async function main() {
   paste.value = ['```json','{"version":2,"characterId":"char_017","chapter":5}','```'].join('\n');
   await check.onclick();
   assert.equal(prepared,1);
+  const assetVersion=html.match(/simulation_characters\.js\?v=([^"\s]+)/)?.[1];
+  assert.ok(assetVersion&&loadedScripts.includes('js/simulation_character_017_behavior.js?v='+assetVersion),'behavior replay must use the same current revision as character loading');
   assert.equal(lastData.chapter,5);
   assert.equal(committed,0,'checking does not write to GitHub');
   assert.equal(save.disabled,false);

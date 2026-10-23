@@ -131,6 +131,7 @@
       const policy=scope.RenaiGamePolicy,stage=policy.stages.find(item=>item.id===packet.after.stage);
       return {packet,verification,context:clone(context),generationDirection:{
         protagonistCare:policy.storyDirection.protagonistCare,
+        requestScope:policy.storyDirection.requestScope,
         objective:policy.storyDirection.turnInstruction,psychologyUse:policy.storyDirection.expressionRule,
         sourcePriority:policy.storyDirection.sourcePriority,
         stage:clone(stage || policy.stages[0])

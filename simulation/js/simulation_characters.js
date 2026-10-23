@@ -31,7 +31,7 @@
     "simulation_character_018.js"
   ];
 
-  const CHARACTER_ASSET_VERSION = "20261023-protagonist-care";
+  const CHARACTER_ASSET_VERSION = "20261023-request-scope";
   let loadPromise = null;
 
   function loadScript(fileName) {

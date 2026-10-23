@@ -30,11 +30,11 @@
         const raw = source.trim();
         const fence = /^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i.exec(raw);
         const data = JSON.parse(fence ? fence[1] : raw);
-        if(!window.RenaiGamePolicy) await loadScript('../js/renaigame_policy.js?v=20261023-protagonist-care');
+        if(!window.RenaiGamePolicy) await loadScript('../js/renaigame_policy.js?v=20261023-request-scope');
         // Reload stale import code before using the strict standard v2 check.
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
-          await loadScript('js/simulation_save.js?v=20261023-protagonist-care');
+          await loadScript('js/simulation_save.js?v=20261023-request-scope');
         }
         if(data.characterId != null && data.version === 2 &&
            typeof window.RenaiGameSave?.assertChapterBundleV2 !== 'function'){
@@ -43,9 +43,9 @@
         if(data.characterId != null && !/^char_\d{3}$/.test(data.characterId || '')) throw new Error('恋愛相手IDがありません。');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') await loadScript('js/character_settings_validator.js?v=20261015-validator-bootstrap-v2');
         if(!window.RenaiGameCharacterSettings || typeof window.RenaiGameCharacterSettings.inspect !== 'function') throw new Error('人物設定の検証JSが有効になっていません。最新版のゲーム画面を開いてください。');
-        if(!window.RenaiGameTurnEngine || window.RenaiGameTurnEngine.policy !== window.RenaiGamePolicy) await loadScript('js/ai_turn_engine.js?v=20261023-protagonist-care');
+        if(!window.RenaiGameTurnEngine || window.RenaiGameTurnEngine.policy !== window.RenaiGamePolicy) await loadScript('js/ai_turn_engine.js?v=20261023-request-scope');
         if(!window.RenaiGameTurnEngine || typeof window.RenaiGameTurnEngine.verifyTurn !== 'function') throw new Error('心理JSの実行器が有効になっていません。最新版のゲーム画面を開いてください。');
-        if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js?v=20261023-protagonist-care')]);
+        if(data.characterId != null) await Promise.all([loadScript('../js/renaigame_psychology_parameters.js'), loadScript('js/simulation_character_' + data.characterId.slice(5) + '_behavior.js?v=20261023-request-scope')]);
         if(!window.RenaiGameCharacters?.getById(data.characterId)) await window.RenaiGameCharacters?.loadAll();
         const result = await RenaiGameSave.prepareChapterImport(data);
         if(current !== request || active !== dialog) return;

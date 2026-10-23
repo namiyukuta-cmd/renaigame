@@ -32,6 +32,18 @@ function check(scope,args,packet,save,character){
     assert.ok(prompt.includes(p.storyDirection.expressionRule),'restraint controls expression, not whether romance is allowed');
     assert.ok(prompt.includes(p.storyDirection.sourcePriority),'character-specific vetoes cannot reverse the shared romance direction');
   }
+  const requestScope=p.storyDirection.requestScope;
+  assert.equal(typeof requestScope,'string','the shared contract must distinguish a chapter request from rules, complaints and diagnostics');
+  const ruleOnly='Chapter 2\n規則を確認してください。物語は書かないでください。';
+  for(const prompt of [
+    scope.RenaiGameHandoff.buildPrompt({character,profile:save.state.profile,saveId:save.saveId,protagonistInput:ruleOnly}),
+    scope.RenaiGameLite.buildPrompt(save,ruleOnly,scope.RenaiGameSave)
+  ]){
+    assert.ok(prompt.includes(ruleOnly),'a non-story request remains unchanged');
+    assert.ok(prompt.indexOf(requestScope)>=0 && prompt.indexOf(requestScope)<prompt.indexOf(ruleOnly),'request scope precedes the original input in both handoffs');
+    assert.ok(!prompt.includes('心理変化・JS実行・検証を行いChapter本文を生成してください。'),'a nonempty field does not unconditionally authorize a chapter');
+    assert.ok(!prompt.includes('実際の心理JS実行、推敲、意味確認と本文検証を終えた本文を返してください。'),'lite handoff does not override the request with an unconditional story command');
+  }
   const actor=character?.name||'青年',approach=actor+'は、自分から声をかけた。',intent='「あなたと話せるのを楽しみにしていました」';
   const good=sceneHeader+approach+'\n'+intent;
   const declarations=romantic(args,approach,intent,actor);
@@ -65,6 +77,7 @@ for(const characterId of registry){
   const input={protagonistInput:unnamed.protagonistInput,changes:{},evidence:{}};
   const run=runner.runTurn(input),args=runner.buildArgs(input);
   assert.equal(run.generationDirection.protagonistCare,runner.scope.RenaiGamePolicy.storyDirection.protagonistCare,'every selected partner receives the same protection before drafting');
+  assert.equal(run.generationDirection.requestScope,runner.scope.RenaiGamePolicy.storyDirection.requestScope,'a calculated packet is not independent authorization to write a chapter');
   check(runner.scope,args,run.packet,save,args.character);
   const continued=copy(save);
   continued.state.session.recordsByCharacter[characterId]=[{scene:'Chapter 1',date:'2026年10月22日（木）',protagonist:input.protagonistInput,partner:header+args.character.name+'は話を聞きたいと伝えた。'}];

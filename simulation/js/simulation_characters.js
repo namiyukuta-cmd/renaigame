@@ -6,6 +6,7 @@
   // 攻略対象を追加するときは、個別JSを作成してここに1行追加する。
   // HTML側は変更しなくてよい。各個別JSは window.SimulationCharacters に自己登録する。
   const CHARACTER_SCRIPTS = [
+    "simulation_character_026.js",
     "simulation_character_025.js",
     "simulation_character_001.js",
     "simulation_character_002.js",
